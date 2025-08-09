@@ -1,0 +1,24 @@
+# Bun configuration for KODAMA Claude
+
+[install]
+# Prefer offline cache
+prefer-offline = true
+
+# Faster installs
+lockfile = true
+
+[install.cache]
+# Cache directory
+dir = "~/.bun/install/cache"
+
+# Disable cache for CI
+disable = false
+
+[test]
+# Test configuration
+coverage = true
+coverageReporter = ["text", "lcov"]
+
+[run]
+# Silent by default
+silent = false

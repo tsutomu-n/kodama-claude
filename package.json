@@ -20,10 +20,22 @@
     "cli",
     "memory",
     "dialogue",
-    "kodama"
+    "kodama",
+    "ai",
+    "assistant",
+    "context",
+    "persistence"
   ],
   "author": "kodama-cli",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kodama-cli/kodama-claude.git"
+  },
+  "bugs": {
+    "url": "https://github.com/kodama-cli/kodama-claude/issues"
+  },
+  "homepage": "https://github.com/kodama-cli/kodama-claude#readme",
   "dependencies": {
     "commander": "^11.1.0",
     "zod": "^3.22.4"
