@@ -1,6 +1,6 @@
 #!/bin/bash
 # KODAMA Claude - One-liner installation script
-# Usage: curl -fsSL https://github.com/kodama-cli/kodama-claude/releases/latest/download/install.sh | bash
+# Usage: curl -fsSL https://github.com/tsutomu-n/kodama-claude/releases/latest/download/install.sh | bash
 
 set -e
 
@@ -11,7 +11,7 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # Configuration
-REPO="kodama-cli/kodama-claude"
+REPO="tsutomu-n/kodama-claude"
 INSTALL_DIR="/usr/local/bin"
 BINARY_NAME="kc"
 

@@ -13,7 +13,7 @@ KODAMA Claude is a lightweight tool that solves one specific problem: **Claude C
 ### One-liner Installation (Ubuntu/WSL)
 
 ```bash
-curl -fsSL https://github.com/kodama-cli/kodama-claude/releases/latest/download/install.sh | bash
+curl -fsSL https://github.com/tsutomu-n/kodama-claude/releases/latest/download/install.sh | bash
 ```
 
 ### Manual Installation
@@ -158,7 +158,7 @@ Requirements:
 
 ```bash
 # Clone repository
-git clone https://github.com/kodama-cli/kodama-claude
+git clone https://github.com/tsutomu-n/kodama-claude
 cd kodama-claude
 
 # Install dependencies

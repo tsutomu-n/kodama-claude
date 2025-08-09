@@ -30,12 +30,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/kodama-cli/kodama-claude.git"
+    "url": "https://github.com/tsutomu-n/kodama-claude.git"
   },
   "bugs": {
-    "url": "https://github.com/kodama-cli/kodama-claude/issues"
+    "url": "https://github.com/tsutomu-n/kodama-claude/issues"
   },
-  "homepage": "https://github.com/kodama-cli/kodama-claude#readme",
+  "homepage": "https://github.com/tsutomu-n/kodama-claude#readme",
   "dependencies": {
     "commander": "^11.1.0",
     "zod": "^3.22.4"

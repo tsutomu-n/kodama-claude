@@ -25,9 +25,9 @@ read
 
 # Add remote
 echo "Adding GitHub remote..."
-git remote add origin https://github.com/kodama-cli/kodama-claude.git 2>/dev/null || {
+git remote add origin https://github.com/tsutomu-n/kodama-claude.git 2>/dev/null || {
     echo "Remote already exists, updating..."
-    git remote set-url origin https://github.com/kodama-cli/kodama-claude.git
+    git remote set-url origin https://github.com/tsutomu-n/kodama-claude.git
 }
 
 # Push main branch
@@ -44,10 +44,10 @@ echo ""
 echo "✅ Published to GitHub!"
 echo ""
 echo "Next steps:"
-echo "1. Go to https://github.com/kodama-cli/kodama-claude/releases"
+echo "1. Go to https://github.com/tsutomu-n/kodama-claude/releases"
 echo "2. GitHub Actions will build and attach binaries"
 echo "3. Edit release notes if needed"
 echo "4. Share with the community!"
 echo ""
 echo "Installation one-liner will work after release:"
-echo "curl -fsSL https://github.com/kodama-cli/kodama-claude/releases/latest/download/install.sh | bash"
+echo "curl -fsSL https://github.com/tsutomu-n/kodama-claude/releases/latest/download/install.sh | bash"
