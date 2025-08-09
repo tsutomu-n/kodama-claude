@@ -1,0 +1,40 @@
+{
+  "name": "@kodama/claude",
+  "version": "0.1.0",
+  "description": "Minimal Claude Code CLI extension for persistent dialogue memory",
+  "main": "dist/index.js",
+  "bin": {
+    "kc": "./bin/kc.ts"
+  },
+  "scripts": {
+    "dev": "bun run bin/kc.ts",
+    "build": "bun build ./bin/kc.ts --compile --target=bun-linux-x64-baseline --outfile dist/kc-linux-x64",
+    "build:arm": "bun build ./bin/kc.ts --compile --target=bun-linux-arm64 --outfile dist/kc-linux-arm64",
+    "build:all": "bun run build && bun run build:arm",
+    "test": "bun test",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write ."
+  },
+  "keywords": [
+    "claude",
+    "cli",
+    "memory",
+    "dialogue",
+    "kodama"
+  ],
+  "author": "kodama-cli",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^11.1.0",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.0.0",
+    "@types/node": "^20.10.0",
+    "prettier": "^3.1.0",
+    "typescript": "^5.3.0"
+  },
+  "engines": {
+    "bun": ">=1.0.0"
+  }
+}
