@@ -14,35 +14,51 @@ Configure KODAMA Claude to work exactly how you want.
 
 ## Environment Variables
 
-### Claude API Configuration
+### Claude Code Configuration
 
-KODAMA Claude uses Claude CLI, which needs these variables:
+KODAMA Claude works with Claude Code CLI, which uses OAuth authentication:
 
 ```bash
-# Required: Your API key
-export ANTHROPIC_API_KEY="sk-ant-api03-xxxxx"
+# Claude Code uses OAuth, not API keys
+# Authentication is handled via browser on first run
+claude
 
-# Optional: API endpoint (for proxies/gateways)
-export ANTHROPIC_API_URL="https://api.anthropic.com"
+# Optional: Skip permission prompts (use with caution)
+claude --dangerously-skip-permissions
 
-# Optional: Default model
-export CLAUDE_MODEL="claude-3-opus-20240229"
-
-# Optional: Session timeout (seconds)
-export CLAUDE_SESSION_TIMEOUT="3600"
+# Optional: Specify model
+claude --model claude-sonnet-4-20250514
 ```
 
-**Setting permanently** (add to `~/.bashrc` or `~/.zshrc`):
+**Note**: Claude Code stores authentication in your system's credential manager, not environment variables.
+
+### Language Settings (i18n)
+
+KODAMA Claude supports multiple languages for messages and prompts:
 
 ```bash
-# Add to shell config
-echo 'export ANTHROPIC_API_KEY="sk-ant-api03-xxxxx"' >> ~/.bashrc
+# Set language to Japanese
+export KODAMA_LANG=ja
 
-# Reload config
+# Set language to English (default)
+export KODAMA_LANG=en
+
+# Language detection priority:
+# 1. KODAMA_LANG environment variable
+# 2. LANG environment variable
+# 3. LC_ALL environment variable
+# 4. Default to English
+```
+
+**Supported Languages**:
+- `en` - English (default)
+- `ja` - Japanese (日本語)
+
+**Setting permanently**:
+```bash
+# Add to ~/.bashrc or ~/.zshrc
+echo 'export KODAMA_LANG=ja' >> ~/.bashrc
 source ~/.bashrc
-
-# Verify it works
-echo $ANTHROPIC_API_KEY
 ```
 
 ### KODAMA-Specific Variables

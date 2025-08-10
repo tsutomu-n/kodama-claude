@@ -870,56 +870,65 @@ class PerformanceMonitor {
 3. **No eval/dynamic code**: Static TypeScript only
 4. **Input validation**: All user input sanitized
 5. **Path traversal prevention**: Resolved paths only
+6. **Command injection prevention**: Use execFileSync instead of execSync
+7. **Environment variable validation**: Check required variables exist
 
-### Input Sanitization
+### Security Enhancements
+
+#### Command Injection Prevention
+
+**Problem**: Using `execSync` with string concatenation can lead to command injection.
+
+**Solution**: Use `execFileSync` with argument arrays:
 
 ```typescript
-class SecurityValidator {
-    sanitizePath(input: string): string {
-        // Resolve to absolute
-        const resolved = path.resolve(input);
-        
-        // Must be under data dir
-        if (!resolved.startsWith(this.dataDir)) {
-            throw new Error('Path traversal detected');
-        }
-        
-        return resolved;
+// UNSAFE - vulnerable to command injection
+const dfOutput = execSync("df -h " + paths.data);
+
+// SAFE - arguments are properly escaped
+const dfOutput = execFileSync("df", ["-h", paths.data]);
+```
+
+#### Path Traversal Protection
+
+**Problem**: User-supplied IDs could contain path traversal sequences.
+
+**Solution**: Validate IDs before file operations:
+
+```typescript
+loadSnapshot(id: string): Snapshot | null {
+    // Validate ID to prevent path traversal
+    if (!id || id.includes('..') || id.includes('/') || id.includes('\\')) {
+        return null;
     }
     
-    sanitizeTitle(input: string): string {
-        // Remove control characters
-        let safe = input.replace(/[\x00-\x1F\x7F]/g, '');
-        
-        // Limit length
-        safe = safe.substring(0, 200);
-        
-        // Remove file system special chars
-        safe = safe.replace(/[<>:"/\\|?*]/g, '-');
-        
-        return safe;
+    const path = join(this.paths.snapshots, `${id}.json`);
+    // ... rest of implementation
+}
+```
+
+#### Environment Variable Validation
+
+**Problem**: Missing required environment variables can cause crashes.
+
+**Solution**: Check and validate at startup:
+
+```typescript
+export function getStoragePaths() {
+    const home = process.env.HOME;
+    if (!home) {
+        throw new Error("HOME environment variable is not set");
     }
     
-    validateSnapshot(data: any): void {
-        // Check structure
-        if (typeof data !== 'object') {
-            throw new Error('Invalid snapshot structure');
-        }
-        
-        // Validate required fields
-        const required = ['version', 'id', 'timestamp'];
-        for (const field of required) {
-            if (!data[field]) {
-                throw new Error(`Missing required field: ${field}`);
-            }
-        }
-        
-        // Check for injection attempts
-        const json = JSON.stringify(data);
-        if (json.includes('__proto__') || json.includes('constructor')) {
-            throw new Error('Potential prototype pollution');
-        }
-    }
+    // Use XDG spec with fallbacks
+    const xdgData = process.env.XDG_DATA_HOME || `${home}/.local/share`;
+    const xdgConfig = process.env.XDG_CONFIG_HOME || `${home}/.config`;
+    
+    return {
+        data: `${xdgData}/kodama-claude`,
+        config: `${xdgConfig}/kodama-claude`,
+        // ...
+    };
 }
 ```
 

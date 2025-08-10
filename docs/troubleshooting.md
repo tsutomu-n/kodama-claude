@@ -143,52 +143,55 @@ claude --version
 
 **Solution**:
 ```bash
-# Install Claude CLI (check official docs for latest)
-# Example installation:
-npm install -g @anthropic-ai/claude-cli
-# or
-pip install claude-cli
+# Install Claude Code CLI (official method)
+npm install -g @anthropic-ai/claude-code
+
+# Verify installation
+claude --version
 ```
 
-### Problem: "API key not set"
+### Problem: "Claude Code authentication required"
 
 **Symptoms**:
 ```
-Error: Missing ANTHROPIC_API_KEY environment variable
+Error: Not authenticated. Please run 'claude' to authenticate.
 ```
 
 **Solution**:
 ```bash
-# Set temporarily
-export ANTHROPIC_API_KEY="sk-ant-api03-xxxxx"
+# First time setup - Claude Code uses OAuth authentication
+claude
 
-# Set permanently
-echo 'export ANTHROPIC_API_KEY="sk-ant-api03-xxxxx"' >> ~/.bashrc
-source ~/.bashrc
+# Follow the prompts to:
+# 1. Open browser for authentication
+# 2. Login with Claude.ai account or Anthropic Console
+# 3. Authorize Claude Code access
 
-# Verify
-echo $ANTHROPIC_API_KEY
+# Verify authentication
+claude --version
 ```
 
-### Problem: "Invalid API key"
+**Note**: Claude Code uses OAuth authentication, not API keys directly. The authentication is stored in your system's credential manager.
 
-**Diagnosis**:
+### Problem: "Claude Code session expired"
+
+**Symptoms**:
+```
+Error: Authentication expired. Please re-authenticate.
+```
+
+**Solution**:
 ```bash
-# Test API key directly
-curl https://api.anthropic.com/v1/messages \
-  -H "x-api-key: $ANTHROPIC_API_KEY" \
-  -H "anthropic-version: 2023-06-01" \
-  -H "content-type: application/json" \
-  -d '{"model":"claude-3-haiku-20240307","max_tokens":10,"messages":[{"role":"user","content":"Hi"}]}'
+# Re-authenticate
+claude --auth
+
+# Or simply run claude and it will prompt if needed
+claude
 ```
 
-**Solutions**:
-1. Check for typos in key
-2. Verify key starts with `sk-ant-`
-3. Check key hasn't expired
-4. Generate new key at https://console.anthropic.com
+**Note**: Claude Code sessions may expire after extended periods. Re-authentication is quick and preserves your settings.
 
-### Problem: Claude CLI hangs or times out
+### Problem: Claude Code hangs or times out
 
 **Diagnosis**:
 ```bash

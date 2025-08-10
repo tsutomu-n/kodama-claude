@@ -41,10 +41,8 @@ These options work with all commands:
 | Option | Description | Example |
 |--------|-------------|---------|
 | `--help`, `-h` | Show help message | `kc --help` |
-| `--version`, `-v` | Show version | `kc --version` |
-| `--debug` | Enable debug output | `kc --debug go` |
-| `--quiet`, `-q` | Suppress output | `kc -q snap` |
-| `--config <file>` | Use custom config | `kc --config ~/my.conf go` |
+| `--version`, `-V` | Show version | `kc --version` |
+| `--debug`, `-d` | Enable debug output | `kc --debug go` |
 
 ## Commands
 
@@ -62,20 +60,17 @@ kc go [options]
 
 | Option | Type | Description | Default |
 |--------|------|-------------|---------|
-| `-t, --title <text>` | string | Title for this session | Auto-generated |
-| `-s, --step <step>` | enum | Current work phase | Previous or "implementing" |
-| `--no-save` | flag | Don't save snapshot after | false |
-| `--fresh` | flag | Start without loading context | false |
-| `--snapshot <id>` | string | Load specific snapshot | latest |
+| `-t, --title <text>` | string | Session title | Previous title or prompt |
+| `-s, --step <step>` | enum | Workflow step (requirements/designing/implementing/testing) | Previous step |
 
 #### Steps (for `-s, --step`)
 
 | Step | Description | When to use |
 |------|-------------|-------------|
+| `requirements` | Gathering requirements | Understanding what to build |
 | `designing` | Planning and architecture | Starting new feature |
 | `implementing` | Writing code | Building functionality |
 | `testing` | Testing and debugging | Verifying code works |
-| `done` | Completed | Feature is finished |
 
 #### Examples
 
@@ -89,14 +84,8 @@ kc go -t "Fix login bug"
 # At specific step
 kc go -s testing
 
-# Fresh start (no context)
-kc go --fresh
-
-# Load specific snapshot
-kc go --snapshot a1b2c3d4
-
-# Don't save after session
-kc go --no-save
+# With both title and step
+kc go -t "API development" -s implementing
 ```
 
 #### Behavior
@@ -385,6 +374,15 @@ All systems operational!
 }
 ```
 
+## Environment Variables
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `KODAMA_LANG` | Set language for messages (ja/en) | `export KODAMA_LANG=ja` |
+| `HOME` | Required for storage paths | System default |
+| `XDG_DATA_HOME` | Override data directory | `~/.local/share` |
+| `XDG_CONFIG_HOME` | Override config directory | `~/.config` |
+
 ## Exit Codes
 
 KODAMA uses standard exit codes:
@@ -421,42 +419,6 @@ fi
 
 # One-liner
 kc snap && echo "Saved" || echo "Failed"
-```
-
-## Environment Variables
-
-### Required
-
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `ANTHROPIC_API_KEY` | Claude API key | `sk-ant-api03-xxxxx` |
-
-### Optional
-
-| Variable | Description | Default | Example |
-|----------|-------------|---------|---------|
-| `KODAMA_DATA_DIR` | Storage location | `~/.local/share/kodama-claude` | `/data/kodama` |
-| `KODAMA_EDITOR` | Editor for snapshots | System default | `vim` |
-| `KODAMA_DEBUG` | Debug output | `0` | `1` |
-| `KODAMA_QUIET` | Suppress output | `0` | `1` |
-| `KODAMA_COLORS` | Enable colors | `1` | `0` |
-| `NO_COLOR` | Disable colors (standard) | unset | `1` |
-| `CLAUDE_CLI_PATH` | Claude binary path | `claude` | `/opt/claude/bin/claude` |
-| `CLAUDE_MODEL` | Default model | Provider default | `claude-3-opus-20240229` |
-| `CLAUDE_SESSION_TIMEOUT` | Session timeout (seconds) | `3600` | `7200` |
-
-### Setting Variables
-
-```bash
-# Temporary (current session)
-export KODAMA_DEBUG=1
-
-# Permanent (bash)
-echo 'export KODAMA_DATA_DIR="/data/kodama"' >> ~/.bashrc
-source ~/.bashrc
-
-# Per-command
-KODAMA_DEBUG=1 kc doctor
 ```
 
 ## File Formats
