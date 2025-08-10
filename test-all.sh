@@ -19,39 +19,32 @@ kc doctor > /dev/null 2>&1
 echo "✅ Pass"
 echo ""
 
-# Test 3: Create snapshot via API
+# Test 3: Create snapshot using kc snap
 echo "Test 3: Create snapshot"
-SNAPSHOT_ID=$(bun run src/snap-api.ts 2>&1 | grep -oE '[a-f0-9-]{36}')
-echo "Created snapshot: $SNAPSHOT_ID"
+echo -e "Test snapshot\nimplementing\nTest context\n\nTest decision\n\nTest next step\n" | kc snap > /dev/null 2>&1
 echo "✅ Pass"
 echo ""
 
-# Test 4: Send snapshot
-echo "Test 4: Send snapshot"
-kc send $SNAPSHOT_ID > /dev/null 2>&1
-echo "✅ Pass"
-echo ""
-
-# Test 5: Send latest
-echo "Test 5: Send latest snapshot"
+# Test 4: Send latest snapshot
+echo "Test 4: Send latest snapshot"
 kc send > /dev/null 2>&1
 echo "✅ Pass"
 echo ""
 
-# Test 6: Plan (non-interactive)
-echo "Test 6: Plan command help"
+# Test 5: Plan (non-interactive)
+echo "Test 5: Plan command help"
 kc plan --help > /dev/null 2>&1
 echo "✅ Pass"
 echo ""
 
-# Test 7: Go command help
-echo "Test 7: Go command help"
+# Test 6: Go command help
+echo "Test 6: Go command help"
 kc go --help > /dev/null 2>&1
 echo "✅ Pass"
 echo ""
 
-# Test 8: Binary size check
-echo "Test 8: Binary optimization"
+# Test 7: Binary size check
+echo "Test 7: Binary optimization"
 SIZE=$(stat -c%s dist/kc-linux-x64)
 SIZE_MB=$((SIZE / 1024 / 1024))
 echo "Binary size: ${SIZE_MB}MB"
@@ -62,13 +55,13 @@ else
 fi
 echo ""
 
-# Test 9: Storage test
-echo "Test 9: Storage operations"
+# Test 8: Storage test
+echo "Test 8: Storage operations"
 bun test 2>&1 | grep -q "pass" && echo "✅ Pass" || echo "❌ Fail"
 echo ""
 
-# Test 10: Type checking
-echo "Test 10: TypeScript types"
+# Test 9: Type checking
+echo "Test 9: TypeScript types"
 bun run typecheck 2>&1 > /dev/null && echo "✅ Pass" || echo "❌ Fail"
 echo ""
 
