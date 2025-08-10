@@ -376,12 +376,37 @@ All systems operational!
 
 ## Environment Variables
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `KODAMA_LANG` | Set language for messages (ja/en) | `export KODAMA_LANG=ja` |
-| `HOME` | Required for storage paths | System default |
-| `XDG_DATA_HOME` | Override data directory | `~/.local/share` |
-| `XDG_CONFIG_HOME` | Override config directory | `~/.config` |
+### Core Variables
+
+| Variable | Description | Default | Example |
+|----------|-------------|---------|---------|
+| `KODAMA_LANG` | Set language for messages (ja/en) | `en` | `export KODAMA_LANG=ja` |
+| `HOME` | Required for storage paths | System | System default |
+| `XDG_DATA_HOME` | Override data directory | `~/.local/share` | `export XDG_DATA_HOME=/custom/data` |
+| `XDG_CONFIG_HOME` | Override config directory | `~/.config` | `export XDG_CONFIG_HOME=/custom/config` |
+| `KODAMA_DEBUG` | Enable debug output | `false` | `export KODAMA_DEBUG=true` |
+
+### Smart Context Management (v0.2.0+)
+
+| Variable | Description | Default | Example |
+|----------|-------------|---------|---------|
+| `KODAMA_NO_LIMIT` | Show all decisions (no 5-decision limit) | `false` (limit enabled) | `export KODAMA_NO_LIMIT=true` |
+| `KODAMA_AUTO_ARCHIVE` | Enable automatic archiving (30 days) | `true` (enabled) | `export KODAMA_AUTO_ARCHIVE=false` |
+| `KODAMA_CLAUDE_SYNC` | Enable CLAUDE.md auto-update | `false` (disabled) | `export KODAMA_CLAUDE_SYNC=true` |
+
+**Details:**
+- **KODAMA_NO_LIMIT**: 
+  - `false` (default): Shows only the latest 5 decisions to reduce cognitive load
+  - `true`: Shows all decisions without limit
+  - Full history is always preserved in storage files
+- **KODAMA_AUTO_ARCHIVE**: 
+  - `true` (default): Automatically archives snapshots older than 30 days during `kc snap`, `kc go`, or `kc plan` execution
+  - `false`: Disables automatic archiving
+  - Archived files are moved to `~/.local/share/kodama-claude/snapshots/archive/`
+- **KODAMA_CLAUDE_SYNC**: 
+  - `false` (default): CLAUDE.md is not updated automatically
+  - `true`: Updates CLAUDE.md file with latest context after each command
+  - Requires KODAMA markers (`<!-- KODAMA:START -->` and `<!-- KODAMA:END -->`) in the file
 
 ## Exit Codes
 

@@ -4,6 +4,7 @@
 
 import { randomUUID } from "crypto";
 import { Storage } from "./storage";
+import { ClaudeMdManager } from "./claudeMdManager";
 import { getMessage, formatError } from "./i18n";
 import { getGitBranch, getGitCommit } from "./utils/git";
 import type { Snapshot } from "./types";
@@ -134,6 +135,18 @@ export async function planCommand(options: PlanOptions) {
     
     // Save snapshot
     storage.saveSnapshot(snapshot);
+    
+    // Archive old snapshots automatically
+    if (process.env.KODAMA_AUTO_ARCHIVE !== 'false') {
+      const archived = storage.archiveOldSnapshots();
+      if (archived > 0 && process.env.KODAMA_DEBUG) {
+        console.log(`\n♻️  Archived ${archived} old snapshot(s)`);
+      }
+    }
+    
+    // Update CLAUDE.md if enabled
+    const claudeMd = new ClaudeMdManager();
+    claudeMd.updateSection(snapshot);
     
     console.log("\n" + getMessage("planCreated", snapshot.id));
     console.log("📦 ID:", snapshot.id);

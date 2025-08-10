@@ -540,6 +540,14 @@ done
 $ cat ~/.local/share/kodama-claude/events.jsonl | \
   jq 'select(.event == "snapshot_created") | {time: .timestamp, title: .data.title}'
 
+# Check archive folder (v0.2.0+)
+$ ls ~/.local/share/kodama-claude/snapshots/archive/
+# Old snapshots are auto-archived after 30 days
+
+# Restore from archive
+$ cp ~/.local/share/kodama-claude/snapshots/archive/old-snapshot.json \
+     ~/.local/share/kodama-claude/snapshots/
+
 # Restore from git (if you version snapshots)
 $ cd ~/.local/share/kodama-claude
 $ git log --oneline snapshots/
@@ -548,6 +556,141 @@ $ git checkout HEAD~1 snapshots/
 # Recover from Claude's history
 $ claude --list-sessions
 $ claude --continue <old-session-id>
+```
+
+### Breaking Changes Workflow (v0.2.0+)
+
+**Scenario**: Junior developer frequently pivoting and making breaking changes.
+
+```bash
+# Initial approach - implementing with Redux
+$ kc go -t "Add state management"
+> Let's implement Redux for state management...
+> [Work for a while...]
+[Ctrl+D]
+
+# Realize Redux is overkill, pivot to Context API
+$ kc snap
+? Title: Pivoting from Redux to Context API
+? What did you accomplish?
+  > Set up Redux store (removing)
+  > Realized it's too complex
+  >
+? Decisions made?
+  > Redux is overkill for this app
+  > Context API is sufficient
+  > Will use Context + useReducer
+  >
+? Next steps?
+  > Remove Redux dependencies
+  > Implement Context API
+  >
+
+# Continue with new approach
+$ kc go -t "Implement Context API instead"
+
+# KODAMA only shows latest 5 decisions by default
+# Old Redux decisions automatically fade from view
+# Reducing cognitive load from abandoned approaches
+Loading snapshot...
+Decisions (latest 5):
+- Context API is sufficient
+- Will use Context + useReducer
+- Keep state close to components
+- Add localStorage persistence
+- Create custom hooks
+
+> Good, we're using Context API now.
+> Let me help you implement the new approach...
+
+# After several pivots, check decision history
+$ export KODAMA_DEBUG=true
+$ kc go
+ℹ️  Showing latest 5 of 12 decisions
+# Only relevant recent decisions shown
+
+# If you need full history
+$ export KODAMA_NO_LIMIT=true
+$ kc go
+# Now shows all 12 decisions
+```
+
+### CLAUDE.md Integration Example (v0.2.0+)
+
+**Scenario**: Maintaining consistent AI context across multiple sessions.
+
+```bash
+# Initial setup
+$ export KODAMA_CLAUDE_SYNC=true
+
+# Create CLAUDE.md from template (in your project root)
+$ cd ~/my-project
+$ cp /path/to/kodama-claude/CLAUDE.md.example CLAUDE.md
+$ cat CLAUDE.md
+# Project Context
+
+This project is a task management application.
+
+## Tech Stack
+- React 18
+- TypeScript
+- Tailwind CSS
+
+<!-- KODAMA:START -->
+<!-- KODAMA:END -->
+
+## Conventions
+- Use functional components
+- Prefer hooks over HOCs
+
+# Work on feature
+$ kc go -t "Add task filtering"
+> I see this is a React/TypeScript task management app...
+> [Work on filtering...]
+[Ctrl+D]
+
+# CLAUDE.md is automatically updated
+$ cat CLAUDE.md
+# Project Context
+
+This project is a task management application.
+
+## Tech Stack
+- React 18
+- TypeScript
+- Tailwind CSS
+
+<!-- KODAMA:START -->
+## Current Context (KODAMA)
+**Last Updated**: 2025-01-10T14:30:00Z
+**Current Step**: implementing
+
+### Previous Work
+Added task filtering functionality
+
+### Recent Decisions
+- Use React Query for data fetching
+- Implement client-side filtering
+- Add debounce to search input
+- Cache filter results
+- Show count badges
+
+### Next Steps
+- Add filter persistence
+- Implement advanced filters
+- Add filter presets
+<!-- KODAMA:END -->
+
+## Conventions
+- Use functional components
+- Prefer hooks over HOCs
+
+# Next day, different terminal/session
+$ claude
+> [Claude reads CLAUDE.md automatically]
+> I see you're working on task filtering with React Query.
+> You've implemented client-side filtering with debouncing.
+> Should we continue with filter persistence?
 ```
 
 ### Integration with CI/CD

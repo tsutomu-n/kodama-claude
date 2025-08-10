@@ -1,0 +1,116 @@
+# Project Context for Claude Code
+
+This file helps Claude Code understand your project better. KODAMA can automatically update sections of this file.
+
+## Project Overview
+
+<!-- 
+Describe your project here. This helps Claude understand:
+- What you're building
+- Main technologies used
+- Project goals
+- Team structure (if applicable)
+-->
+
+This is a [YOUR PROJECT TYPE] built with [YOUR TECH STACK].
+
+## Development Guidelines
+
+<!-- 
+Add your team's coding standards, conventions, and preferences:
+- Code style guidelines
+- Naming conventions
+- Preferred libraries/frameworks
+- Testing approach
+-->
+
+### Code Style
+- Follow [YOUR STYLE GUIDE]
+- Use meaningful variable names
+- Keep functions small and focused
+
+### Git Workflow
+- Branch naming: `feature/`, `bugfix/`, `hotfix/`
+- Commit messages: Use conventional commits
+- PR process: [YOUR PROCESS]
+
+## Project Structure
+
+```
+src/
+├── components/     # UI components
+├── services/       # Business logic
+├── utils/          # Utility functions
+└── tests/          # Test files
+```
+
+## Key Decisions
+
+<!-- 
+Document important architectural decisions:
+- Why certain technologies were chosen
+- Trade-offs made
+- Design patterns used
+-->
+
+- Database: [YOUR DB] because [REASON]
+- Framework: [YOUR FRAMEWORK] for [REASON]
+- Testing: [YOUR APPROACH]
+
+## Common Commands
+
+```bash
+# Development
+npm run dev         # Start development server
+npm run build       # Build for production
+npm run test        # Run tests
+npm run lint        # Run linter
+```
+
+## Environment Setup
+
+<!-- 
+Document required environment variables and setup steps
+-->
+
+Required environment variables:
+- `DATABASE_URL` - Database connection string
+- `API_KEY` - External API key
+
+<!-- KODAMA:START -->
+<!-- 
+This section is automatically updated by KODAMA.
+DO NOT EDIT MANUALLY between these markers.
+To enable auto-updates, set: export KODAMA_CLAUDE_SYNC=true
+-->
+<!-- KODAMA:END -->
+
+## Current Tasks
+
+<!-- 
+Keep track of what you're working on
+-->
+
+- [ ] Current feature/bug
+- [ ] Next priority
+- [ ] Backlog items
+
+## Notes and Reminders
+
+<!-- 
+Any important notes for yourself or Claude
+-->
+
+- Remember to [IMPORTANT THING]
+- Watch out for [KNOWN ISSUE]
+- TODO: [FUTURE TASK]
+
+## Resources
+
+<!-- 
+Links to documentation, design files, etc.
+-->
+
+- [Documentation](https://...)
+- [Design System](https://...)
+- [API Reference](https://...)

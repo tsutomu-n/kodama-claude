@@ -102,11 +102,11 @@ export class Storage {
   }
   
   /**
-   * Get latest snapshot
+   * Get latest snapshot with smart context management
    */
   getLatestSnapshot(): Snapshot | null {
     const files = readdirSync(this.paths.snapshots)
-      .filter(f => f.endsWith(".json"))
+      .filter(f => f.endsWith(".json") && !f.startsWith("archive"))
       .map(f => ({
         name: f,
         path: join(this.paths.snapshots, f),
@@ -119,7 +119,24 @@ export class Storage {
     }
     
     const id = files[0].name.replace(".json", "");
-    return this.loadSnapshot(id);
+    const snapshot = this.loadSnapshot(id);
+    
+    // Apply smart decision limiting (non-destructive)
+    if (snapshot && !process.env.KODAMA_NO_LIMIT) {
+      const originalDecisionCount = snapshot.decisions.length;
+      
+      if (originalDecisionCount > 5) {
+        // Keep only the latest 5 decisions for display
+        snapshot.decisions = snapshot.decisions.slice(-5);
+        
+        // Debug information
+        if (process.env.KODAMA_DEBUG) {
+          console.log(`ℹ️  Showing latest 5 of ${originalDecisionCount} decisions (older decisions are preserved in storage)`);
+        }
+      }
+    }
+    
+    return snapshot;
   }
   
   /**
@@ -198,7 +215,55 @@ export class Storage {
   }
   
   /**
-   * Cleanup old snapshots
+   * Archive old snapshots (non-destructive)
+   */
+  archiveOldSnapshots(maxAgeDays: number = 30): number {
+    const archiveDir = join(this.paths.snapshots, 'archive');
+    
+    // Create archive directory if it doesn't exist
+    if (!existsSync(archiveDir)) {
+      mkdirSync(archiveDir, { recursive: true, mode: 0o700 });
+    }
+    
+    const cutoff = Date.now() - (maxAgeDays * 24 * 60 * 60 * 1000);
+    let archived = 0;
+    
+    const files = readdirSync(this.paths.snapshots)
+      .filter(f => f.endsWith(".json") && !f.startsWith("archive"));
+    
+    for (const file of files) {
+      const sourcePath = join(this.paths.snapshots, file);
+      const stat = statSync(sourcePath);
+      
+      if (stat.mtime.getTime() < cutoff) {
+        try {
+          const targetPath = join(archiveDir, file);
+          
+          // Move to archive (atomic operation)
+          renameSync(sourcePath, targetPath);
+          archived++;
+          
+          if (process.env.KODAMA_DEBUG) {
+            console.log(`♻️  Archived: ${file}`);
+          }
+        } catch (error) {
+          // Skip files that cannot be archived
+          if (process.env.KODAMA_DEBUG) {
+            console.warn(`⚠️  Could not archive ${file}: ${error}`);
+          }
+        }
+      }
+    }
+    
+    if (archived > 0 && process.env.KODAMA_DEBUG) {
+      console.log(`♻️  Archived ${archived} snapshot(s) older than ${maxAgeDays} days`);
+    }
+    
+    return archived;
+  }
+  
+  /**
+   * Cleanup old snapshots (deprecated - use archiveOldSnapshots instead)
    */
   cleanup(maxAgeDays: number = 30): number {
     const cutoff = Date.now() - (maxAgeDays * 24 * 60 * 60 * 1000);

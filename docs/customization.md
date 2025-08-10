@@ -80,13 +80,44 @@ export NO_COLOR="1"
 export CLAUDE_CLI_PATH="/usr/local/bin/claude"
 ```
 
+### Smart Context Management (v0.2.0+)
+
+KODAMA now includes intelligent context management to reduce cognitive load:
+
+```bash
+# Check current settings (empty means default)
+echo "KODAMA_NO_LIMIT=$KODAMA_NO_LIMIT"        # empty = false
+echo "KODAMA_AUTO_ARCHIVE=$KODAMA_AUTO_ARCHIVE" # empty = true
+echo "KODAMA_CLAUDE_SYNC=$KODAMA_CLAUDE_SYNC"   # empty = false
+
+# Decision limiting (default: false = limit to 5 decisions)
+export KODAMA_NO_LIMIT="true"        # Show ALL decisions (disable limit)
+export KODAMA_NO_LIMIT="false"       # Show ONLY 5 decisions (default)
+
+# Auto-archive (default: true = archive after 30 days)
+export KODAMA_AUTO_ARCHIVE="true"    # Enable archiving (default)
+export KODAMA_AUTO_ARCHIVE="false"   # Disable archiving
+
+# CLAUDE.md sync (default: false = no sync)
+export KODAMA_CLAUDE_SYNC="true"     # Enable CLAUDE.md updates
+export KODAMA_CLAUDE_SYNC="false"    # Disable CLAUDE.md updates (default)
+```
+
+**Why these features?**
+- **5-decision limit**: Reduces cognitive load for junior developers
+- **Auto-archive**: Keeps your workspace clean automatically
+- **CLAUDE.md sync**: Maintains AI context across sessions
+
 **Example custom setup**:
 
 ```bash
 # ~/.bashrc additions for KODAMA
 export KODAMA_DATA_DIR="$HOME/Documents/kodama-snapshots"
-export KODAMA_EDITOR="code --wait"  # Use VS Code
-export KODAMA_DEBUG="0"              # Quiet mode
+export KODAMA_EDITOR="code --wait"   # Use VS Code
+export KODAMA_DEBUG="0"               # Quiet mode
+export KODAMA_NO_LIMIT="false"        # Keep 5-decision limit (recommended)
+export KODAMA_AUTO_ARCHIVE="true"     # Auto-clean old snapshots (recommended)
+export KODAMA_CLAUDE_SYNC="true"      # Enable CLAUDE.md updates
 ```
 
 ## Storage Locations
@@ -98,11 +129,15 @@ export KODAMA_DEBUG="0"              # Quiet mode
 ├── snapshots/          # JSON snapshot files
 │   ├── 2025-01-10T09-00-00-abc123.json
 │   ├── 2025-01-10T14-30-00-def456.json
-│   └── latest.json    # Symlink to newest
+│   ├── latest.json    # Symlink to newest
+│   └── archive/       # Auto-archived snapshots (30+ days old)
+│       └── 2024-12-01T10-00-00-xyz789.json
 ├── events.jsonl       # Event log
 ├── .session           # Current Claude session ID
 └── .lock              # File lock for safety
 ```
+
+**Note**: Archived snapshots are automatically moved to the `archive/` subdirectory after 30 days. They remain accessible but don't clutter your main snapshot list.
 
 ### Changing Storage Location
 

@@ -416,8 +416,25 @@ ls ~/.local/share/kodama-claude/snapshots/2025-01-10*.json
 jq -r 'select(.gitBranch=="main") | .id' ~/.local/share/kodama-claude/snapshots/*.json
 ```
 
-### Delete Old Snapshots
+### Manage Old Snapshots
 
+**Automatic Management (v0.2.0+):**
+```bash
+# Snapshots older than 30 days are automatically archived
+# Archive runs when you execute: kc snap, kc go, or kc plan
+# Archived files are moved to:
+~/.local/share/kodama-claude/snapshots/archive/
+
+# To disable auto-archive:
+export KODAMA_AUTO_ARCHIVE=false
+
+# Archive happens at the start of these commands:
+# - kc snap: Before saving new snapshot
+# - kc go: Before loading context
+# - kc plan: Before creating plan
+```
+
+**Manual Management:**
 ```bash
 # Delete snapshots older than 30 days
 find ~/.local/share/kodama-claude/snapshots/ -name "*.json" -mtime +30 -delete
@@ -427,6 +444,9 @@ ls -t ~/.local/share/kodama-claude/snapshots/*.json | tail -n +11 | xargs rm
 
 # Delete specific snapshot
 rm ~/.local/share/kodama-claude/snapshots/2025-01-10T09-00-00-a1b2c3d4.json
+
+# Access archived snapshots
+ls ~/.local/share/kodama-claude/snapshots/archive/
 ```
 
 ## Best Practices
@@ -508,6 +528,35 @@ kc go -s done -t "Deploy caching feature"
 
 ### Context Management
 
+#### Smart Context Features (v0.2.0+)
+
+**5-Decision Limit (Default Enabled):**
+```bash
+# Only shows latest 5 decisions to reduce cognitive load
+# Full history is preserved in storage files
+
+# To see the limitation in action:
+export KODAMA_DEBUG=true
+kc snap  # Will show: "Showing latest 5 of 8 decisions"
+
+# To disable the limit:
+export KODAMA_NO_LIMIT=true
+```
+
+**CLAUDE.md Integration:**
+```bash
+# Enable automatic CLAUDE.md updates
+export KODAMA_CLAUDE_SYNC=true
+
+# Create CLAUDE.md with markers
+cp CLAUDE.md.example CLAUDE.md
+# Edit to add your project info
+
+# Now every snap/plan/go updates CLAUDE.md automatically
+kc snap -t "Feature complete"
+# Check CLAUDE.md - KODAMA section is updated!
+```
+
 #### Keep Context Focused
 ```bash
 # ✅ Good: Specific to current work
@@ -519,6 +568,24 @@ kc go -s done -t "Deploy caching feature"
 "Working on everything.
  Fixed 10 bugs, updated docs,
  had meeting, answered emails..."
+```
+
+#### Handling Breaking Changes
+
+When you need to pivot or make breaking changes:
+
+```bash
+# 1. Save current state
+kc snap -t "Before major refactor"
+
+# 2. Clear session if needed (optional)
+rm ~/.local/share/kodama-claude/.session
+
+# 3. Start fresh with new plan
+kc plan -t "New architecture approach"
+
+# The 5-decision limit means old decisions fade out naturally
+# No need to manually clean up!
 ```
 
 #### Regular Snapshots

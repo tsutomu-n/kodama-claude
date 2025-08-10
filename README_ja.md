@@ -183,6 +183,9 @@ kc plan -t "明日のタスク"
 ✅ **XDG準拠** - Linuxディレクトリ標準を遵守  
 ✅ **依存関係ゼロ** - 単一バイナリ、npm/pip/cargo不要  
 ✅ **Git連携** - ブランチとコミットコンテキストを追跡  
+✅ **スマートコンテキスト管理** - 決定事項を最新5件に自動制限  
+✅ **自動アーカイブ** - 30日以上前のスナップショットを自動整理  
+✅ **CLAUDE.md連携** - AIコンテキストを自動同期（オプトイン）  
 
 ### KODAMAができないこと
 
@@ -201,8 +204,20 @@ XDG Base Directory仕様に従います：
 ```
 ~/.local/share/kodama-claude/
 ├── snapshots/          # JSONスナップショット
+│   └── archive/        # 30日以上前の自動アーカイブ
 ├── events.jsonl        # 追記専用イベントログ
 └── .session           # 現在のClaudeセッションID
+```
+
+### 環境変数
+
+```bash
+# スマートコンテキスト管理の制御
+export KODAMA_NO_LIMIT=true        # 決定事項5件制限を無効化
+export KODAMA_AUTO_ARCHIVE=false   # 自動アーカイブを無効化  
+export KODAMA_CLAUDE_SYNC=true     # CLAUDE.md自動更新を有効化
+export KODAMA_DEBUG=true           # デバッグ情報を表示
+export KODAMA_LANG=ja              # 日本語エラーメッセージ
 ```
 
 ### スナップショット形式

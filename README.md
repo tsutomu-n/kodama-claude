@@ -113,6 +113,9 @@ kc doctor
 ✅ **XDG compliance** - Respects Linux directory standards  
 ✅ **Zero dependencies** - Single binary, no npm/pip/cargo  
 ✅ **Git aware** - Tracks branch and commit context  
+✅ **Smart context management** - Auto-limits decisions to latest 5  
+✅ **Auto-archive** - Automatically organizes snapshots older than 30 days  
+✅ **CLAUDE.md sync** - Auto-syncs AI context (opt-in)  
 
 ### What KODAMA Doesn't Do
 
@@ -131,8 +134,20 @@ Following XDG Base Directory specification:
 ```
 ~/.local/share/kodama-claude/
 ├── snapshots/          # JSON snapshots
+│   └── archive/        # Auto-archived after 30 days
 ├── events.jsonl        # Append-only event log
 └── .session           # Current Claude session ID
+```
+
+### Environment Variables
+
+```bash
+# Smart context management controls
+export KODAMA_NO_LIMIT=true        # Disable 5-decision limit
+export KODAMA_AUTO_ARCHIVE=false   # Disable auto-archive  
+export KODAMA_CLAUDE_SYNC=true     # Enable CLAUDE.md auto-update
+export KODAMA_DEBUG=true           # Show debug information
+export KODAMA_LANG=ja              # Japanese error messages
 ```
 
 ### Snapshot Format

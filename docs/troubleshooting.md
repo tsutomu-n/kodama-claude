@@ -621,6 +621,104 @@ strace -e open,read,write kc go 2>&1 | grep kodama
 inotifywait -m ~/.local/share/kodama-claude/
 ```
 
+## Smart Context Management Issues (v0.2.0+)
+
+### Problem: Too many decisions shown
+
+**Symptom**: "I see more than 5 decisions"
+
+**Diagnosis**:
+```bash
+# Check if limit is disabled
+echo $KODAMA_NO_LIMIT
+```
+
+**Solution**:
+```bash
+# Enable the limit (default behavior)
+unset KODAMA_NO_LIMIT
+# or
+export KODAMA_NO_LIMIT=false
+```
+
+### Problem: Can't find archived snapshots
+
+**Symptom**: "My old snapshots disappeared"
+
+**Solution**:
+```bash
+# Check archive directory
+ls ~/.local/share/kodama-claude/snapshots/archive/
+
+# Restore from archive if needed
+cp ~/.local/share/kodama-claude/snapshots/archive/old-snapshot.json \
+   ~/.local/share/kodama-claude/snapshots/
+```
+
+### Problem: CLAUDE.md not updating
+
+**Symptoms**: "CLAUDE.md exists but doesn't update"
+
+**Diagnosis**:
+```bash
+# Check if feature is enabled
+echo $KODAMA_CLAUDE_SYNC
+
+# Check for markers in file
+grep "KODAMA:START" CLAUDE.md
+```
+
+**Solutions**:
+
+1. **Enable the feature**:
+```bash
+export KODAMA_CLAUDE_SYNC=true
+```
+
+2. **Add markers to CLAUDE.md**:
+```markdown
+<!-- KODAMA:START -->
+<!-- KODAMA:END -->
+```
+
+3. **Use the template**:
+```bash
+cp CLAUDE.md.example CLAUDE.md
+# Edit as needed
+```
+
+### Problem: Archive not working
+
+**Symptom**: "Old snapshots not being archived"
+
+**Diagnosis**:
+```bash
+# Check if disabled (empty = enabled by default)
+echo "KODAMA_AUTO_ARCHIVE=$KODAMA_AUTO_ARCHIVE"
+
+# Check permissions
+ls -ld ~/.local/share/kodama-claude/snapshots/
+
+# Check snapshot ages
+find ~/.local/share/kodama-claude/snapshots -name "*.json" -mtime +30 | wc -l
+```
+
+**Solution**:
+```bash
+# Enable auto-archive (default behavior)
+unset KODAMA_AUTO_ARCHIVE
+# or explicitly enable
+export KODAMA_AUTO_ARCHIVE=true
+
+# Fix permissions
+chmod 755 ~/.local/share/kodama-claude/snapshots/
+
+# Trigger archive manually by running any command
+kc doctor  # This will trigger the archive process
+```
+
+**Note**: Archive runs automatically when you use `kc snap`, `kc go`, or `kc plan`.
+
 ## Getting More Help
 
 ### Information to Provide

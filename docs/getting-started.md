@@ -176,21 +176,21 @@ All systems operational!
 
 ### Step 2: Set Up Claude CLI
 
-Make sure Claude CLI works:
+Claude Code uses OAuth authentication instead of API keys:
 ```bash
-# Test Claude
+# First time setup - opens browser for authentication
+claude
+
+# Follow the prompts to:
+# 1. Open browser and authenticate
+# 2. Login with Claude.ai account or Anthropic Console
+# 3. Authorize Claude Code access
+
+# Test that it works
 claude "Say hello"
 ```
 
-If it asks for API key:
-```bash
-# Set your API key
-export ANTHROPIC_API_KEY="sk-ant-..."
-
-# Add to your shell config to remember it
-echo 'export ANTHROPIC_API_KEY="sk-ant-..."' >> ~/.bashrc
-source ~/.bashrc
-```
+**Note**: Claude Code stores authentication in your system's credential manager, not environment variables.
 
 ### Step 3: Understanding Storage
 
@@ -198,11 +198,45 @@ KODAMA saves files here:
 ```
 ~/.local/share/kodama-claude/
 ├── snapshots/        # Your saved contexts
+│   └── archive/      # Auto-archived old snapshots (30+ days)
 ├── events.jsonl      # Activity log
 └── .session          # Current Claude session
 ```
 
 📝 **Note**: This follows Linux standards (XDG Base Directory).
+
+### Step 4: Configure Smart Features (Optional)
+
+KODAMA v0.2.0+ includes smart context management features:
+
+```bash
+# Check current settings (empty means default)
+echo "KODAMA_NO_LIMIT=$KODAMA_NO_LIMIT"        # empty = false (5-decision limit ON)
+echo "KODAMA_AUTO_ARCHIVE=$KODAMA_AUTO_ARCHIVE" # empty = true (archiving ON)
+echo "KODAMA_CLAUDE_SYNC=$KODAMA_CLAUDE_SYNC"   # empty = false (sync OFF)
+
+# Display with defaults shown
+echo "Decision limit: ${KODAMA_NO_LIMIT:-false (shows only 5)}"
+echo "Auto-archive: ${KODAMA_AUTO_ARCHIVE:-true (archives after 30 days)}"
+echo "CLAUDE.md sync: ${KODAMA_CLAUDE_SYNC:-false (disabled)}"
+
+# Optional: Enable CLAUDE.md integration
+export KODAMA_CLAUDE_SYNC=true
+
+# Create CLAUDE.md from template (in your project root)
+cd ~/my-project  # Go to your project directory
+cp /path/to/kodama-claude/CLAUDE.md.example CLAUDE.md
+# Or if you have KODAMA source code:
+# cp ~/projects/kodama-claude/CLAUDE.md.example ./CLAUDE.md
+
+# Add to ~/.bashrc to persist settings
+echo 'export KODAMA_CLAUDE_SYNC=true' >> ~/.bashrc
+```
+
+**What these features do:**
+- **5-decision limit**: Reduces cognitive load by showing only recent decisions
+- **Auto-archive**: Keeps workspace clean by archiving old snapshots
+- **CLAUDE.md sync**: Maintains AI context across sessions automatically
 
 ## Your First Command
 
@@ -322,7 +356,8 @@ Print this and keep it nearby:
 | "kc: command not found" | Add `/usr/local/bin` to PATH |
 | "Permission denied" | Use `sudo` for install commands |
 | "Claude CLI not found" | Install Claude CLI first |
-| "No API key" | Set `ANTHROPIC_API_KEY` |
+| "Authentication required" | Run `claude` to authenticate via browser |
+| "Too many old decisions shown" | 5-decision limit is default in v0.2.0+ |
 
 💡 **Remember**: Most problems are fixed by running `kc doctor`.
 
