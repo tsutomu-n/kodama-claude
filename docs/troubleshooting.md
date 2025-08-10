@@ -683,7 +683,7 @@ export KODAMA_CLAUDE_SYNC=true
 
 3. **Use the template**:
 ```bash
-cp CLAUDE.md.example CLAUDE.md
+cp templates/CLAUDE.md.example CLAUDE.md
 # Edit as needed
 ```
 

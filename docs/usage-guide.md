@@ -549,7 +549,7 @@ export KODAMA_NO_LIMIT=true
 export KODAMA_CLAUDE_SYNC=true
 
 # Create CLAUDE.md with markers
-cp CLAUDE.md.example CLAUDE.md
+cp templates/CLAUDE.md.example CLAUDE.md
 # Edit to add your project info
 
 # Now every snap/plan/go updates CLAUDE.md automatically

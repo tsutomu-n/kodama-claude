@@ -625,7 +625,7 @@ $ export KODAMA_CLAUDE_SYNC=true
 
 # Create CLAUDE.md from template (in your project root)
 $ cd ~/my-project
-$ cp /path/to/kodama-claude/CLAUDE.md.example CLAUDE.md
+$ cp /path/to/kodama-claude/templates/CLAUDE.md.example CLAUDE.md
 $ cat CLAUDE.md
 # Project Context
 

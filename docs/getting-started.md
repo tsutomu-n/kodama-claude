@@ -225,9 +225,9 @@ export KODAMA_CLAUDE_SYNC=true
 
 # Create CLAUDE.md from template (in your project root)
 cd ~/my-project  # Go to your project directory
-cp /path/to/kodama-claude/CLAUDE.md.example CLAUDE.md
+cp /path/to/kodama-claude/templates/CLAUDE.md.example CLAUDE.md
 # Or if you have KODAMA source code:
-# cp ~/projects/kodama-claude/CLAUDE.md.example ./CLAUDE.md
+# cp ~/projects/kodama-claude/templates/CLAUDE.md.example ./CLAUDE.md
 
 # Add to ~/.bashrc to persist settings
 echo 'export KODAMA_CLAUDE_SYNC=true' >> ~/.bashrc
