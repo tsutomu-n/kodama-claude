@@ -32,7 +32,7 @@ curl -fsSL https://bun.sh/install | bash
 
 2. Clone and install:
 ```bash
-git clone https://github.com/kodama-cli/kodama-claude
+git clone https://github.com/tsutomu-n/kodama-claude
 cd kodama-claude
 bun install
 ```

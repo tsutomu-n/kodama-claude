@@ -4,11 +4,13 @@
 
 Minimal Claude Code CLI extension for persistent dialogue memory.
 
+> **What is Claude Code CLI?** Anthropic's official terminal AI assistant. Writes, debugs, and refactors code using natural language. Can resume conversations with `--continue` / `--resume`, but **lacks structured storage for decisions and next steps**. KODAMA solves this.
+
 ## Philosophy
 
 > "Less is more" - KODAMA only does what KODAMA can uniquely do for Claude Code CLI.
 
-KODAMA Claude is a lightweight tool that solves one specific problem: **Claude Code CLI doesn't remember context between sessions**. We fix that with just 4 simple commands.
+KODAMA stores **human decision logs** in structured format. When `/clear` erases conversation history or sessions switch, **work context remains intact**.
 
 ## Quick Start
 
@@ -46,16 +48,64 @@ kc go
 kc plan
 ```
 
-That's it. No complex workflows, no feature creep, no cognitive overhead.
+That's it. No complex workflows. No feature creep. No cognitive overhead.
+
+### Example: Adding an API Endpoint
+
+```bash
+# 1. Morning: Resume previous work
+$ kc go
+# → Claude recognizes "Auth API design, JWT tokens, 30-min expiry"
+
+# 2. Work with Claude
+$ # Claude continues implementation based on previous decisions
+
+# 3. Save progress
+$ kc snap -t "Auth API implementation complete"
+
+# 4. Commit to Git (track actual code changes)
+$ git add .
+$ git commit -m "feat: Add JWT authentication endpoint"
+```
+
+Claude gets context. Git tracks code.
+
+## Language Support
+
+### Japanese Interface
+
+Set language to Japanese:
+
+```bash
+# Temporary
+export KODAMA_LANG=ja
+kc go
+
+# Permanent
+# Bash
+echo 'export KODAMA_LANG=ja' >> ~/.bashrc
+source ~/.bashrc
+
+# Zsh
+echo 'export KODAMA_LANG=ja' >> ~/.zshrc
+source ~/.zshrc
+
+# XDG compliant (systemd environments)
+mkdir -p ~/.config/environment.d
+echo 'KODAMA_LANG=ja' >> ~/.config/environment.d/kodama.conf
+# Relogin to apply
+```
+
+Auto-detects Japanese from system locale.
 
 ## Commands
 
 ### `kc go` - Start or Continue
 
-The main command. Automatically:
-- Loads your latest context
-- Starts or continues Claude session
-- Saves a snapshot for next time
+Main command:
+- Loads latest context
+- Starts/continues Claude session
+- Saves snapshot
 
 ```bash
 kc go
@@ -65,10 +115,10 @@ kc go -s implementing
 
 ### `kc snap` - Create Snapshot
 
-Interactive snapshot creation to capture:
-- What you've accomplished
-- Key decisions made
-- Next steps planned
+Interactive snapshot:
+- Accomplishments
+- Key decisions
+- Next steps
 
 ```bash
 kc snap
@@ -77,10 +127,10 @@ kc snap -t "API design complete"
 
 ### `kc plan` - Structure Next Steps
 
-Plan your development workflow:
-- Set goals
-- Define tasks
-- Note considerations
+Plan workflow:
+- Goals
+- Tasks
+- Considerations
 
 ```bash
 kc plan
@@ -89,7 +139,7 @@ kc plan -t "Database migration strategy"
 
 ### `kc send` - Send Context
 
-Send saved context to Claude when `kc go` isn't enough:
+Send saved context to existing sessions:
 
 ```bash
 kc send                    # Send latest snapshot
@@ -98,7 +148,7 @@ kc send <snapshot-id>      # Send specific snapshot
 
 ### `kc doctor` - Health Check
 
-Verify everything is working:
+Verify system:
 
 ```bash
 kc doctor
@@ -129,7 +179,7 @@ kc doctor
 
 ### Storage Location
 
-Following XDG Base Directory specification:
+XDG Base Directory compliant:
 
 ```
 ~/.local/share/kodama-claude/
@@ -197,8 +247,18 @@ ls dist/
 
 ## FAQ
 
-**Q: Why not use Claude's built-in --continue flag?**  
-A: It doesn't preserve context structure, decisions, or project state.
+**Q: Why not use Claude's built-in `--continue` / `--resume` flags?**  
+A: Claude Code can resume conversation history, but `/clear` erases **conversation history** (while **long-term memory** like CLAUDE.md remains). Community reports show response quality degradation in long sessions. KODAMA **structures and externally stores decisions and next steps**, preserving **human work context** even after `/clear` or session switches.
+
+**Q: Why use snapshots instead of Git?**  
+A: Git and snapshots are complementary:
+
+| Aspect | Git | KODAMA Snapshots |
+|--------|-----|------------------|
+| Purpose | Track code changes | Save work context |
+| Content | File diffs | Decisions, thoughts, next steps |
+| When to use | Commit completed features | Pause/resume work |
+| Persistence | Permanent | Session-based (auto-archives after 30 days) |
 
 **Q: Why Bun instead of Node.js?**  
 A: Single binary distribution, faster startup, better DX.
@@ -215,8 +275,8 @@ MIT
 
 ## Author
 
-Created for developers who value simplicity over features.
+For developers who value simplicity over features.
 
 ---
 
-**Remember**: The best tool is the one you actually use. KODAMA Claude is designed to be that tool.
+**Remember**: The best tool is the one you actually use. KODAMA aims to be that tool.
