@@ -4,9 +4,10 @@
 
 import { randomUUID } from "crypto";
 import { cwd } from "process";
-import { execSync } from "child_process";
 import { Storage } from "./storage";
 import { ClaudeCLI } from "./claude";
+import { getMessage, formatError } from "./i18n";
+import { getGitBranch, getGitCommit } from "./utils/git";
 import type { Snapshot } from "./types";
 
 interface GoOptions {
@@ -21,7 +22,7 @@ export async function goCommand(options: GoOptions) {
   
   // Check Claude CLI availability
   if (!claude.isAvailable()) {
-    console.error("❌ Claude Code CLI not found. Please install: npm install -g @anthropic/claude");
+    console.error(formatError(getMessage("claudeNotFound")));
     process.exit(1);
   }
   
@@ -85,7 +86,7 @@ Current step: ${options.step || latestSnapshot?.step || "requirements"}`;
   }
   
   if (!result.success) {
-    console.error("❌ Failed to start/continue Claude session:", result.error);
+    console.error(formatError(`${getMessage("claudeSessionFailed")} ${result.error}`));
     process.exit(1);
   }
   
@@ -149,24 +150,3 @@ function buildContextFromSnapshot(snapshot: Snapshot): string {
   return parts.join("\n");
 }
 
-/**
- * Get current git branch
- */
-function getGitBranch(): string | undefined {
-  try {
-    return execSync("git branch --show-current", { encoding: "utf-8" }).trim();
-  } catch {
-    return undefined;
-  }
-}
-
-/**
- * Get current git commit
- */
-function getGitCommit(): string | undefined {
-  try {
-    return execSync("git rev-parse --short HEAD", { encoding: "utf-8" }).trim();
-  } catch {
-    return undefined;
-  }
-}

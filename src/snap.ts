@@ -4,9 +4,10 @@
 
 import { randomUUID } from "crypto";
 import { cwd } from "process";
-import { execSync } from "child_process";
 import { readFileSync, existsSync } from "fs";
 import { Storage } from "./storage";
+import { getMessage, formatError } from "./i18n";
+import { getGitBranch, getGitCommit } from "./utils/git";
 import type { Snapshot } from "./types";
 
 interface SnapOptions {
@@ -37,7 +38,7 @@ export async function snapCommand(options: SnapOptions) {
     // Get title
     const title = options.title || await prompt("📝 Snapshot title: ");
     if (!title) {
-      console.error("❌ Title is required");
+      console.error(formatError(getMessage("titleRequired")));
       process.exit(1);
     }
     
@@ -113,7 +114,7 @@ export async function snapCommand(options: SnapOptions) {
     // Save snapshot
     storage.saveSnapshot(snapshot);
     
-    console.log("\n✅ Snapshot created successfully!");
+    console.log("\n" + getMessage("snapshotCreated", snapshot.id));
     console.log("📦 ID:", snapshot.id);
     console.log("📝 Title:", snapshot.title);
     console.log("📊 Step:", snapshot.step || "none");
@@ -130,29 +131,8 @@ export async function snapCommand(options: SnapOptions) {
     console.log(`   kc go`);
     
   } catch (error) {
-    console.error("❌ Error creating snapshot:", error);
+    console.error(formatError(`${getMessage("errorCreating", "snapshot")} ${error}`));
     process.exit(1);
   }
 }
 
-/**
- * Get current git branch
- */
-function getGitBranch(): string | undefined {
-  try {
-    return execSync("git branch --show-current", { encoding: "utf-8" }).trim();
-  } catch {
-    return undefined;
-  }
-}
-
-/**
- * Get current git commit
- */
-function getGitCommit(): string | undefined {
-  try {
-    return execSync("git rev-parse --short HEAD", { encoding: "utf-8" }).trim();
-  } catch {
-    return undefined;
-  }
-}

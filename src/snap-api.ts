@@ -4,6 +4,7 @@
 
 import { randomUUID } from "crypto";
 import { Storage } from "./storage";
+import { getGitBranch, getGitCommit } from "./utils/git";
 import type { Snapshot } from "./types";
 
 export function createSnapshot(options: {
@@ -35,23 +36,6 @@ export function createSnapshot(options: {
   return snapshot.id;
 }
 
-function getGitBranch(): string | undefined {
-  try {
-    const { execSync } = require("child_process");
-    return execSync("git branch --show-current", { encoding: "utf-8" }).trim();
-  } catch {
-    return undefined;
-  }
-}
-
-function getGitCommit(): string | undefined {
-  try {
-    const { execSync } = require("child_process");
-    return execSync("git rev-parse --short HEAD", { encoding: "utf-8" }).trim();
-  } catch {
-    return undefined;
-  }
-}
 
 // CLI usage
 if (require.main === module) {

@@ -1,5 +1,7 @@
 # KODAMA Claude
 
+[日本語](README_ja.md) | **English**
+
 Minimal Claude Code CLI extension for persistent dialogue memory.
 
 ## Philosophy

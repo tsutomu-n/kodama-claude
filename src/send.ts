@@ -8,6 +8,7 @@ import { join } from "path";
 import { randomUUID } from "crypto";
 import { execSync } from "child_process";
 import { Storage } from "./storage";
+import { getMessage, formatError } from "./i18n";
 
 export async function sendCommand(snapshotId?: string) {
   const storage = new Storage();
@@ -18,7 +19,7 @@ export async function sendCommand(snapshotId?: string) {
   if (snapshotId) {
     snapshot = storage.loadSnapshot(snapshotId);
     if (!snapshot) {
-      console.error(`❌ Snapshot not found: ${snapshotId}`);
+      console.error(formatError(getMessage("snapshotNotFound", snapshotId)));
       
       // List available snapshots
       const snapshots = storage.listSnapshots();
@@ -35,7 +36,7 @@ export async function sendCommand(snapshotId?: string) {
     // Use latest snapshot
     snapshot = storage.getLatestSnapshot();
     if (!snapshot) {
-      console.error("❌ No snapshots found. Create one with: kc snap");
+      console.error(formatError(getMessage("noSnapshotsFound")));
       process.exit(1);
     }
   }

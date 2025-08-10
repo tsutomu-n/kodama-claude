@@ -3,7 +3,7 @@
  */
 
 import { existsSync, statSync, readdirSync } from "fs";
-import { execSync } from "child_process";
+import { execSync, execFileSync } from "child_process";
 import { Storage } from "./storage";
 import { ClaudeCLI } from "./claude";
 import { getStoragePaths } from "./types";
@@ -153,7 +153,7 @@ export async function doctorCommand() {
   
   // Check 7: Disk space
   try {
-    const dfOutput = execSync("df -h " + paths.data, { encoding: "utf-8" });
+    const dfOutput = execFileSync("df", ["-h", paths.data], { encoding: "utf-8" });
     const lines = dfOutput.split("\n");
     if (lines.length > 1) {
       const parts = lines[1].split(/\s+/);

@@ -38,7 +38,7 @@
   "homepage": "https://github.com/tsutomu-n/kodama-claude#readme",
   "dependencies": {
     "commander": "^11.1.0",
-    "zod": "^3.22.4"
+    "zod": "^4.0.17"
   },
   "devDependencies": {
     "@types/bun": "^1.0.0",

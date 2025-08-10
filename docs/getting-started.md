@@ -1,0 +1,331 @@
+# Getting Started with KODAMA Claude
+
+🟢 **Difficulty**: Beginner | **Read time**: 10 minutes
+
+This guide helps you install and start using KODAMA Claude.
+
+## Table of Contents
+- [What is KODAMA Claude?](#what-is-kodama-claude)
+- [Before You Start](#before-you-start)
+- [Installation](#installation)
+- [First Time Setup](#first-time-setup)
+- [Your First Command](#your-first-command)
+- [Next Steps](#next-steps)
+
+## What is KODAMA Claude?
+
+KODAMA Claude helps Claude CLI remember your work between sessions.
+
+### The Problem
+When you close Claude CLI, it forgets everything:
+- What you were working on
+- What decisions you made
+- What to do next
+
+### The Solution
+KODAMA Claude saves your context so you can:
+```
+Day 1: Work on feature → Save with KODAMA
+Day 2: KODAMA loads context → Continue exactly where you stopped
+```
+
+### Simple Workflow Diagram
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│   You work  │ --> │  kc snap    │ --> │   Context   │
+│ with Claude │     │ (save work) │     │   saved!    │
+└─────────────┘     └─────────────┘     └─────────────┘
+                                               │
+                                               ▼
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│  Continue   │ <-- │   kc go     │ <-- │ Next day... │
+│   working   │     │(load & start)│     │             │
+└─────────────┘     └─────────────┘     └─────────────┘
+```
+
+## Before You Start
+
+### Requirements
+
+You need these things on your computer:
+
+| What | Version | How to check | How to install |
+|------|---------|--------------|----------------|
+| **Linux/WSL** | Any | `uname -a` | [WSL Guide](https://docs.microsoft.com/windows/wsl/install) |
+| **Claude CLI** | Latest | `claude --version` | [Claude Docs](https://claude.ai/cli) |
+| **Bash** | 4.0+ | `bash --version` | Usually pre-installed |
+| **curl** | Any | `curl --version` | `sudo apt install curl` |
+
+### Check Your System
+
+Run this command to check everything:
+```bash
+# Check all requirements at once
+uname -a && claude --version && bash --version && curl --version
+```
+
+✅ **Good output** looks like:
+```
+Linux hostname 5.15.0 ...
+Claude CLI version 0.x.x
+GNU bash, version 5.x.x ...
+curl 7.x.x ...
+```
+
+❌ **If something is missing**, install it first.
+
+## Installation
+
+### Method 1: Quick Install (Recommended)
+
+Copy and paste this one line:
+```bash
+curl -fsSL https://github.com/tsutomu-n/kodama-claude/releases/latest/download/install.sh | bash
+```
+
+What happens:
+1. Downloads the installer
+2. Gets the right version for your computer
+3. Installs to `/usr/local/bin/kc`
+4. Makes it executable
+5. Checks it works
+
+💡 **Tip**: The installer shows each step as it runs.
+
+### Method 2: Manual Install
+
+If you prefer to see what you're installing:
+
+1. **Go to releases page**:
+   ```bash
+   # Open in browser
+   xdg-open https://github.com/tsutomu-n/kodama-claude/releases/latest
+   ```
+
+2. **Download the right file**:
+   - For most computers: `kc-linux-x64`
+   - For ARM (Raspberry Pi, etc.): `kc-linux-arm64`
+   
+   Not sure which one?
+   ```bash
+   # Check your architecture
+   uname -m
+   # x86_64 = use x64
+   # aarch64 = use arm64
+   ```
+
+3. **Install the file**:
+   ```bash
+   # Make it executable
+   chmod +x kc-linux-x64
+   
+   # Move to system path
+   sudo mv kc-linux-x64 /usr/local/bin/kc
+   ```
+
+4. **Check it works**:
+   ```bash
+   kc --version
+   ```
+
+### Method 3: Build from Source
+
+🟡 For developers who want the latest code:
+
+```bash
+# Get the code
+git clone https://github.com/tsutomu-n/kodama-claude
+cd kodama-claude
+
+# Install Bun (if not installed)
+curl -fsSL https://bun.sh/install | bash
+
+# Install dependencies
+bun install
+
+# Build
+bun run build:all
+
+# Install
+sudo cp dist/kc-linux-x64 /usr/local/bin/kc
+```
+
+## First Time Setup
+
+### Step 1: Check Installation
+
+Run the doctor command:
+```bash
+kc doctor
+```
+
+✅ **Good output**:
+```
+KODAMA Claude Health Check
+==========================
+✓ KODAMA binary: /usr/local/bin/kc
+✓ Claude CLI: Found at /usr/local/bin/claude
+✓ Storage directory: /home/yourname/.local/share/kodama-claude
+✓ Write permissions: OK
+✓ Git: Available
+
+All systems operational!
+```
+
+⚠️ **If you see errors**, check [Troubleshooting](troubleshooting.md).
+
+### Step 2: Set Up Claude CLI
+
+Make sure Claude CLI works:
+```bash
+# Test Claude
+claude "Say hello"
+```
+
+If it asks for API key:
+```bash
+# Set your API key
+export ANTHROPIC_API_KEY="sk-ant-..."
+
+# Add to your shell config to remember it
+echo 'export ANTHROPIC_API_KEY="sk-ant-..."' >> ~/.bashrc
+source ~/.bashrc
+```
+
+### Step 3: Understanding Storage
+
+KODAMA saves files here:
+```
+~/.local/share/kodama-claude/
+├── snapshots/        # Your saved contexts
+├── events.jsonl      # Activity log
+└── .session          # Current Claude session
+```
+
+📝 **Note**: This follows Linux standards (XDG Base Directory).
+
+## Your First Command
+
+Let's try KODAMA with a simple example:
+
+### 1. Start your first session
+```bash
+# Go to any project
+cd ~/my-project
+
+# Start KODAMA + Claude
+kc go
+```
+
+What you'll see:
+```
+No previous context found. Starting fresh.
+Starting Claude CLI...
+```
+
+### 2. Work with Claude
+```bash
+# Now you're in Claude. Try something:
+> Help me create a README file
+```
+
+### 3. Save your work
+When done, exit Claude (Ctrl+D), then:
+```bash
+# Save a snapshot
+kc snap
+```
+
+It will ask you questions:
+```
+? Title for this snapshot: Created README
+? What step are you on? (designing/implementing/testing/done): implementing
+? What did you accomplish? (Press Enter when done)
+  > Created basic README structure
+  > Added project description
+  > 
+? Decisions made? (Press Enter when done)
+  > Use markdown format
+  > Keep it simple
+  >
+? Next steps? (Press Enter when done)
+  > Add installation section
+  > Add usage examples
+  >
+
+✓ Snapshot saved: a1b2c3d4
+```
+
+### 4. Continue tomorrow
+```bash
+# Next day, just run:
+kc go
+
+# KODAMA loads your context and tells Claude:
+# - What you did yesterday
+# - What decisions you made  
+# - What to do next
+```
+
+## Verify Everything Works
+
+Run this test sequence:
+```bash
+# 1. Check version
+kc --version
+
+# 2. Run doctor
+kc doctor
+
+# 3. Create a test snapshot
+echo "Test project" | kc snap -t "Test snapshot"
+
+# 4. Load it
+kc go
+
+# 5. Exit Claude (Ctrl+D)
+```
+
+If all commands work, you're ready! 🎉
+
+## Next Steps
+
+Now that KODAMA Claude is installed:
+
+1. **Learn all commands** → [Usage Guide](usage-guide.md)
+2. **See real examples** → [Examples](examples.md)
+3. **Customize settings** → [Customization](customization.md)
+
+## Quick Reference Card
+
+Print this and keep it nearby:
+
+```
+┌─────────────────────────────────────────┐
+│        KODAMA CLAUDE QUICK CARD         │
+├─────────────────────────────────────────┤
+│ kc go     - Start/continue work         │
+│ kc snap   - Save current context        │
+│ kc plan   - Plan next steps             │
+│ kc send   - Send context to Claude      │
+│ kc doctor - Check if everything works   │
+├─────────────────────────────────────────┤
+│ Exit Claude: Ctrl+D                     │
+│ Get help: kc --help                     │
+└─────────────────────────────────────────┘
+```
+
+## Common First-Day Issues
+
+| Problem | Solution |
+|---------|----------|
+| "kc: command not found" | Add `/usr/local/bin` to PATH |
+| "Permission denied" | Use `sudo` for install commands |
+| "Claude CLI not found" | Install Claude CLI first |
+| "No API key" | Set `ANTHROPIC_API_KEY` |
+
+💡 **Remember**: Most problems are fixed by running `kc doctor`.
+
+---
+
+**Ready to learn more?** Continue to [Usage Guide](usage-guide.md) →

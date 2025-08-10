@@ -6,6 +6,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync, renameSync, openSyn
 import { join, dirname } from "path";
 import { randomUUID } from "crypto";
 import { SnapshotSchema, EventLogEntrySchema, type Snapshot, type EventLogEntry, getStoragePaths } from "./types";
+import { getMessage, formatError } from "./i18n";
 
 export class Storage {
   private paths = getStoragePaths();
@@ -80,6 +81,11 @@ export class Storage {
    * Load snapshot by ID
    */
   loadSnapshot(id: string): Snapshot | null {
+    // Validate ID to prevent path traversal
+    if (!id || id.includes('..') || id.includes('/') || id.includes('\\')) {
+      return null;
+    }
+    
     const path = join(this.paths.snapshots, `${id}.json`);
     
     if (!existsSync(path)) {
@@ -90,7 +96,7 @@ export class Storage {
       const data = readFileSync(path, "utf-8");
       return SnapshotSchema.parse(JSON.parse(data));
     } catch (error) {
-      console.error(`Failed to load snapshot ${id}:`, error);
+      console.error(formatError(getMessage("snapshotLoadFailed", id, String(error))));
       return null;
     }
   }

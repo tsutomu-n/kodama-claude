@@ -4,6 +4,8 @@
 
 import { randomUUID } from "crypto";
 import { Storage } from "./storage";
+import { getMessage, formatError } from "./i18n";
+import { getGitBranch, getGitCommit } from "./utils/git";
 import type { Snapshot } from "./types";
 
 interface PlanOptions {
@@ -53,7 +55,7 @@ export async function planCommand(options: PlanOptions) {
     // Get plan title
     const title = options.title || await prompt("📝 Plan title: ");
     if (!title) {
-      console.error("❌ Title is required");
+      console.error(formatError(getMessage("titleRequired")));
       process.exit(1);
     }
     
@@ -133,7 +135,7 @@ export async function planCommand(options: PlanOptions) {
     // Save snapshot
     storage.saveSnapshot(snapshot);
     
-    console.log("\n✅ Plan created successfully!");
+    console.log("\n" + getMessage("planCreated", snapshot.id));
     console.log("📦 ID:", snapshot.id);
     console.log("📝 Title:", snapshot.title);
     console.log("📊 Step:", snapshot.step);
@@ -170,7 +172,7 @@ export async function planCommand(options: PlanOptions) {
     console.log(`   kc go`);
     
   } catch (error) {
-    console.error("❌ Error creating plan:", error);
+    console.error(formatError(`${getMessage("errorCreating", "plan")} ${error}`));
     process.exit(1);
   }
 }
@@ -204,26 +206,3 @@ function buildPlanContext(goals: string[], tasks: string[], considerations: stri
   return parts.join("\n");
 }
 
-/**
- * Get current git branch
- */
-function getGitBranch(): string | undefined {
-  try {
-    const { execSync } = require("child_process");
-    return execSync("git branch --show-current", { encoding: "utf-8" }).trim();
-  } catch {
-    return undefined;
-  }
-}
-
-/**
- * Get current git commit
- */
-function getGitCommit(): string | undefined {
-  try {
-    const { execSync } = require("child_process");
-    return execSync("git rev-parse --short HEAD", { encoding: "utf-8" }).trim();
-  } catch {
-    return undefined;
-  }
-}

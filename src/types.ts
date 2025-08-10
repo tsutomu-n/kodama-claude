@@ -27,7 +27,7 @@ export const EventLogEntrySchema = z.object({
   timestamp: z.string().datetime(),
   eventType: z.enum(["snapshot_created", "snapshot_sent", "context_injected", "error"]),
   snapshotId: z.string().uuid().optional(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 export type EventLogEntry = z.infer<typeof EventLogEntrySchema>;
@@ -53,8 +53,13 @@ export interface ClaudeResult {
 
 // Storage paths following XDG spec
 export function getStoragePaths() {
-  const xdgData = process.env.XDG_DATA_HOME || `${process.env.HOME}/.local/share`;
-  const xdgConfig = process.env.XDG_CONFIG_HOME || `${process.env.HOME}/.config`;
+  const home = process.env.HOME;
+  if (!home) {
+    throw new Error("HOME environment variable is not set");
+  }
+  
+  const xdgData = process.env.XDG_DATA_HOME || `${home}/.local/share`;
+  const xdgConfig = process.env.XDG_CONFIG_HOME || `${home}/.config`;
   
   return {
     data: `${xdgData}/kodama-claude`,
