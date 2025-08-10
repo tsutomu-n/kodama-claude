@@ -1,6 +1,6 @@
 # Dependencies
 node_modules/
-bun.lockb
+# bun.lockb is intentionally committed for dependency reproducibility
 
 # Build outputs
 dist/
@@ -45,3 +45,6 @@ tmp/
 .kodama_runtime/
 .local/
 .config/
+
+# Claude Code
+.claude/
