@@ -5,6 +5,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync, renameSync, openSync, fsyncSync, closeSync, readdirSync, statSync } from "fs";
 import { join, dirname } from "path";
 import { randomUUID } from "crypto";
+import { config } from "./config";
 import { SnapshotSchema, EventLogEntrySchema, type Snapshot, type EventLogEntry, getStoragePaths } from "./types";
 import { getMessage, formatError } from "./i18n";
 
@@ -122,7 +123,7 @@ export class Storage {
     const snapshot = this.loadSnapshot(id);
     
     // Apply smart decision limiting (non-destructive)
-    if (snapshot && !process.env.KODAMA_NO_LIMIT) {
+    if (snapshot && !config.noLimit) {
       const originalDecisionCount = snapshot.decisions.length;
       
       if (originalDecisionCount > 5) {
@@ -130,7 +131,7 @@ export class Storage {
         snapshot.decisions = snapshot.decisions.slice(-5);
         
         // Debug information
-        if (process.env.KODAMA_DEBUG) {
+        if (config.debug) {
           console.log(`ℹ️  Showing latest 5 of ${originalDecisionCount} decisions (older decisions are preserved in storage)`);
         }
       }
@@ -243,19 +244,19 @@ export class Storage {
           renameSync(sourcePath, targetPath);
           archived++;
           
-          if (process.env.KODAMA_DEBUG) {
+          if (config.debug) {
             console.log(`♻️  Archived: ${file}`);
           }
         } catch (error) {
           // Skip files that cannot be archived
-          if (process.env.KODAMA_DEBUG) {
+          if (config.debug) {
             console.warn(`⚠️  Could not archive ${file}: ${error}`);
           }
         }
       }
     }
     
-    if (archived > 0 && process.env.KODAMA_DEBUG) {
+    if (archived > 0 && config.debug) {
       console.log(`♻️  Archived ${archived} snapshot(s) older than ${maxAgeDays} days`);
     }
     
@@ -295,5 +296,27 @@ export class Storage {
     }
     
     return removed;
+  }
+
+  /**
+   * Trigger auto-archive if enabled
+   * Consolidates the archive logic used across multiple commands
+   * @returns number of archived snapshots (0 if disabled or no snapshots to archive)
+   */
+  triggerAutoArchive(): number {
+    // Check if auto-archive is disabled
+    if (config.autoArchiveDisabled) {
+      return 0;
+    }
+
+    // Archive old snapshots
+    const archived = this.archiveOldSnapshots();
+    
+    // Log if in debug mode and snapshots were archived
+    if (archived > 0 && config.debug) {
+      console.log(`♻️  Archived ${archived} old snapshot(s)`);
+    }
+    
+    return archived;
   }
 }

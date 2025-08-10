@@ -4,6 +4,7 @@
 
 import { existsSync, readFileSync, writeFileSync, copyFileSync } from "fs";
 import { join } from "path";
+import { config } from "./config";
 import type { Snapshot } from "./types";
 
 export class ClaudeMdManager {
@@ -15,8 +16,8 @@ export class ClaudeMdManager {
    */
   updateSection(snapshot: Snapshot, workingDir?: string): boolean {
     // Check if feature is enabled (opt-in)
-    if (process.env.KODAMA_CLAUDE_SYNC !== 'true') {
-      if (process.env.KODAMA_DEBUG) {
+    if (!config.claudeMdSync) {
+      if (config.debug) {
         console.log('ℹ️  CLAUDE.md sync is disabled (set KODAMA_CLAUDE_SYNC=true to enable)');
       }
       return false;
@@ -37,7 +38,7 @@ export class ClaudeMdManager {
       if (existsSync(claudeMdPath)) {
         const backupPath = `${claudeMdPath}.backup`;
         copyFileSync(claudeMdPath, backupPath);
-        if (process.env.KODAMA_DEBUG) {
+        if (config.debug) {
           console.log(`📋 Created backup: ${backupPath}`);
         }
       }
@@ -45,14 +46,14 @@ export class ClaudeMdManager {
       // Write updated content
       writeFileSync(claudeMdPath, updated, 'utf-8');
       
-      if (process.env.KODAMA_DEBUG) {
+      if (config.debug) {
         console.log('✅ CLAUDE.md updated with latest context');
       }
       
       return true;
     } catch (error) {
       // Non-fatal error - CLAUDE.md update is optional
-      if (process.env.KODAMA_DEBUG) {
+      if (config.debug) {
         console.warn(`⚠️  CLAUDE.md update skipped: ${error}`);
       }
       return false;
@@ -67,7 +68,7 @@ export class ClaudeMdManager {
     if (!existsSync(path)) {
       const initialContent = this.createInitialContent();
       writeFileSync(path, initialContent, 'utf-8');
-      if (process.env.KODAMA_DEBUG) {
+      if (config.debug) {
         console.log('📝 Created CLAUDE.md with KODAMA markers');
       }
       return true;
@@ -76,7 +77,7 @@ export class ClaudeMdManager {
     // Check if file has KODAMA markers
     const content = readFileSync(path, 'utf-8');
     if (!content.includes(this.MARKER_START)) {
-      if (process.env.KODAMA_DEBUG) {
+      if (config.debug) {
         console.log('ℹ️  CLAUDE.md exists but no KODAMA markers found. Add markers to enable auto-update.');
         console.log('    Add these lines to your CLAUDE.md:');
         console.log(`    ${this.MARKER_START}`);

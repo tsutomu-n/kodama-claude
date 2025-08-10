@@ -3,6 +3,8 @@
  * Supports English and Japanese based on environment variables
  */
 
+import { config } from "./config";
+
 type Language = 'en' | 'ja';
 
 // Define message types for better type safety
@@ -60,11 +62,11 @@ const messages: Record<Language, Messages> = {
  * Priority: KODAMA_LANG > LANG > LC_ALL > default (en)
  */
 function getCurrentLanguage(): Language {
-  const kodamaLang = process.env.KODAMA_LANG;
+  const kodamaLang = config.language;
   if (kodamaLang?.toLowerCase().startsWith('ja')) return 'ja';
   if (kodamaLang?.toLowerCase().startsWith('en')) return 'en';
   
-  const lang = process.env.LANG || process.env.LC_ALL || '';
+  const lang = config.systemLocale;
   if (lang.toLowerCase().startsWith('ja')) return 'ja';
   
   return 'en'; // Default to English

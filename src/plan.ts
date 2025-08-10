@@ -7,6 +7,7 @@ import { Storage } from "./storage";
 import { ClaudeMdManager } from "./claudeMdManager";
 import { getMessage, formatError } from "./i18n";
 import { getGitBranch, getGitCommit } from "./utils/git";
+import { parseStep, getNextStep, ValidStep } from "./utils/validation";
 import type { Snapshot } from "./types";
 
 interface PlanOptions {
@@ -61,25 +62,22 @@ export async function planCommand(options: PlanOptions) {
     }
     
     // Determine next step
-    const currentStep = latestSnapshot?.step;
-    let nextStep = currentStep;
+    const currentStep = latestSnapshot?.step as ValidStep | undefined;
+    let nextStep: ValidStep | undefined;
     
     if (currentStep) {
-      const stepProgression: Record<string, string> = {
-        requirements: "designing",
-        designing: "implementing",
-        implementing: "testing",
-        testing: "requirements", // Cycle back
-      };
+      const suggestedStep = getNextStep(currentStep);
       
-      nextStep = (stepProgression[currentStep] || currentStep) as any;
-      
-      const useNextStep = await prompt(`📊 Move to "${nextStep}" step? (y/n): `);
-      if (useNextStep.toLowerCase() !== "y") {
-        nextStep = await prompt("📊 Enter step (requirements/designing/implementing/testing): ") as any;
+      const useNextStep = await prompt(`📊 Move to "${suggestedStep}" step? (y/n): `);
+      if (useNextStep.toLowerCase() === "y") {
+        nextStep = suggestedStep;
+      } else {
+        const stepInput = await prompt("📊 Enter step (requirements/designing/implementing/testing): ");
+        nextStep = parseStep(stepInput, currentStep);
       }
     } else {
-      nextStep = await prompt("📊 Enter step (requirements/designing/implementing/testing): ") as any;
+      const stepInput = await prompt("📊 Enter step (requirements/designing/implementing/testing): ");
+      nextStep = parseStep(stepInput, "requirements");
     }
     
     // Get goals
@@ -123,7 +121,7 @@ export async function planCommand(options: PlanOptions) {
       id: randomUUID(),
       title,
       timestamp: new Date().toISOString(),
-      step: nextStep as any,
+      step: nextStep,
       context: planContext,
       decisions: latestSnapshot?.decisions || [],
       nextSteps: tasks, // Tasks become next steps
@@ -136,13 +134,8 @@ export async function planCommand(options: PlanOptions) {
     // Save snapshot
     storage.saveSnapshot(snapshot);
     
-    // Archive old snapshots automatically
-    if (process.env.KODAMA_AUTO_ARCHIVE !== 'false') {
-      const archived = storage.archiveOldSnapshots();
-      if (archived > 0 && process.env.KODAMA_DEBUG) {
-        console.log(`\n♻️  Archived ${archived} old snapshot(s)`);
-      }
-    }
+    // Trigger auto-archive if enabled
+    storage.triggerAutoArchive();
     
     // Update CLAUDE.md if enabled
     const claudeMd = new ClaudeMdManager();

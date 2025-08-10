@@ -9,6 +9,7 @@ import { ClaudeCLI } from "./claude";
 import { ClaudeMdManager } from "./claudeMdManager";
 import { getMessage, formatError } from "./i18n";
 import { getGitBranch, getGitCommit } from "./utils/git";
+import { parseStep, ValidStep } from "./utils/validation";
 import type { Snapshot } from "./types";
 
 interface GoOptions {
@@ -97,7 +98,7 @@ Current step: ${options.step || latestSnapshot?.step || "requirements"}`;
     id: randomUUID(),
     title: options.title || latestSnapshot?.title || "Development session",
     timestamp: new Date().toISOString(),
-    step: (options.step as any) || latestSnapshot?.step,
+    step: parseStep(options.step, latestSnapshot?.step as ValidStep | undefined),
     context: context,
     decisions: latestSnapshot?.decisions || [],
     nextSteps: latestSnapshot?.nextSteps || [],
@@ -109,13 +110,8 @@ Current step: ${options.step || latestSnapshot?.step || "requirements"}`;
   
   storage.saveSnapshot(snapshot);
   
-  // Archive old snapshots automatically
-  if (process.env.KODAMA_AUTO_ARCHIVE !== 'false') {
-    const archived = storage.archiveOldSnapshots();
-    if (archived > 0 && process.env.KODAMA_DEBUG) {
-      console.log(`♻️  Archived ${archived} old snapshot(s)`);
-    }
-  }
+  // Trigger auto-archive if enabled
+  storage.triggerAutoArchive();
   
   // Update CLAUDE.md if enabled
   const claudeMd = new ClaudeMdManager();

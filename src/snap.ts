@@ -9,6 +9,7 @@ import { Storage } from "./storage";
 import { ClaudeMdManager } from "./claudeMdManager";
 import { getMessage, formatError } from "./i18n";
 import { getGitBranch, getGitCommit } from "./utils/git";
+import { parseStep, ValidStep } from "./utils/validation";
 import type { Snapshot } from "./types";
 
 interface SnapOptions {
@@ -102,7 +103,7 @@ export async function snapCommand(options: SnapOptions) {
       id: randomUUID(),
       title,
       timestamp: new Date().toISOString(),
-      step: step as any,
+      step: parseStep(step),
       context,
       decisions,
       nextSteps,
@@ -115,13 +116,8 @@ export async function snapCommand(options: SnapOptions) {
     // Save snapshot
     storage.saveSnapshot(snapshot);
     
-    // Archive old snapshots automatically
-    if (process.env.KODAMA_AUTO_ARCHIVE !== 'false') {
-      const archived = storage.archiveOldSnapshots();
-      if (archived > 0 && process.env.KODAMA_DEBUG) {
-        console.log(`\n♻️  Archived ${archived} old snapshot(s)`);
-      }
-    }
+    // Trigger auto-archive if enabled
+    storage.triggerAutoArchive();
     
     // Update CLAUDE.md if enabled
     const claudeMd = new ClaudeMdManager();

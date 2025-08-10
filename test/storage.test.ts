@@ -246,4 +246,95 @@ describe("Storage", () => {
     expect(removed).toBe(0);
     expect(storage.loadSnapshot(importantSnapshot.id)).toBeDefined();
   });
+
+  test("should trigger auto-archive when enabled", () => {
+    // Create old snapshots (35+ days old)
+    const oldSnapshot1 = storage.saveSnapshot({
+      ...mockSnapshot,
+      id: randomUUID(),
+      title: "Old snapshot 1",
+    });
+    const oldSnapshot2 = storage.saveSnapshot({
+      ...mockSnapshot,
+      id: randomUUID(),
+      title: "Old snapshot 2",
+    });
+
+    // Make snapshots old
+    const oldTime = Date.now() - (35 * 24 * 60 * 60 * 1000);
+    const paths = storage["paths"];
+    const oldPath1 = `${paths.snapshots}/${oldSnapshot1.id}.json`;
+    const oldPath2 = `${paths.snapshots}/${oldSnapshot2.id}.json`;
+    require("fs").utimesSync(oldPath1, oldTime / 1000, oldTime / 1000);
+    require("fs").utimesSync(oldPath2, oldTime / 1000, oldTime / 1000);
+
+    // Test with auto-archive enabled (default)
+    delete process.env.KODAMA_AUTO_ARCHIVE;
+    const archived = storage.triggerAutoArchive();
+    expect(archived).toBe(2);
+
+    // Check that snapshots were moved to archive
+    const archivePath = `${paths.snapshots}/archive`;
+    expect(require("fs").existsSync(archivePath)).toBe(true);
+    expect(require("fs").existsSync(`${archivePath}/${oldSnapshot1.id}.json`)).toBe(true);
+    expect(require("fs").existsSync(`${archivePath}/${oldSnapshot2.id}.json`)).toBe(true);
+  });
+
+  test("should not trigger auto-archive when disabled", () => {
+    // Create old snapshot
+    const oldSnapshot = storage.saveSnapshot({
+      ...mockSnapshot,
+      id: randomUUID(),
+      title: "Old snapshot",
+    });
+
+    // Make snapshot old
+    const oldTime = Date.now() - (35 * 24 * 60 * 60 * 1000);
+    const paths = storage["paths"];
+    const oldPath = `${paths.snapshots}/${oldSnapshot.id}.json`;
+    require("fs").utimesSync(oldPath, oldTime / 1000, oldTime / 1000);
+
+    // Disable auto-archive
+    process.env.KODAMA_AUTO_ARCHIVE = 'false';
+    const archived = storage.triggerAutoArchive();
+    expect(archived).toBe(0);
+
+    // Check that snapshot was NOT moved
+    expect(require("fs").existsSync(oldPath)).toBe(true);
+    
+    // Clean up environment
+    delete process.env.KODAMA_AUTO_ARCHIVE;
+  });
+
+  test("should log debug message when archiving", () => {
+    // Create old snapshot
+    const oldSnapshot = storage.saveSnapshot({
+      ...mockSnapshot,
+      id: randomUUID(),
+      title: "Old snapshot for debug",
+    });
+
+    // Make snapshot old
+    const oldTime = Date.now() - (35 * 24 * 60 * 60 * 1000);
+    const paths = storage["paths"];
+    const oldPath = `${paths.snapshots}/${oldSnapshot.id}.json`;
+    require("fs").utimesSync(oldPath, oldTime / 1000, oldTime / 1000);
+
+    // Enable debug mode
+    process.env.KODAMA_DEBUG = 'true';
+    
+    // Spy on console.log
+    const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+    
+    // Trigger archive
+    const archived = storage.triggerAutoArchive();
+    expect(archived).toBe(1);
+    
+    // Check that debug message was logged
+    expect(consoleSpy).toHaveBeenCalledWith('♻️  Archived 1 old snapshot(s)');
+    
+    // Clean up
+    consoleSpy.mockRestore();
+    delete process.env.KODAMA_DEBUG;
+  });
 });
