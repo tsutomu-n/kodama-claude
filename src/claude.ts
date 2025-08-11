@@ -80,21 +80,17 @@ export class ClaudeCLI {
   
   /**
    * Start new conversation with context
+   * @deprecated Use injectContext() and openREPL() instead
    */
   startWithContext(context: string, message?: string): ClaudeResult {
-    const args = [];
-    
-    // Add context as system message
-    if (context) {
-      args.push("--system", context);
-    }
-    
-    // Add user message if provided
-    if (message) {
-      args.push(message);
-    }
-    
-    return this.execute(args);
+    // This method is deprecated and not used
+    // The correct approach is the two-stage execution:
+    // 1. injectContext() with claude -c -p
+    // 2. openREPL() with claude --continue
+    return {
+      success: false,
+      error: "Method deprecated. Use injectContext() and openREPL() instead."
+    };
   }
   
   /**

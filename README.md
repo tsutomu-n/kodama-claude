@@ -39,6 +39,35 @@ chmod +x kc-linux-x64
 sudo mv kc-linux-x64 /usr/local/bin/kc
 ```
 
+## ⚠️ Migration from v0.1.0 to v0.3.0
+
+**Breaking Changes:** v0.3.0 completely redesigned the command structure.
+
+### Old Commands (v0.1.0) → New Commands (v0.3.0)
+```bash
+# Old → New
+kc snap     → kc save
+kc check    → kc status
+kc send     → (integrated into kc save)
+kc plan     → (removed - auto-displayed)
+kc doctor   → kc status
+```
+
+### If you have v0.1.0 installed
+```bash
+# 1. Uninstall old version
+sudo rm /usr/local/bin/kc
+
+# 2. Install new version
+curl -fsSL https://github.com/tsutomu-n/kodama-claude/releases/latest/download/install.sh | bash
+
+# 3. Verify version
+kc --version  # Should show 0.3.0
+```
+
+### Known Issue with v0.1.0
+If you see error `unknown option '--system'`, you have v0.1.0. Please upgrade.
+
 ## Usage
 
 ### Only 3 Commands
