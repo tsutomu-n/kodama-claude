@@ -248,6 +248,7 @@ main() {
         echo "   kc status  - Check health (🟢/🟡/🔴/❓)"
         echo ""
         echo "📚 Documentation: https://github.com/${REPO}"
+        echo "🗑️  Uninstall: kc uninstall"
     else
         echo -e "${RED}❌ Installation may have succeeded but 'kc' is not in PATH${NC}" >&2
         echo "  Add $INSTALL_DIR to your PATH:" >&2

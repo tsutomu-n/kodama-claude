@@ -33,6 +33,28 @@ chmod +x kc-linux-x64
 sudo mv kc-linux-x64 /usr/local/bin/kc
 ```
 
+## アンインストール
+
+KODAMA Claudeは安全でユーザーフレンドリーなアンインストーラーを提供します（デフォルトでデータを保持）。
+
+### クイックアンインストール（スナップショットを保持）
+```bash
+kc uninstall
+# または
+curl -fsSL https://github.com/tsutomu-n/kodama-claude/releases/latest/download/uninstall.sh | bash
+```
+
+### 完全削除（すべてのデータを含む）
+```bash
+kc uninstall --remove-all
+```
+
+### アンインストールオプション
+- `--remove-all` - スナップショットを含むすべてのデータを削除
+- `--backup` - データ削除前にバックアップを作成
+- `--dry-run` - 削除対象をプレビュー
+- `--force` - 確認プロンプトをスキップ
+
 ## 使い方
 
 ### たった3つのコマンド

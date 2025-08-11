@@ -5,12 +5,14 @@
  * 
  * Philosophy: "Less is more" - Only 3 commands for junior developers
  * go / save / status - That's all you need.
+ * Plus uninstall for clean removal.
  */
 
 import { program } from "commander";
 import { goCommand } from "../src/go";
 import { saveCommand } from "../src/save";
 import { statusCommand } from "../src/status";
+import { uninstallCommand } from "../src/uninstall";
 import { version } from "../package.json";
 
 program
@@ -45,6 +47,17 @@ program
   .option("-j, --json", "Output in JSON format")
   .option("-s, --strict", "Exit with code 1 on danger (for CI/CD)")
   .action(statusCommand);
+
+// Uninstall command (hidden from main help)
+program
+  .command("uninstall", { hidden: true })
+  .description("Uninstall KODAMA Claude")
+  .option("--remove-all", "Remove all data including snapshots")
+  .option("--dry-run", "Show what would be removed without removing")
+  .option("-f, --force", "Skip confirmation prompts")
+  .option("--backup", "Create backup before removing data")
+  .option("-q, --quiet", "Suppress non-error output")
+  .action(uninstallCommand);
 
 // Parse and execute
 program.parse();

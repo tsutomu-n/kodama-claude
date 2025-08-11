@@ -68,6 +68,51 @@ kc --version  # Should show 0.3.0
 ### Known Issue with v0.1.0
 If you see error `unknown option '--system'`, you have v0.1.0. Please upgrade.
 
+## Uninstallation
+
+KODAMA Claude provides a safe, user-friendly uninstaller that preserves your data by default.
+
+### Quick Uninstall (keeps your snapshots)
+```bash
+kc uninstall
+# or
+curl -fsSL https://github.com/tsutomu-n/kodama-claude/releases/latest/download/uninstall.sh | bash
+```
+
+### Complete Removal (including all data)
+```bash
+kc uninstall --remove-all
+# or
+curl -fsSL https://github.com/tsutomu-n/kodama-claude/releases/latest/download/uninstall.sh | bash -s -- --remove-all
+```
+
+### Uninstall Options
+- `--remove-all` - Remove all data including snapshots
+- `--backup` - Create backup before removing data
+- `--dry-run` - Preview what will be removed
+- `--force` - Skip confirmation prompts
+
+### What Gets Removed
+```
+Default (safe mode):
+✓ Binary: /usr/local/bin/kc
+✗ Kept: ~/.local/share/kodama-claude/ (your snapshots)
+
+With --remove-all:
+✓ Binary: /usr/local/bin/kc
+✓ Data: ~/.local/share/kodama-claude/
+✓ Config: ~/.config/kodama-claude/
+```
+
+### Manual Uninstall
+```bash
+# Remove binary
+sudo rm /usr/local/bin/kc
+
+# Remove data (optional)
+rm -rf ~/.local/share/kodama-claude
+```
+
 ## Usage
 
 ### Only 3 Commands
