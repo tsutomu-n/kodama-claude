@@ -224,9 +224,9 @@ Add to `~/.bashrc` or `~/.zshrc`:
 
 # Quick commands
 alias kcg='kc go'
-alias kcs='kc snap'
-alias kcp='kc plan'
-alias kcd='kc doctor'
+alias kcs='kc save'
+alias kcg='kc go'
+alias kcst='kc status'
 
 # Morning routine
 morning() {
@@ -237,7 +237,7 @@ morning() {
 # Evening routine
 evening() {
     echo "🌙 Wrapping up the day..."
-    kc snap -t "End of day: $(date '+%Y-%m-%d')"
+    kc save -t "End of day: $(date '+%Y-%m-%d')"
     echo "📊 Today's progress:"
     jq '.context' ~/.local/share/kodama-claude/snapshots/latest.json
 }
@@ -411,14 +411,14 @@ Create enhanced Claude+KODAMA integration:
 pre_snapshot() {
     if [[ ! "$*" =~ "--continue" ]]; then
         echo "📸 Creating pre-Claude snapshot..."
-        kc snap -t "Before: $*" </dev/null
+        kc save -t "Before: $*" </dev/null
     fi
 }
 
 # Auto-snapshot after Claude
 post_snapshot() {
     echo "📸 Creating post-Claude snapshot..."
-    kc snap -t "After Claude session" </dev/null
+    kc save -t "After Claude session" </dev/null
 }
 
 # Trap exit
@@ -479,7 +479,7 @@ if command -v kc >/dev/null 2>&1; then
     COMMIT_MSG=$(git diff --cached --name-status | head -5)
     
     # Create snapshot
-    echo "Pre-commit checkpoint" | kc snap -t "Pre-commit: $(date '+%Y-%m-%d %H:%M')" 2>/dev/null
+    echo "Pre-commit checkpoint" | kc save -t "Pre-commit: $(date '+%Y-%m-%d %H:%M')" --stdin -y 2>/dev/null
 fi
 ```
 
@@ -490,7 +490,7 @@ fi
 # Remind to update context after merge
 
 echo "⚠️  Branch merged. Remember to update KODAMA context:"
-echo "   kc snap -t 'After merge: $(git branch --show-current)'"
+echo "   kc save -t 'After merge: $(git branch --show-current)'"
 ```
 
 ### Branch-Aware Context
@@ -535,7 +535,7 @@ kc_snap_extended() {
         echo "Tests: $test_status"
         echo "---"
         cat
-    ) | kc snap "$@"
+    ) | kc save --stdin -y "$@"
 }
 
 alias kcs='kc_snap_extended'
@@ -546,14 +546,14 @@ alias kcs='kc_snap_extended'
 ```bash
 # Desktop notifications
 notify_snapshot() {
-    kc snap "$@"
+    kc save "$@"
     notify-send "KODAMA Claude" "Snapshot saved: $1" -i dialog-information
 }
 
 # Slack notification
 slack_snapshot() {
     local title="$1"
-    kc snap -t "$title"
+    kc save -t "$title"
     curl -X POST $SLACK_WEBHOOK -d "{\"text\": \"🎯 Snapshot: $title\"}"
 }
 
@@ -581,9 +581,9 @@ kc_jira() {
     local ticket=$(get_jira_ticket)
     if [[ -n "$ticket" ]]; then
         local jira_info=$(curl -s "$JIRA_API/issue/$ticket" | jq '.fields.summary')
-        echo "JIRA $ticket: $jira_info" | kc snap -t "JIRA-$ticket: $1"
+        echo "JIRA $ticket: $jira_info" | kc save -t "JIRA-$ticket: $1" --stdin -y
     else
-        kc snap "$@"
+        kc save "$@"
     fi
 }
 ```
@@ -596,7 +596,7 @@ kc_github() {
     local issue="$1"
     shift
     local issue_title=$(gh issue view "$issue" --json title -q .title)
-    kc snap -t "Issue #$issue: $issue_title" "$@"
+    kc save -t "Issue #$issue: $issue_title" "$@"
     
     # Add comment to issue
     gh issue comment "$issue" -b "Working on this. Context saved in KODAMA."

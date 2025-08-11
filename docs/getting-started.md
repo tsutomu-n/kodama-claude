@@ -32,7 +32,7 @@ Day 2: KODAMA loads context → Continue exactly where you stopped
 ### Simple Workflow Diagram
 ```
 ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│   You work  │ --> │  kc snap    │ --> │   Context   │
+│   You work  │ --> │  kc save    │ --> │   Context   │
 │ with Claude │     │ (save work) │     │   saved!    │
 └─────────────┘     └─────────────┘     └─────────────┘
                                                │
@@ -395,10 +395,8 @@ Print this and keep it nearby:
 │        KODAMA CLAUDE QUICK CARD         │
 ├─────────────────────────────────────────┤
 │ kc go     - Start/continue work         │
-│ kc snap   - Save current context        │
-│ kc plan   - Plan next steps             │
-│ kc send   - Send context to Claude      │
-│ kc doctor - Check if everything works   │
+│ kc save   - Save & paste snapshot       │
+│ kc status - Check health (🟢/🟡/🔴/❓)   │
 ├─────────────────────────────────────────┤
 │ Exit Claude: Ctrl+D                     │
 │ Get help: kc --help                     │
