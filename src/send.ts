@@ -17,12 +17,12 @@ export async function sendCommand(snapshotId?: string) {
   let snapshot;
   
   if (snapshotId) {
-    snapshot = storage.loadSnapshot(snapshotId);
+    snapshot = await storage.loadSnapshot(snapshotId);
     if (!snapshot) {
       console.error(formatError(getMessage("snapshotNotFound", snapshotId)));
       
       // List available snapshots
-      const snapshots = storage.listSnapshots();
+      const snapshots = await storage.listSnapshots();
       if (snapshots.length > 0) {
         console.log("\n📦 Available snapshots:");
         snapshots.slice(0, 10).forEach(s => {
@@ -34,7 +34,7 @@ export async function sendCommand(snapshotId?: string) {
     }
   } else {
     // Use latest snapshot
-    snapshot = storage.getLatestSnapshot();
+    snapshot = await storage.getLatestSnapshot();
     if (!snapshot) {
       console.error(formatError(getMessage("noSnapshotsFound")));
       process.exit(1);
@@ -92,7 +92,7 @@ export async function sendCommand(snapshotId?: string) {
   
   if (sent) {
     // Log event
-    storage.appendEvent({
+    await storage.appendEvent({
       timestamp: new Date().toISOString(),
       eventType: "snapshot_sent",
       snapshotId: snapshot.id,

@@ -1,5 +1,9 @@
 name: Release
 
+permissions:
+  contents: write  # For creating releases
+  packages: read   # For reading packages
+
 on:
   push:
     tags:
@@ -22,13 +26,14 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          bun-version: '1.2.20'
       
       - name: Install dependencies
         run: bun install
       
       - name: Run tests
-        run: bun test || true
+        run: bun test
+        continue-on-error: true  # Allow workflow to continue but mark as warning
       
       - name: Build binaries
         run: |
@@ -66,8 +71,6 @@ jobs:
     name: Create Release
     needs: build
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     
     steps:
       - name: Checkout code

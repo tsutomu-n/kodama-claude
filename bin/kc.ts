@@ -21,6 +21,9 @@ program
   .version(version)
   .option("-d, --debug", "Enable debug output");
 
+// Group commands for better organization in help output
+program.commandsGroup("Core Workflow Commands");
+
 // Main one-command workflow
 program
   .command("go")
@@ -44,12 +47,16 @@ program
   .argument("[snapshot-id]", "Snapshot ID to send (latest if omitted)")
   .action(sendCommand);
 
+program.commandsGroup("Development Tools");
+
 // Plan next steps (Phase 2)
 program
   .command("plan")
   .description("Structure and plan next development steps")
   .option("-t, --title <title>", "Plan title")
   .action(planCommand);
+
+program.commandsGroup("Maintenance");
 
 // Health check
 program

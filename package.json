@@ -8,8 +8,8 @@
   },
   "scripts": {
     "dev": "bun run bin/kc.ts",
-    "build": "bun build ./bin/kc.ts --compile --target=bun-linux-x64-baseline --outfile dist/kc-linux-x64",
-    "build:arm": "bun build ./bin/kc.ts --compile --target=bun-linux-arm64 --outfile dist/kc-linux-arm64",
+    "build": "bun build ./bin/kc.ts --compile --minify --target=bun-linux-x64-baseline --outfile dist/kc-linux-x64",
+    "build:arm": "bun build ./bin/kc.ts --compile --minify --target=bun-linux-arm64 --outfile dist/kc-linux-arm64",
     "build:all": "bun run build && bun run build:arm",
     "test": "bun test",
     "typecheck": "tsc --noEmit",
@@ -37,14 +37,14 @@
   },
   "homepage": "https://github.com/tsutomu-n/kodama-claude#readme",
   "dependencies": {
-    "commander": "^11.1.0",
+    "commander": "^14.0.0",
     "zod": "^4.0.17"
   },
   "devDependencies": {
     "@types/bun": "^1.0.0",
-    "@types/node": "^20.10.0",
+    "@types/node": "^24.2.1",
     "prettier": "^3.1.0",
-    "typescript": "^5.3.0"
+    "typescript": "^5.9.0"
   },
   "engines": {
     "bun": ">=1.0.0"

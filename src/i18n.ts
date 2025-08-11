@@ -13,6 +13,10 @@ type SimpleMessage = {
   claudeNotFound: string;
   claudeSessionFailed: string;
   noSnapshotsFound: string;
+  fileNotFound: string;
+  invalidInput: string;
+  operationFailed: string;
+  permissionDenied: string;
 };
 
 type ParameterizedMessage = {
@@ -21,6 +25,9 @@ type ParameterizedMessage = {
   snapshotLoadFailed: (id: string, error: string) => string;
   snapshotCreated: (id: string) => string;
   planCreated: (id: string) => string;
+  fileReadError: (path: string, error: string) => string;
+  fileWriteError: (path: string, error: string) => string;
+  validationError: (field: string, reason: string) => string;
 };
 
 type Messages = SimpleMessage & ParameterizedMessage;
@@ -32,6 +39,10 @@ const messages: Record<Language, Messages> = {
     claudeNotFound: "Claude Code CLI not found. Please install: npm install -g @anthropic/claude",
     claudeSessionFailed: "Failed to start/continue Claude session:",
     noSnapshotsFound: "No snapshots found. Create one with: kc snap",
+    fileNotFound: "File not found",
+    invalidInput: "Invalid input provided",
+    operationFailed: "Operation failed",
+    permissionDenied: "Permission denied",
     
     // Parameterized messages
     errorCreating: (type) => `Error creating ${type}:`,
@@ -39,6 +50,9 @@ const messages: Record<Language, Messages> = {
     snapshotLoadFailed: (id, error) => `Failed to load snapshot ${id}: ${error}`,
     snapshotCreated: (id) => `✓ Snapshot created: ${id}`,
     planCreated: (id) => `✓ Plan created: ${id}`,
+    fileReadError: (path, error) => `Failed to read file ${path}: ${error}`,
+    fileWriteError: (path, error) => `Failed to write file ${path}: ${error}`,
+    validationError: (field, reason) => `Validation error for ${field}: ${reason}`,
   },
   
   ja: {
@@ -47,6 +61,10 @@ const messages: Record<Language, Messages> = {
     claudeNotFound: "Claude Code CLIが見つかりません。インストールしてください: npm install -g @anthropic/claude",
     claudeSessionFailed: "Claudeセッションの開始/継続に失敗しました:",
     noSnapshotsFound: "スナップショットが見つかりません。作成してください: kc snap",
+    fileNotFound: "ファイルが見つかりません",
+    invalidInput: "無効な入力です",
+    operationFailed: "操作に失敗しました",
+    permissionDenied: "アクセス権限がありません",
     
     // Parameterized messages
     errorCreating: (type) => `${type}の作成中にエラーが発生しました:`,
@@ -54,6 +72,9 @@ const messages: Record<Language, Messages> = {
     snapshotLoadFailed: (id, error) => `スナップショット ${id} の読み込みに失敗しました: ${error}`,
     snapshotCreated: (id) => `✓ スナップショットを作成しました: ${id}`,
     planCreated: (id) => `✓ プランを作成しました: ${id}`,
+    fileReadError: (path, error) => `ファイル ${path} の読み込みに失敗しました: ${error}`,
+    fileWriteError: (path, error) => `ファイル ${path} の書き込みに失敗しました: ${error}`,
+    validationError: (field, reason) => `${field} の検証エラー: ${reason}`,
   }
 };
 
@@ -81,6 +102,10 @@ export function getMessage(key: 'titleRequired'): string;
 export function getMessage(key: 'claudeNotFound'): string;
 export function getMessage(key: 'claudeSessionFailed'): string;
 export function getMessage(key: 'noSnapshotsFound'): string;
+export function getMessage(key: 'fileNotFound'): string;
+export function getMessage(key: 'invalidInput'): string;
+export function getMessage(key: 'operationFailed'): string;
+export function getMessage(key: 'permissionDenied'): string;
 
 // Parameterized messages
 export function getMessage(key: 'errorCreating', type: string): string;
@@ -88,6 +113,9 @@ export function getMessage(key: 'snapshotNotFound', id: string): string;
 export function getMessage(key: 'snapshotLoadFailed', id: string, error: string): string;
 export function getMessage(key: 'snapshotCreated', id: string): string;
 export function getMessage(key: 'planCreated', id: string): string;
+export function getMessage(key: 'fileReadError', path: string, error: string): string;
+export function getMessage(key: 'fileWriteError', path: string, error: string): string;
+export function getMessage(key: 'validationError', field: string, reason: string): string;
 
 // Implementation
 export function getMessage(key: keyof Messages, ...args: any[]): string {

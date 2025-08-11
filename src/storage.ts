@@ -2,12 +2,14 @@
  * Storage module - Atomic file operations with proper locking
  */
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync, renameSync, openSync, fsyncSync, closeSync, readdirSync, statSync } from "fs";
+import { existsSync, mkdirSync, renameSync, openSync, fsyncSync, closeSync, readdirSync, statSync, readFileSync } from "fs";
 import { join, dirname } from "path";
 import { randomUUID } from "crypto";
+import { file, write } from "bun";
 import { config } from "./config";
 import { SnapshotSchema, EventLogEntrySchema, type Snapshot, type EventLogEntry, getStoragePaths } from "./types";
 import { getMessage, formatError } from "./i18n";
+import { PerfTimer } from "./performance";
 
 export class Storage {
   private paths = getStoragePaths();
@@ -26,9 +28,9 @@ export class Storage {
   }
   
   /**
-   * Atomic write with fsync
+   * Atomic write with fsync - Using Bun's optimized file operations
    */
-  private writeAtomic(path: string, data: string) {
+  private async writeAtomic(path: string, data: string) {
     const tmpPath = `${path}.tmp.${randomUUID()}`;
     const dir = dirname(path);
     
@@ -37,8 +39,8 @@ export class Storage {
       mkdirSync(dir, { recursive: true, mode: 0o700 });
     }
     
-    // Write to temp file
-    writeFileSync(tmpPath, data, { mode: 0o600 });
+    // Use Bun's optimized write function
+    await write(tmpPath, data);
     
     // fsync to ensure data is on disk
     const fd = openSync(tmpPath, "r");
@@ -63,64 +65,102 @@ export class Storage {
   /**
    * Save snapshot with validation
    */
-  saveSnapshot(snapshot: Snapshot): void {
+  async saveSnapshot(snapshot: Snapshot): Promise<void> {
+    const timer = new PerfTimer("saveSnapshot");
+    
     // Validate schema
+    timer.mark("validation");
     const validated = SnapshotSchema.parse(snapshot);
     const path = join(this.paths.snapshots, `${validated.id}.json`);
     
-    this.writeAtomic(path, JSON.stringify(validated, null, 2));
+    timer.mark("write");
+    await this.writeAtomic(path, JSON.stringify(validated, null, 2));
     
     // Append to event log
-    this.appendEvent({
+    timer.mark("eventLog");
+    await this.appendEvent({
       timestamp: new Date().toISOString(),
       eventType: "snapshot_created",
       snapshotId: validated.id,
     });
+    
+    timer.end();
   }
   
   /**
-   * Load snapshot by ID
+   * Load snapshot by ID - Using Bun's optimized file operations
    */
-  loadSnapshot(id: string): Snapshot | null {
+  async loadSnapshot(id: string): Promise<Snapshot | null> {
+    const timer = new PerfTimer("loadSnapshot");
+    
     // Validate ID to prevent path traversal
     if (!id || id.includes('..') || id.includes('/') || id.includes('\\')) {
+      timer.end();
       return null;
     }
     
     const path = join(this.paths.snapshots, `${id}.json`);
+    const f = file(path);
     
-    if (!existsSync(path)) {
+    timer.mark("checkExists");
+    if (!await f.exists()) {
+      timer.end();
       return null;
     }
     
     try {
-      const data = readFileSync(path, "utf-8");
-      return SnapshotSchema.parse(JSON.parse(data));
+      timer.mark("readFile");
+      const data = await f.text();
+      timer.mark("parse");
+      const result = SnapshotSchema.parse(JSON.parse(data));
+      timer.end();
+      return result;
     } catch (error) {
       console.error(formatError(getMessage("snapshotLoadFailed", id, String(error))));
+      timer.end();
       return null;
     }
   }
   
   /**
-   * Get latest snapshot with smart context management
+   * Get latest snapshot with smart context management - Using Bun's optimized file operations
    */
-  getLatestSnapshot(): Snapshot | null {
+  async getLatestSnapshot(): Promise<Snapshot | null> {
+    const timer = new PerfTimer("getLatestSnapshot");
+    
+    timer.mark("listFiles");
     const files = readdirSync(this.paths.snapshots)
       .filter(f => f.endsWith(".json") && !f.startsWith("archive"))
-      .map(f => ({
-        name: f,
-        path: join(this.paths.snapshots, f),
-        mtime: statSync(join(this.paths.snapshots, f)).mtime,
-      }))
-      .sort((a, b) => b.mtime.getTime() - a.mtime.getTime());
+      .map(f => {
+        const fullPath = join(this.paths.snapshots, f);
+        const bunFile = file(fullPath);
+        return {
+          name: f,
+          path: fullPath,
+          file: bunFile,
+        };
+      });
     
-    if (files.length === 0) {
+    // Get stats in parallel for better performance
+    timer.mark("getStats");
+    const filesWithStats = await Promise.all(
+      files.map(async (f) => ({
+        ...f,
+        mtime: (await f.file.stat())?.mtime || new Date(0),
+      }))
+    );
+    
+    timer.mark("sort");
+    filesWithStats.sort((a, b) => b.mtime.getTime() - a.mtime.getTime());
+    
+    if (filesWithStats.length === 0) {
+      timer.end();
       return null;
     }
     
-    const id = files[0].name.replace(".json", "");
-    const snapshot = this.loadSnapshot(id);
+    const id = filesWithStats[0].name.replace(".json", "");
+    timer.mark("loadSnapshot");
+    const snapshot = await this.loadSnapshot(id);
     
     // Apply smart decision limiting (non-destructive)
     if (snapshot && !config.noLimit) {
@@ -137,19 +177,20 @@ export class Storage {
       }
     }
     
+    timer.end();
     return snapshot;
   }
   
   /**
    * List all snapshots
    */
-  listSnapshots(): Array<{ id: string; title: string; timestamp: string; step?: string }> {
+  async listSnapshots(): Promise<Array<{ id: string; title: string; timestamp: string; step?: string }>> {
     const files = readdirSync(this.paths.snapshots).filter(f => f.endsWith(".json"));
     
-    const snapshots = files
-      .map(file => {
+    const snapshots = await Promise.all(
+      files.map(async file => {
         const id = file.replace(".json", "");
-        const snapshot = this.loadSnapshot(id);
+        const snapshot = await this.loadSnapshot(id);
         if (!snapshot) return null;
         
         return {
@@ -159,18 +200,20 @@ export class Storage {
           step: snapshot.step,
         };
       })
-      .filter(Boolean) as Array<{ id: string; title: string; timestamp: string; step?: string }>;
+    );
+    
+    const validSnapshots = snapshots.filter(Boolean) as Array<{ id: string; title: string; timestamp: string; step?: string }>;
     
     // Sort by timestamp descending
-    return snapshots.sort((a, b) => 
+    return validSnapshots.sort((a, b) => 
       new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
     );
   }
   
   /**
-   * Append to event log (JSONL format)
+   * Append to event log (JSONL format) - Using Bun's optimized file operations
    */
-  appendEvent(event: EventLogEntry): void {
+  async appendEvent(event: EventLogEntry): Promise<void> {
     const validated = EventLogEntrySchema.parse(event);
     const line = JSON.stringify(validated) + "\n";
     
@@ -179,13 +222,15 @@ export class Storage {
     
     // Copy existing content if file exists
     if (existsSync(this.paths.events)) {
-      const existing = readFileSync(this.paths.events);
-      writeFileSync(tmpPath, existing);
+      const existingFile = file(this.paths.events);
+      const existing = await existingFile.text();
+      await write(tmpPath, existing + line);
+    } else {
+      await write(tmpPath, line);
     }
     
-    // Append new line
-    const fd = openSync(tmpPath, "a");
-    writeFileSync(fd, line);
+    // fsync to ensure data is on disk
+    const fd = openSync(tmpPath, "r");
     fsyncSync(fd);
     closeSync(fd);
     

@@ -33,7 +33,7 @@ export async function goCommand(options: GoOptions) {
   const isNewSession = !sessionId;
   
   // Load latest snapshot for context
-  const latestSnapshot = storage.getLatestSnapshot();
+  const latestSnapshot = await storage.getLatestSnapshot();
   
   // Prepare context
   let context = "";
@@ -108,7 +108,7 @@ Current step: ${options.step || latestSnapshot?.step || "requirements"}`;
     gitCommit,
   };
   
-  storage.saveSnapshot(snapshot);
+  await storage.saveSnapshot(snapshot);
   
   // Trigger auto-archive if enabled
   storage.triggerAutoArchive();

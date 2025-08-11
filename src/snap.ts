@@ -114,7 +114,7 @@ export async function snapCommand(options: SnapOptions) {
     };
     
     // Save snapshot
-    storage.saveSnapshot(snapshot);
+    await storage.saveSnapshot(snapshot);
     
     // Trigger auto-archive if enabled
     storage.triggerAutoArchive();

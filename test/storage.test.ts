@@ -47,9 +47,9 @@ describe("Storage", () => {
       gitCommit: "abc123",
     };
     
-    storage.saveSnapshot(snapshot);
+    await storage.saveSnapshot(snapshot);
     
-    const loaded = storage.loadSnapshot(snapshot.id);
+    const loaded = await storage.loadSnapshot(snapshot.id);
     expect(loaded).toBeDefined();
     expect(loaded?.id).toBe(snapshot.id);
     expect(loaded?.title).toBe(snapshot.title);
@@ -79,14 +79,14 @@ describe("Storage", () => {
       cwd: "/test",
     };
     
-    storage.saveSnapshot(snapshot1);
+    await storage.saveSnapshot(snapshot1);
     
     // Small delay to ensure different mtime
     Bun.sleepSync(10);
     
-    storage.saveSnapshot(snapshot2);
+    await storage.saveSnapshot(snapshot2);
     
-    const latest = storage.getLatestSnapshot();
+    const latest = await storage.getLatestSnapshot();
     expect(latest?.id).toBe(snapshot2.id);
   });
   
@@ -106,7 +106,7 @@ describe("Storage", () => {
       };
       
       snapshots.push(snapshot);
-      storage.saveSnapshot(snapshot);
+      await storage.saveSnapshot(snapshot);
       Bun.sleepSync(10); // Ensure different mtimes
     }
     
@@ -129,7 +129,7 @@ describe("Storage", () => {
     };
     
     // Save snapshot
-    storage.saveSnapshot(snapshot);
+    await storage.saveSnapshot(snapshot);
     
     // Verify no temp files left behind
     const paths = storage["paths"];
@@ -161,8 +161,8 @@ describe("Storage", () => {
       snapshotId: randomUUID(),
     };
     
-    storage.appendEvent(event1);
-    storage.appendEvent(event2);
+    await storage.appendEvent(event1);
+    await storage.appendEvent(event2);
     
     // Read event log
     const paths = storage["paths"];
@@ -203,8 +203,8 @@ describe("Storage", () => {
       cwd: "/test",
     };
     
-    storage.saveSnapshot(oldSnapshot);
-    storage.saveSnapshot(recentSnapshot);
+    await storage.saveSnapshot(oldSnapshot);
+    await storage.saveSnapshot(recentSnapshot);
     
     // Manually set old mtime for old snapshot
     const paths = storage["paths"];
@@ -216,8 +216,8 @@ describe("Storage", () => {
     const removed = storage.cleanup(30);
     
     expect(removed).toBe(1);
-    expect(storage.loadSnapshot(oldSnapshot.id)).toBeNull();
-    expect(storage.loadSnapshot(recentSnapshot.id)).toBeDefined();
+    expect(await storage.loadSnapshot(oldSnapshot.id)).toBeNull();
+    expect(await storage.loadSnapshot(recentSnapshot.id)).toBeDefined();
   });
   
   test("should not cleanup important snapshots", () => {
@@ -232,7 +232,7 @@ describe("Storage", () => {
       cwd: "/test",
     };
     
-    storage.saveSnapshot(importantSnapshot);
+    await storage.saveSnapshot(importantSnapshot);
     
     // Manually set old mtime
     const paths = storage["paths"];
@@ -244,17 +244,17 @@ describe("Storage", () => {
     const removed = storage.cleanup(30);
     
     expect(removed).toBe(0);
-    expect(storage.loadSnapshot(importantSnapshot.id)).toBeDefined();
+    expect(await storage.loadSnapshot(importantSnapshot.id)).toBeDefined();
   });
 
   test("should trigger auto-archive when enabled", () => {
     // Create old snapshots (35+ days old)
-    const oldSnapshot1 = storage.saveSnapshot({
+    const oldSnapshot1 = await storage.saveSnapshot({
       ...mockSnapshot,
       id: randomUUID(),
       title: "Old snapshot 1",
     });
-    const oldSnapshot2 = storage.saveSnapshot({
+    const oldSnapshot2 = await storage.saveSnapshot({
       ...mockSnapshot,
       id: randomUUID(),
       title: "Old snapshot 2",
@@ -280,9 +280,9 @@ describe("Storage", () => {
     expect(require("fs").existsSync(`${archivePath}/${oldSnapshot2.id}.json`)).toBe(true);
   });
 
-  test("should not trigger auto-archive when disabled", () => {
+  test("should not trigger auto-archive when disabled", async () => {
     // Create old snapshot
-    const oldSnapshot = storage.saveSnapshot({
+    const oldSnapshot = await storage.saveSnapshot({
       ...mockSnapshot,
       id: randomUUID(),
       title: "Old snapshot",
@@ -308,7 +308,7 @@ describe("Storage", () => {
 
   test("should log debug message when archiving", () => {
     // Create old snapshot
-    const oldSnapshot = storage.saveSnapshot({
+    const oldSnapshot = await storage.saveSnapshot({
       ...mockSnapshot,
       id: randomUUID(),
       title: "Old snapshot for debug",

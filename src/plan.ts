@@ -19,7 +19,7 @@ export async function planCommand(options: PlanOptions) {
   const storage = new Storage();
   
   // Load latest snapshot for context
-  const latestSnapshot = storage.getLatestSnapshot();
+  const latestSnapshot = await storage.getLatestSnapshot();
   
   // Interactive planning session
   const readline = await import("readline");
@@ -132,7 +132,7 @@ export async function planCommand(options: PlanOptions) {
     };
     
     // Save snapshot
-    storage.saveSnapshot(snapshot);
+    await storage.saveSnapshot(snapshot);
     
     // Trigger auto-archive if enabled
     storage.triggerAutoArchive();

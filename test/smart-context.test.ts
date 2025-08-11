@@ -45,7 +45,7 @@ describe("Smart Context Management", () => {
   });
   
   describe("Decision Limiting", () => {
-    it("should limit decisions to 5 by default", () => {
+    it("should limit decisions to 5 by default", async () => {
       const storage = new Storage();
       
       // Create a snapshot with many decisions
@@ -69,10 +69,10 @@ describe("Smart Context Management", () => {
         cwd: process.cwd(),
       };
       
-      storage.saveSnapshot(snapshot);
+      await storage.saveSnapshot(snapshot);
       
       // Get latest snapshot
-      const retrieved = storage.getLatestSnapshot();
+      const retrieved = await storage.getLatestSnapshot();
       
       expect(retrieved).not.toBeNull();
       expect(retrieved!.decisions.length).toBe(5);
@@ -80,7 +80,7 @@ describe("Smart Context Management", () => {
       expect(retrieved!.decisions[4]).toBe("Decision 8");
     });
     
-    it("should preserve all decisions in storage", () => {
+    it("should preserve all decisions in storage", async () => {
       const storage = new Storage();
       
       const snapshot: Snapshot = {
@@ -94,7 +94,7 @@ describe("Smart Context Management", () => {
         cwd: process.cwd(),
       };
       
-      storage.saveSnapshot(snapshot);
+      await storage.saveSnapshot(snapshot);
       
       // Read directly from file to verify all decisions are saved
       const paths = storage["paths"];
@@ -104,7 +104,7 @@ describe("Smart Context Management", () => {
       expect(fileContent.decisions.length).toBe(10);
     });
     
-    it("should respect KODAMA_NO_LIMIT env var", () => {
+    it("should respect KODAMA_NO_LIMIT env var", async () => {
       process.env.KODAMA_NO_LIMIT = "true";
       const storage = new Storage();
       
@@ -119,9 +119,9 @@ describe("Smart Context Management", () => {
         cwd: process.cwd(),
       };
       
-      storage.saveSnapshot(snapshot);
+      await storage.saveSnapshot(snapshot);
       
-      const retrieved = storage.getLatestSnapshot();
+      const retrieved = await storage.getLatestSnapshot();
       
       expect(retrieved).not.toBeNull();
       expect(retrieved!.decisions.length).toBe(10); // Should keep all decisions
@@ -129,7 +129,7 @@ describe("Smart Context Management", () => {
   });
   
   describe("Auto Archive", () => {
-    it("should archive snapshots older than 30 days", () => {
+    it("should archive snapshots older than 30 days", async () => {
       const storage = new Storage();
       const paths = storage["paths"];
       
@@ -158,8 +158,8 @@ describe("Smart Context Management", () => {
       };
       
       // Save snapshots
-      storage.saveSnapshot(oldSnapshot);
-      storage.saveSnapshot(recentSnapshot);
+      await storage.saveSnapshot(oldSnapshot);
+      await storage.saveSnapshot(recentSnapshot);
       
       // Manually set old file timestamp
       const oldFilePath = join(paths.snapshots, `${oldSnapshot.id}.json`);
@@ -179,7 +179,7 @@ describe("Smart Context Management", () => {
       expect(existsSync(join(paths.snapshots, `${recentSnapshot.id}.json`))).toBe(true);
     });
     
-    it("should create archive directory if not exists", () => {
+    it("should create archive directory if not exists", async () => {
       const storage = new Storage();
       const paths = storage["paths"];
       const archiveDir = join(paths.snapshots, "archive");
@@ -196,7 +196,7 @@ describe("Smart Context Management", () => {
       expect(existsSync(archiveDir)).toBe(true);
     });
     
-    it("should handle archive failures gracefully", () => {
+    it("should handle archive failures gracefully", async () => {
       const storage = new Storage();
       
       // Create a snapshot
@@ -211,7 +211,7 @@ describe("Smart Context Management", () => {
         cwd: process.cwd(),
       };
       
-      storage.saveSnapshot(snapshot);
+      await storage.saveSnapshot(snapshot);
       
       // Make archive directory read-only to cause failure
       const paths = storage["paths"];
@@ -239,7 +239,7 @@ describe("Smart Context Management", () => {
       }
     });
     
-    it("should update only KODAMA section", () => {
+    it("should update only KODAMA section", async () => {
       process.env.KODAMA_CLAUDE_SYNC = "true";
       
       // Create existing CLAUDE.md with markers
@@ -280,7 +280,7 @@ More content after.`;
       expect(updated).not.toContain("Old KODAMA content");
     });
     
-    it("should create backup before update", () => {
+    it("should create backup before update", async () => {
       process.env.KODAMA_CLAUDE_SYNC = "true";
       
       // Create existing CLAUDE.md with KODAMA markers
@@ -309,7 +309,7 @@ More content after.`;
       expect(readFileSync(backupPath, "utf-8")).toBe(content);
     });
     
-    it("should skip update if no markers found", () => {
+    it("should skip update if no markers found", async () => {
       process.env.KODAMA_CLAUDE_SYNC = "true";
       
       const content = "# Project without markers";
@@ -333,7 +333,7 @@ More content after.`;
       expect(readFileSync(testClaudeMdPath, "utf-8")).toBe(content);
     });
     
-    it("should respect opt-in flag", () => {
+    it("should respect opt-in flag", async () => {
       // KODAMA_CLAUDE_SYNC not set (default to false)
       
       const manager = new ClaudeMdManager();
