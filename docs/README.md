@@ -41,13 +41,10 @@ Deep technical information:
 - [Installation methods](getting-started.md#installation)
 - [Verify installation](getting-started.md#verify)
 
-### Using Commands
-- [`kc go` - Start working](usage-guide.md#kc-go)
-- [`kc snap` - Save your work](usage-guide.md#kc-snap)
-- [`kc check` - Monitor session health](usage-guide.md#kc-check)
-- [`kc plan` - Plan next steps](usage-guide.md#kc-plan)
-- [`kc send` - Send context](usage-guide.md#kc-send)
-- [`kc doctor` - Check system](usage-guide.md#kc-doctor)
+### Using Commands (Only 3!)
+- [`kc go` - Start Claude session](usage-guide.md#kc-go)
+- [`kc save` - Save & paste context](usage-guide.md#kc-save)
+- [`kc status` - Check health status](usage-guide.md#kc-status)
 
 ### Common Tasks
 - [Start morning work](examples.md#morning-workflow)

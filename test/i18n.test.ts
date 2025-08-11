@@ -143,7 +143,7 @@ describe("i18n", () => {
 
     test("should return Japanese no snapshots found message", () => {
       expect(getMessage("noSnapshotsFound")).toBe(
-        "スナップショットが見つかりません。作成してください: kc snap"
+        "スナップショットが見つかりません。作成してください: kc save"
       );
     });
 

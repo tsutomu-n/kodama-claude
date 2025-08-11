@@ -13,27 +13,27 @@ kc --version
 echo "✅ Pass"
 echo ""
 
-# Test 2: Doctor
-echo "Test 2: Health check"
-kc doctor > /dev/null 2>&1
+# Test 2: Status
+echo "Test 2: Health status check"
+kc status > /dev/null 2>&1
 echo "✅ Pass"
 echo ""
 
-# Test 3: Create snapshot using kc snap
-echo "Test 3: Create snapshot"
-echo -e "Test snapshot\nimplementing\nTest context\n\nTest decision\n\nTest next step\n" | kc snap > /dev/null 2>&1
+# Test 3: Create snapshot using kc save
+echo "Test 3: Save snapshot"
+echo -e "Test snapshot\nimplementing\nTest context\n\nTest decision\n\nTest next step\n" | kc save -y --stdin > /dev/null 2>&1
 echo "✅ Pass"
 echo ""
 
-# Test 4: Send latest snapshot
-echo "Test 4: Send latest snapshot"
-kc send > /dev/null 2>&1
+# Test 4: Save with paste option
+echo "Test 4: Save with paste option"
+echo "Test" | kc save -t "Test" -y --stdin --copy none > /dev/null 2>&1
 echo "✅ Pass"
 echo ""
 
-# Test 5: Plan (non-interactive)
-echo "Test 5: Plan command help"
-kc plan --help > /dev/null 2>&1
+# Test 5: Status with JSON output
+echo "Test 5: Status JSON output"
+kc status --json > /dev/null 2>&1
 echo "✅ Pass"
 echo ""
 

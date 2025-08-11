@@ -218,22 +218,14 @@ sudo cp dist/kc-linux-x64 /usr/local/bin/kc
 
 ### Step 1: Check Installation
 
-Run the doctor command:
+Check the status:
 ```bash
-kc doctor
+kc status
 ```
 
 ✅ **Good output**:
 ```
-KODAMA Claude Health Check
-==========================
-✓ KODAMA binary: /usr/local/bin/kc
-✓ Claude CLI: Found at /usr/local/bin/claude
-✓ Storage directory: /home/yourname/.local/share/kodama-claude
-✓ Write permissions: OK
-✓ Git: Available
-
-All systems operational!
+🟢 | basis: no_session | hint: no action needed
 ```
 
 ⚠️ **If you see errors**, check [Troubleshooting](troubleshooting.md).
@@ -423,7 +415,7 @@ Print this and keep it nearby:
 | "Authentication required" | Run `claude` to authenticate via browser |
 | "Too many old decisions shown" | 5-decision limit is default in v0.2.0+ |
 
-💡 **Remember**: Most problems are fixed by running `kc doctor`.
+💡 **Remember**: Check health status with `kc status` to diagnose issues.
 
 ---
 

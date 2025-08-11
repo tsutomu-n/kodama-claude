@@ -166,10 +166,10 @@ export class Guardian {
   ): string {
     if (!transcript) {
       if (!lastSnapshot) {
-        return "No session info. Run 'kc snap' to create first snapshot";
+        return "No session info. Run 'kc save' to create first snapshot";
       }
       if (lastSnapshot.ageHours > 3) {
-        return `Last snapshot ${Math.round(lastSnapshot.ageHours)}h ago. Consider 'kc snap'`;
+        return `Last snapshot ${Math.round(lastSnapshot.ageHours)}h ago. Consider 'kc save'`;
       }
       return "Session healthy. Keep coding!";
     }
@@ -177,12 +177,12 @@ export class Guardian {
     const { remainingPercent } = transcript;
 
     if (remainingPercent < 10) {
-      return "🔴 Critical! Run 'kc snap' immediately to avoid context loss";
+      return "🔴 Critical! Run 'kc save' immediately to avoid context loss";
     }
 
     if (remainingPercent < 30) {
       if (!lastSnapshot || lastSnapshot.ageHours > 1) {
-        return `🟡 ${remainingPercent}% remaining. Run 'kc snap' soon`;
+        return `🟡 ${remainingPercent}% remaining. Run 'kc save' soon`;
       }
       return `🟡 ${remainingPercent}% remaining. Recent snapshot exists`;
     }

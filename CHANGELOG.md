@@ -7,30 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.3.0] - 2025-08-11
 
+### 🔥 Breaking Changes
+- **Simplified to 3 commands only** - Optimized for junior developer simplicity
+  - Removed: `snap`, `check`, `send`, `plan`, `doctor`, `list`, `show` commands
+  - Renamed: `snap` → `save`, `check` → `status`
+  - Integrated: `send` functionality into `save` command with paste prompt
+
 ### Added
-- **Health Monitoring System** - Real-time session health tracking for junior developers
-  - `kc check` command: Monitor token usage and session health
-  - Three health levels: 🟢 healthy / 🟡 warning / 🔴 danger
-  - JSON output support for automation (`--json` flag)
-  - Detailed health reports (`--detailed` flag)
-- **Auto-Protection** - Automatic safeguards against context loss
-  - Auto-snapshot when context usage is critical (<10% remaining)
-  - Integrated into `kc go` command for seamless protection
-  - Configurable thresholds via Guardian module
-- **Transcript Analysis** - Efficient Claude transcript monitoring
-  - Token usage extraction from transcript files
-  - Optimized to read only last 64KB for performance
-  - Context window percentage tracking
-- **Performance Optimizations**
-  - Lazy loading of heavy modules
-  - Improved file I/O with streaming for large files
-  - Reduced memory footprint in transcript analysis
+- **Two-stage execution** - Reliable context injection following official Claude CLI docs
+  - Stage 1: `claude -c -p "<context>"` to inject context
+  - Stage 2: `claude --continue` to open REPL
+- **Health Monitoring** - Simple 4-value status system
+  - `kc status`: Shows 🟢/🟡/🔴/❓ with hint
+  - No misleading token percentages (Claude CLI doesn't reliably expose)
+  - Auto-protection when critical
+- **Paste integration** - `kc save` now prompts to paste after saving
+  - Clipboard fallback hierarchy: WSL→clip.exe, Wayland→wl-copy, X11→xclip, OSC52, temp file
+  - Interactive prompts with clear EOF guidance (Ctrl+D on Unix/Mac, Ctrl+Z on WSL)
 
 ### Changed
-- `kc go` now includes automatic health checking at startup
-- Updated command ordering in documentation (go → snap → check → plan)
-- Enhanced documentation to clarify health monitoring features
-- Improved Japanese translations for health-related messages
+- **Only 3 commands**: `go`, `save`, `status`
+- `kc go` now uses two-stage execution for reliability
+- `kc save` combines snapshot + paste functionality
+- `kc status` provides simple one-line health status
+- Removed complex workflows in favor of automation
 
 ### Fixed
 - TypeScript async/await consistency in storage module
@@ -66,7 +66,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Initial release of KODAMA Claude
-- Core commands: `kc go`, `kc snap`, `kc send`, `kc plan`, `kc doctor`
+- Core commands: `kc go`, `kc save`, `kc status` (only 3 commands!)
 - Atomic file operations with fsync for data integrity
 - XDG Base Directory specification compliance
 - Multi-level clipboard fallback (OSC52, system clipboard, temp files)

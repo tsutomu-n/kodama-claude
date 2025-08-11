@@ -181,7 +181,7 @@ This file is automatically updated by KODAMA to maintain context for Claude Code
 ${this.MARKER_START}
 ## 📦 KODAMA Context
 
-*No context yet - run \`kc snap\` or \`kc plan\` to generate context*
+*No context yet - run \`kc save\` to generate context*
 
 ${this.MARKER_END}
 `;
