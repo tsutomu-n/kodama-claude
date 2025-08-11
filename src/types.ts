@@ -65,6 +65,7 @@ export function getStoragePaths() {
     data: `${xdgData}/kodama-claude`,
     config: `${xdgConfig}/kodama-claude`,
     snapshots: `${xdgData}/kodama-claude/snapshots`,
+    archive: `${xdgData}/kodama-claude/snapshots/archive`,
     events: `${xdgData}/kodama-claude/events.jsonl`,
     session: `${xdgData}/kodama-claude/.session`,
   };

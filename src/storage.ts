@@ -182,27 +182,44 @@ export class Storage {
   }
   
   /**
-   * List all snapshots
+   * List all snapshots (optionally including archived)
    */
-  async listSnapshots(): Promise<Array<{ id: string; title: string; timestamp: string; step?: string }>> {
-    const files = readdirSync(this.paths.snapshots).filter(f => f.endsWith(".json"));
+  async listSnapshots(includeArchived: boolean = false): Promise<Array<any>> {
+    const activeFiles = readdirSync(this.paths.snapshots).filter(f => f.endsWith(".json"));
+    
+    // Get archived files if requested
+    let archivedFiles: string[] = [];
+    if (includeArchived && existsSync(this.paths.archive)) {
+      archivedFiles = readdirSync(this.paths.archive)
+        .filter(f => f.endsWith(".json"))
+        .map(f => `archive/${f}`);
+    }
+    
+    const allFiles = [...activeFiles, ...archivedFiles];
     
     const snapshots = await Promise.all(
-      files.map(async file => {
-        const id = file.replace(".json", "");
-        const snapshot = await this.loadSnapshot(id);
-        if (!snapshot) return null;
+      allFiles.map(async file => {
+        const isArchived = file.startsWith("archive/");
+        const id = file.replace("archive/", "").replace(".json", "");
+        const filePath = isArchived 
+          ? join(this.paths.archive, file.replace("archive/", ""))
+          : join(this.paths.snapshots, file);
         
-        return {
-          id: snapshot.id,
-          title: snapshot.title,
-          timestamp: snapshot.timestamp,
-          step: snapshot.step,
-        };
+        try {
+          const content = readFileSync(filePath, "utf-8");
+          const snapshot = JSON.parse(content);
+          
+          return {
+            ...snapshot,
+            archived: isArchived,
+          };
+        } catch {
+          return null;
+        }
       })
     );
     
-    const validSnapshots = snapshots.filter(Boolean) as Array<{ id: string; title: string; timestamp: string; step?: string }>;
+    const validSnapshots = snapshots.filter(Boolean);
     
     // Sort by timestamp descending
     return validSnapshots.sort((a, b) => 
@@ -241,8 +258,8 @@ export class Storage {
   /**
    * Save current session ID
    */
-  saveSessionId(sessionId: string): void {
-    this.writeAtomic(this.paths.session, sessionId);
+  async saveSessionId(sessionId: string): Promise<void> {
+    await this.writeAtomic(this.paths.session, sessionId);
   }
   
   /**
@@ -311,7 +328,7 @@ export class Storage {
   /**
    * Cleanup old snapshots (deprecated - use archiveOldSnapshots instead)
    */
-  cleanup(maxAgeDays: number = 30): number {
+  async cleanup(maxAgeDays: number = 30): Promise<number> {
     const cutoff = Date.now() - (maxAgeDays * 24 * 60 * 60 * 1000);
     let removed = 0;
     
@@ -324,7 +341,7 @@ export class Storage {
       if (stat.mtime.getTime() < cutoff) {
         try {
           const id = file.replace(".json", "");
-          const snapshot = this.loadSnapshot(id);
+          const snapshot = await this.loadSnapshot(id);
           
           // Archive important snapshots instead of deleting
           if (snapshot && snapshot.title.toLowerCase().includes("important")) {

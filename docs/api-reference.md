@@ -10,6 +10,7 @@ Complete reference for all KODAMA Claude commands and options.
 - [Commands](#commands)
   - [`kc go`](#kc-go)
   - [`kc snap`](#kc-snap)
+  - [`kc check`](#kc-check)
   - [`kc plan`](#kc-plan)
   - [`kc send`](#kc-send)
   - [`kc doctor`](#kc-doctor)
@@ -30,6 +31,7 @@ kc [global-options] <command> [command-options]
 |---------|------------------|-------|
 | `go` | Start or continue work with Claude | `kc go [-t title] [-s step]` |
 | `snap` | Save current context snapshot | `kc snap [-t title]` |
+| `check` | Monitor session health and token usage | `kc check [--detailed] [--json]` |
 | `plan` | Plan next steps | `kc plan [-t title]` |
 | `send` | Send context to Claude | `kc send [snapshot-id]` |
 | `doctor` | Check system health | `kc doctor` |
@@ -174,6 +176,154 @@ JSON mode (`--json`):
   "id": "a1b2c3d4-e5f6-g7h8-i9j0",
   "path": "/home/user/.local/share/kodama-claude/snapshots/2025-01-10T09-00-00-a1b2c3d4.json"
 }
+```
+
+### `kc check`
+
+Monitor Claude session health and token usage to prevent context loss.
+
+#### Synopsis
+
+```bash
+kc check [options]
+```
+
+#### Options
+
+| Option | Type | Description | Default |
+|--------|------|-------------|---------|
+| `-d, --detailed` | flag | Show comprehensive health report | false |
+| `-j, --json` | flag | Output in JSON format | false |
+| `--threshold <percent>` | number | Custom warning threshold | 40 |
+
+#### Health Status Levels
+
+| Level | Token Remaining | Status | Action |
+|-------|----------------|--------|--------|
+| 🟢 Healthy | >40% | Normal operation | Continue working |
+| 🟡 Warning | 20-40% | Caution advised | Consider snapshot |
+| 🔴 Danger | <20% | Critical | Take snapshot now |
+
+#### Examples
+
+```bash
+# Quick status check
+kc check
+# Output: 🟢 Session healthy (85% remaining)
+
+# Detailed report
+kc check --detailed
+# Shows full health report with recommendations
+
+# JSON for automation
+kc check --json
+# {"status":"healthy","level":"healthy","tokenUsage":{...}}
+
+# Custom threshold
+kc check --threshold 50
+# Warns when <50% remaining instead of <40%
+```
+
+#### Output Formats
+
+**Default (3-line)**:
+```
+🟢 Session healthy (85% remaining)
+📝 Last snapshot: 0.5 hours ago
+💡 All systems operational
+```
+
+**Detailed (`--detailed`)**:
+```
+╭─────────────────────────────────────╮
+│ 🏥 Claude Session Health Report     │
+├─────────────────────────────────────┤
+│ Status: 🟢 HEALTHY                  │
+│                                     │
+│ 📊 Token Usage:                     │
+│   Used: 32,768 / 200,000           │
+│   Remaining: 167,232 (83.6%)       │
+│                                     │
+│ 📝 Last Snapshot:                   │
+│   Title: "API implementation"       │
+│   Age: 1.2 hours                   │
+│                                     │
+│ 💡 Recommendation:                  │
+│   Continue working normally         │
+│                                     │
+│ ⚡ Auto-Protection:                 │
+│   Status: Enabled                   │
+│   Trigger: <10% remaining          │
+╰─────────────────────────────────────╯
+```
+
+**JSON (`--json`)**:
+```json
+{
+  "status": "healthy",
+  "level": "healthy",
+  "tokenUsage": {
+    "used": 32768,
+    "total": 200000,
+    "percentUsed": 16.4,
+    "percentRemaining": 83.6
+  },
+  "lastSnapshot": {
+    "id": "a1b2c3d4",
+    "title": "API implementation",
+    "ageHours": 1.2,
+    "timestamp": "2025-01-10T14:30:00Z"
+  },
+  "transcript": {
+    "path": "/tmp/claude_transcript.txt",
+    "exists": true,
+    "sizeKB": 128
+  },
+  "suggestion": "Continue working normally",
+  "autoAction": null,
+  "thresholds": {
+    "warning": 40,
+    "danger": 20,
+    "autoSnapshot": 10
+  }
+}
+```
+
+#### Integration with `kc go`
+
+The `kc go` command automatically runs health check:
+- Shows health status at startup
+- Auto-saves snapshot if <10% remaining
+- Warns if approaching limits
+
+#### Automation Scripts
+
+**Cron job for monitoring**:
+```bash
+#!/bin/bash
+# Add to crontab: */30 * * * * /path/to/monitor.sh
+
+health=$(kc check --json)
+remaining=$(echo $health | jq .tokenUsage.percentRemaining)
+
+if (( $(echo "$remaining < 20" | bc -l) )); then
+  mail -s "KODAMA: Token usage critical" user@example.com <<< \
+    "Token usage is at ${remaining}%. Please take a snapshot."
+fi
+```
+
+**Pre-commit hook**:
+```bash
+#!/bin/bash
+# .git/hooks/pre-commit
+
+if command -v kc &> /dev/null; then
+  status=$(kc check --json | jq -r .level)
+  if [[ "$status" == "danger" ]]; then
+    echo "⚠️ Claude session at risk. Creating snapshot..."
+    kc snap -t "Pre-commit auto-save"
+  fi
+fi
 ```
 
 ### `kc plan`

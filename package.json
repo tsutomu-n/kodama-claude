@@ -10,7 +10,8 @@
     "dev": "bun run bin/kc.ts",
     "build": "bun build ./bin/kc.ts --compile --minify --target=bun-linux-x64-baseline --outfile dist/kc-linux-x64",
     "build:arm": "bun build ./bin/kc.ts --compile --minify --target=bun-linux-arm64 --outfile dist/kc-linux-arm64",
-    "build:all": "bun run build && bun run build:arm",
+    "build:all": "bun run build && bun run build:arm && bun run checksums",
+    "checksums": "bash scripts/generate-checksums.sh",
     "test": "bun test",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write ."

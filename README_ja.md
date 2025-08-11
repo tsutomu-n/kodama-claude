@@ -38,14 +38,9 @@ sudo mv kc-linux-x64 /usr/local/bin/kc
 ### たった3つのコマンド
 
 ```bash
-# 1. 作業コンテキストを保存
-kc snap
-
-# 2. 前回の続きから再開
-kc go
-
-# 3. 次のステップを計画
-kc plan
+kc go       # Claudeを起動（健康チェック → 注入 → REPL）
+kc save     # スナップショット保存＆貼り付け
+kc status   # 健康状態を確認（🟢/🟡/🔴/❓）
 ```
 
 これで十分。複雑なワークフローも機能過多も不要。
@@ -80,84 +75,46 @@ echo 'KODAMA_LANG=ja' >> ~/.config/environment.d/kodama.conf
 
 ## コマンド詳細
 
-### `kc go` - 作業を開始・継続
-
-最新スナップショットを読み込んで Claude Code CLI を起動。
+### `kc go` - Claudeセッションを開始
 
 ```bash
-# シンプルに開始
-kc go
-
-# タイトルを付けて開始
-kc go -t "ユーザー認証機能の実装"
-
-# 特定のステップから開始
-kc go -s implementing
+kc go [オプション]
+  -t, --title <title>    セッションタイトル
+  -s, --step <step>      ワークフローステップ (designing/implementing/testing/done)
+  --no-send              コンテキスト注入をスキップ（チェックのみ）
 ```
 
-**利用可能なステップ**
-- `designing` - 設計
-- `implementing` - 実装
-- `testing` - テスト
-- `done` - 完了
+**動作：**
+1. 健康チェックと自動保護
+2. `claude -c -p`でコンテキスト注入
+3. `claude --continue`でREPLを開く
 
-### `kc snap` - コンテキストを保存
-
-現在の作業状態をスナップショット化。
+### `kc save` - 保存＆貼り付け
 
 ```bash
-# 対話形式で保存（推奨）
-kc snap
-
-# タイトル付きクイック保存
-kc snap -t "APIエンドポイント完成"
+kc save [オプション]
+  -t, --title <title>    スナップショットタイトル
+  -s, --step <step>      ワークフローステップ
+  --stdin                stdinから読み込み
+  --file <path>          ファイルから読み込み
+  -y, --yes              プロンプトをスキップ
+  --copy <mode>          auto|clipboard|osc52|file|none (デフォルト: auto)
 ```
 
-対話形式での入力項目：
-1. **タイトル**（短い説明）
-2. **ステップ**（現在のフェーズ）
-3. **達成したこと**
-4. **決定事項**
-5. **次のステップ**
+**対話モード**（デフォルト）：
+- タイトル、ステップ、達成内容、決定事項、次のステップ
+- EOF: Unix/Mac = Ctrl+D、WSL = Ctrl+Z
+- 保存後に貼り付けを促す
 
-### `kc plan` - 作業を計画
-
-次のステップを構造化して計画。
+### `kc status` - 健康状態
 
 ```bash
-# 対話形式で計画
-kc plan
-
-# タイトル付きで計画
-kc plan -t "データベース移行計画"
+kc status [オプション]
+  -j, --json             JSON出力
+  -s, --strict           危険時にexit 1 (CI/CD用)
 ```
 
-### `kc send` - コンテキストを送信
-
-保存済みコンテキストを既存セッションに送信。
-
-```bash
-# 最新スナップショットを送信
-kc send
-
-# 特定のスナップショットを送信
-kc send <snapshot-id>
-```
-
-### `kc doctor` - ヘルスチェック
-
-必要要素の動作確認。
-
-```bash
-kc doctor
-```
-
-チェック項目
-- ✅ KODAMA バイナリ
-- ✅ Claude Code CLI
-- ✅ ストレージディレクトリ
-- ✅ 権限
-- ✅ Git
+**出力：** `🟢 | basis: transcript | hint: no action needed`
 
 ## 日常のワークフロー
 
@@ -172,7 +129,7 @@ kc go
 
 ```bash
 # 詳細なスナップショットを作成
-kc snap
+kc save
 # タイトル・達成内容・次のステップを入力
 ```
 
@@ -180,29 +137,44 @@ kc snap
 
 ```bash
 # 今日の作業を保存
-kc snap -t "本日の作業完了"
-
-# 明日のための計画
-kc plan -t "明日のタスク"
+kc save -t "本日の作業完了"
 ```
 
 ### 実例：API エンドポイント追加
 
 ```bash
-# 1. 朝：前回の作業を再開
+# 1. 朝：作業開始
 $ kc go
-# → Claude が「認証API設計中、JWT使用、30分有効期限」を認識
+▶ Starting Claude session
+  1. Check health & create snapshot
+  2. Inject context with -c -p
+  3. Open REPL with --continue
 
-# 2. Claude と実装
-$ # Claude が前回の決定事項を踏まえて実装を進める
+🟢 Session status: healthy
+📸 Last snapshot: 2h ago
+📤 Injecting context...
+✅ Context injected successfully
+🚀 Opening Claude REPL...
 
-# 3. 作業完了時：スナップショット保存
-$ kc snap -t "認証API実装完了"
+# 2. Claude と対話（インタラクティブセッション）
 
-# 4. Git にコミット（実際のコード変更を記録）
-$ git add .
-$ git commit -m "feat: Add JWT authentication endpoint"
+# 3. 進捗を保存
+$ kc save -t "認証API完了"
+📝 Save your work context
+[対話形式のプロンプト...]
+[Y/n] Paste to clipboard now? y
+✅ Context copied to clipboard
+
+# 4. いつでも状態確認
+$ kc status
+🟡 | basis: heuristic | hint: save recommended
 ```
+
+### 各コマンドの使い時
+
+- **`kc go`**: 一日の始まりや作業再開（全自動）
+- **`kc save`**: 休憩前、タスク切り替え、または促された時
+- **`kc status`**: 健康状態の確認（CI/CDでは--strict付き）
 
 Claude が文脈を理解し、Git がコード変更を追跡。
 
@@ -210,10 +182,12 @@ Claude が文脈を理解し、Git がコード変更を追跡。
 
 ### KODAMA ができること
 
+✅ **セッション健康追跡** ― トークン使用量の監視と警告  
+✅ **自動保護** ― コンテキスト危険時の自動スナップショット  
 ✅ **アトミックなファイル更新** ― 電源断でも破損しない  
 ✅ **適切なファイルロック** ― 安全な同時アクセス  
 ✅ **XDG 準拠** ― Linux ディレクトリ標準に従う  
-✅ **依存関係ゼロ** ― 単一バイナリ、npm/pip/cargo 不要  
+✅ **単一バイナリ** ― コア機能は実行時依存なし  
 ✅ **Git 連携** ― ブランチとコミットの文脈を追跡  
 ✅ **スマートなコンテキスト管理** ― 決定事項を最新5件に自動制限  
 ✅ **自動アーカイブ** ― 30日超のスナップショットを整理  
@@ -229,6 +203,25 @@ Claude が文脈を理解し、Git がコード変更を追跡。
 
 ## 技術詳細
 
+### 実行時依存関係
+
+**必須**: なし（単一バイナリで動作）
+
+**オプション**（拡張機能用）:
+- **クリップボード連携**: 
+  - Linux X11: `xclip` または `xsel`
+  - Linux Wayland: `wl-clipboard`
+  - macOS: `pbcopy`（組み込み）
+  - Windows/WSL: `clip.exe`
+- **デスクトップ統合**:
+  - Linux: `xdg-utils`（ファイルを開く）
+  - 全OS: `notify-send`（デスクトップ通知）
+
+> 💡 **注**: KODAMA はこれらのパッケージなしでも動作します。利用できない場合は以下にフォールバック:
+> - OSC52 ターミナルクリップボードプロトコル
+> - コンテキスト渡し用の一時ファイル
+> - 通知の代わりにコンソール出力
+
 ### ストレージ場所
 
 XDG Base Directory 準拠。
@@ -240,6 +233,25 @@ XDG Base Directory 準拠。
 ├── events.jsonl        # 追記専用イベントログ
 └── .session            # 現在の Claude セッション ID
 ```
+
+### ファイルパーミッション
+
+KODAMA はセキュリティベストプラクティスに従ったパーミッション設定：
+
+| パス | パーミッション | 説明 |
+|------|------------|------|
+| `~/.local/share/kodama-claude/` | `700` (drwx------) | メインデータディレクトリ |
+| `snapshots/` | `700` (drwx------) | スナップショットディレクトリ |
+| `snapshots/archive/` | `700` (drwx------) | アーカイブディレクトリ |
+| `*.json` ファイル | `600` (-rw-------) | スナップショットファイル |
+| `events.jsonl` | `600` (-rw-------) | イベントログ |
+| `.session` | `600` (-rw-------) | セッションID |
+
+**セキュリティ注記：**
+- すべてのディレクトリは `700`（所有者のみアクセス可）で作成
+- すべてのファイルは `600`（所有者のみ読み書き可）で作成
+- グループやその他のユーザーには権限を付与しない
+- データ整合性のためfsyncでアトミックにファイル書き込み
 
 ### 環境変数
 
@@ -320,8 +332,21 @@ ls dist/
 
 ## FAQ
 
-**Q: なぜ Claude の `--continue` / `--resume` を使わないのか？**  
-A: Claude Code は会話履歴を再開できるが、`/clear` を実行すると**会話履歴**は消える（CLAUDE.md 等の**長期メモリ**は残る）。また、長時間の連続対話で応答品質が不安定になる事例がコミュニティで報告されている。KODAMA は**意思決定・次のステップを構造化して外部に保存**することで、`/clear` やセッション切り替え後でも**人間側の作業文脈**を損なわない。
+**Q: なぜ3コマンドだけ？**  
+A: ジュニア開発者にはシンプルさが必要。それ以外は全て自動化または統合済み。
+
+**Q: snap/check/send/planはどこへ？**  
+A: 3つのコアコマンドに統合：
+- `snap` → `save`（より良い名前）
+- `check` → `status`（より明確）
+- `send` → `save`の貼り付けプロンプトに統合
+- `plan` → `go`と`save`で自動表示
+
+**Q: 二段階実行とは？**  
+A: `kc go`は`claude -c -p "<context>"`で注入後、`claude --continue`でREPLを開く。公式ドキュメント準拠の最も確実な方法。
+
+**Q: なぜトークン%を表示しない？**  
+A: Claude CLIはこれを確実に公開していない。代わりにヒューリスティックベースの4値状態（🟢/🟡/🔴/❓）を使用。
 
 **Q: なぜ Git ではなくスナップショットを使うのか？**  
 A: Git とスナップショットは補完関係：
@@ -354,7 +379,7 @@ MIT
 
 問題発生時の確認順序：
 
-1. `kc doctor` を実行
+1. `kc status` を実行
 2. [GitHub Issues](https://github.com/tsutomu-n/kodama-claude/issues) に報告
 3. [詳細ドキュメント](docs/) を参照（英語）
 

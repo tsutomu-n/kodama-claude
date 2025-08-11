@@ -45,10 +45,12 @@ export function parseStep(value: unknown, fallback?: ValidStep): ValidStep | und
       return stepAliases[normalized];
     }
     
-    // Check if it starts with a valid step
-    const matchingStep = VALID_STEPS.find(step => step.startsWith(normalized));
-    if (matchingStep) {
-      return matchingStep;
+    // Check if it starts with a valid step (but not empty string)
+    if (normalized.length > 0) {
+      const matchingStep = VALID_STEPS.find(step => step.startsWith(normalized));
+      if (matchingStep) {
+        return matchingStep;
+      }
     }
   }
   

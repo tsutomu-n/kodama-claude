@@ -70,16 +70,29 @@ make build
 Every new feature or fix should include tests:
 
 ```typescript
-test("should handle edge case", () => {
+test("should handle edge case", async () => {
   // Arrange
   const input = createTestInput();
   
   // Act
-  const result = functionUnderTest(input);
+  const result = await functionUnderTest(input);
   
   // Assert
   expect(result).toBe(expected);
 });
+```
+
+### Running Tests
+
+```bash
+# Run all tests
+bun test
+
+# Run specific test file
+bun test guardian.test.ts
+
+# Run with coverage
+bun test --coverage
 ```
 
 ## Questions?

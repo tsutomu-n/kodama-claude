@@ -3,66 +3,48 @@
 /**
  * KODAMA Claude CLI - Minimal Claude Code extension
  * 
- * Philosophy: "Less is more" - Focus only on what KODAMA can uniquely do
- * for Claude Code CLI that Claude cannot do for itself.
+ * Philosophy: "Less is more" - Only 3 commands for junior developers
+ * go / save / status - That's all you need.
  */
 
 import { program } from "commander";
 import { goCommand } from "../src/go";
-import { snapCommand } from "../src/snap";
-import { sendCommand } from "../src/send";  
-import { planCommand } from "../src/plan";
-import { doctorCommand } from "../src/doctor";
+import { saveCommand } from "../src/save";
+import { statusCommand } from "../src/status";
 import { version } from "../package.json";
 
 program
   .name("kc")
-  .description("KODAMA Claude - Persistent dialogue memory for Claude Code")
+  .description("KODAMA Claude - Simple context management for Claude Code CLI")
   .version(version)
   .option("-d, --debug", "Enable debug output");
 
-// Group commands for better organization in help output
-program.commandsGroup("Core Workflow Commands");
-
-// Main one-command workflow
+// Core 3 commands only
 program
   .command("go")
-  .description("Start or continue Claude session with full context")
+  .description("Start or continue Claude session with context")
   .option("-t, --title <title>", "Session title")
-  .option("-s, --step <step>", "Workflow step (requirements/designing/implementing/testing)")
+  .option("-s, --step <step>", "Workflow step (designing/implementing/testing/done)")
+  .option("--no-send", "Skip context injection (check only)")
   .action(goCommand);
 
-// Structured snapshot save  
 program
-  .command("snap")
-  .description("Create structured snapshot of current dialogue")
+  .command("save")
+  .description("Save current work and optionally paste to clipboard")
   .option("-t, --title <title>", "Snapshot title")
   .option("-s, --step <step>", "Workflow step")
-  .action(snapCommand);
+  .option("--stdin", "Read from stdin instead of interactive")
+  .option("--file <path>", "Read from file")
+  .option("-y, --yes", "Skip confirmation prompts")
+  .option("--copy <mode>", "Copy mode: auto|clipboard|osc52|file|none (default: auto)")
+  .action(saveCommand);
 
-// Send context to Claude
 program
-  .command("send")
-  .description("Send saved context to Claude Code CLI")
-  .argument("[snapshot-id]", "Snapshot ID to send (latest if omitted)")
-  .action(sendCommand);
-
-program.commandsGroup("Development Tools");
-
-// Plan next steps (Phase 2)
-program
-  .command("plan")
-  .description("Structure and plan next development steps")
-  .option("-t, --title <title>", "Plan title")
-  .action(planCommand);
-
-program.commandsGroup("Maintenance");
-
-// Health check
-program
-  .command("doctor")
-  .description("Check system health and configuration")
-  .action(doctorCommand);
+  .command("status")
+  .description("Check session health status")
+  .option("-j, --json", "Output in JSON format")
+  .option("-s, --strict", "Exit with code 1 on danger (for CI/CD)")
+  .action(statusCommand);
 
 // Parse and execute
 program.parse();

@@ -2,7 +2,8 @@
 # KODAMA Claude - One-liner installation script
 # Usage: curl -fsSL https://github.com/tsutomu-n/kodama-claude/releases/latest/download/install.sh | bash
 
-set -e
+# Exit on error, undefined variable, or pipe failure
+set -euo pipefail
 
 # Colors for output
 RED='\033[0;31m'
@@ -14,6 +15,8 @@ NC='\033[0m' # No Color
 REPO="tsutomu-n/kodama-claude"
 INSTALL_DIR="/usr/local/bin"
 BINARY_NAME="kc"
+CHECKSUM_FILE="checksums.txt"
+CHECKSUM_FILE_ALT="checksums.sha256"  # Alternative filename for backward compatibility
 
 # Detect architecture
 detect_arch() {
@@ -58,8 +61,12 @@ check_requirements() {
         fi
     done
     
-    if [ -z "$DOWNLOADER" ]; then
-        echo "❌ Neither curl nor wget found. Please install one of them." >&2
+    if [ -z "${DOWNLOADER:-}" ]; then
+        echo -e "${RED}❌ Neither curl nor wget found${NC}" >&2
+        echo "  Please install one of them:" >&2
+        echo "  Ubuntu/Debian: sudo apt-get install curl" >&2
+        echo "  RHEL/Fedora:   sudo yum install curl" >&2
+        echo "  Arch:          sudo pacman -S curl" >&2
         exit 1
     fi
     
@@ -80,10 +87,50 @@ download_file() {
     local output=$2
     
     if [ "$DOWNLOADER" = "curl" ]; then
-        curl -fsSL "$url" -o "$output"
+        curl -fsSL "$url" -o "$output" || return 1
     else
-        wget -q "$url" -O "$output"
+        wget -q "$url" -O "$output" || return 1
     fi
+}
+
+# Verify SHA256 checksum
+verify_checksum() {
+    local file=$1
+    local checksums_file=$2
+    local binary_name=$3
+    
+    # Extract expected checksum for our binary
+    local expected_checksum
+    expected_checksum=$(grep "${binary_name}" "${checksums_file}" | awk '{print $1}') || true
+    
+    if [ -z "${expected_checksum}" ]; then
+        echo -e "${YELLOW}⚠️  Warning: No checksum found for ${binary_name}${NC}" >&2
+        echo "  Proceeding without verification (less secure)" >&2
+        return 0
+    fi
+    
+    # Calculate actual checksum
+    local actual_checksum
+    if command -v sha256sum &> /dev/null; then
+        actual_checksum=$(sha256sum "${file}" | awk '{print $1}')
+    elif command -v shasum &> /dev/null; then
+        actual_checksum=$(shasum -a 256 "${file}" | awk '{print $1}')
+    else
+        echo -e "${YELLOW}⚠️  Warning: No SHA256 tool available${NC}" >&2
+        echo "  Cannot verify download integrity" >&2
+        return 0
+    fi
+    
+    # Compare checksums
+    if [ "${expected_checksum}" != "${actual_checksum}" ]; then
+        echo -e "${RED}❌ Checksum verification failed!${NC}" >&2
+        echo "  Expected: ${expected_checksum}" >&2
+        echo "  Actual:   ${actual_checksum}" >&2
+        return 1
+    fi
+    
+    echo -e "${GREEN}✓${NC} Checksum verified"
+    return 0
 }
 
 # Main installation
@@ -102,9 +149,10 @@ main() {
     
     echo "📍 System detected: ${os}/${arch}"
     
-    # Get latest release URL
+    # Get latest release URLs
     local latest_url="https://github.com/${REPO}/releases/latest"
     local download_url="https://github.com/${REPO}/releases/latest/download/${binary_name}"
+    local checksum_url="https://github.com/${REPO}/releases/latest/download/${CHECKSUM_FILE}"
     
     echo "📦 Downloading latest release..."
     
@@ -114,9 +162,45 @@ main() {
     
     # Download binary
     if ! download_file "$download_url" "$temp_dir/$binary_name"; then
-        echo "❌ Failed to download binary" >&2
+        echo -e "${RED}❌ Failed to download binary${NC}" >&2
         echo "  URL: $download_url" >&2
+        echo "" >&2
+        echo "  Troubleshooting:" >&2
+        echo "  1. Check your internet connection" >&2
+        echo "  2. Try again in a few moments" >&2
+        echo "  3. Download manually from: ${latest_url}" >&2
         exit 1
+    fi
+    
+    # Download and verify checksum (optional but recommended)
+    echo "🔐 Verifying download integrity..."
+    local checksum_downloaded=false
+    local checksum_local_file=""
+    
+    # Try primary checksum file
+    if download_file "$checksum_url" "$temp_dir/${CHECKSUM_FILE}" 2>/dev/null; then
+        checksum_downloaded=true
+        checksum_local_file="$temp_dir/${CHECKSUM_FILE}"
+    else
+        # Try alternative checksum file for backward compatibility
+        local checksum_url_alt="https://github.com/${REPO}/releases/latest/download/${CHECKSUM_FILE_ALT}"
+        if download_file "$checksum_url_alt" "$temp_dir/${CHECKSUM_FILE_ALT}" 2>/dev/null; then
+            checksum_downloaded=true
+            checksum_local_file="$temp_dir/${CHECKSUM_FILE_ALT}"
+        fi
+    fi
+    
+    if [ "$checksum_downloaded" = true ]; then
+        if ! verify_checksum "$temp_dir/$binary_name" "$checksum_local_file" "${binary_name}"; then
+            echo "" >&2
+            echo "  Security notice: The downloaded file may be corrupted or tampered with." >&2
+            echo "  Please report this at: https://github.com/${REPO}/issues" >&2
+            exit 1
+        fi
+    else
+        echo -e "${YELLOW}⚠️  Warning: Could not download checksums file${NC}"
+        echo "  Proceeding without verification (less secure)"
+        echo "  To verify manually, check: ${checksum_url}"
     fi
     
     # Make executable
@@ -144,18 +228,24 @@ main() {
     
     # Verify installation
     if command -v $BINARY_NAME &> /dev/null; then
+        local installed_version
+        installed_version=$($BINARY_NAME --version 2>/dev/null || echo "unknown")
         echo -e "${GREEN}✅ KODAMA Claude installed successfully!${NC}"
+        echo "   Version: ${installed_version}"
         echo ""
         
-        # Run doctor check
+        # Run status check
         echo "🏥 Running health check..."
-        $BINARY_NAME doctor || true
+        if ! $BINARY_NAME status 2>/dev/null; then
+            echo -e "${YELLOW}⚠️  Some optional features may be limited${NC}"
+            echo "  Run 'kc status' for details"
+        fi
         
         echo ""
-        echo "🚀 Quick start:"
-        echo "   kc snap    - Create a snapshot of your current work"
-        echo "   kc go      - Start or continue Claude session"
-        echo "   kc plan    - Plan your next development steps"
+        echo "🚀 Quick start (only 3 commands!):"
+        echo "   kc go      - Start Claude with context"
+        echo "   kc save    - Save snapshot & paste"
+        echo "   kc status  - Check health (🟢/🟡/🔴/❓)"
         echo ""
         echo "📚 Documentation: https://github.com/${REPO}"
     else

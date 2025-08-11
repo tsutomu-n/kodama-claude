@@ -9,6 +9,10 @@ See how to use KODAMA Claude in real development scenarios.
   - [Morning Workflow](#morning-workflow)
   - [Evening Workflow](#evening-workflow)
   - [Weekend Catch-up](#weekend-catch-up)
+- [Health Monitoring](#health-monitoring)
+  - [Long Session Management](#long-session-management)
+  - [Auto-Protection Examples](#auto-protection-examples)
+  - [CI/CD Integration](#cicd-integration)
 - [Project Scenarios](#project-scenarios)
   - [Starting New Feature](#starting-new-feature)
   - [Bug Fixing Session](#bug-fixing-session)
@@ -167,6 +171,214 @@ Starting Claude CLI...
 > I see we completed authentication on Friday.
 > Let's start with the password reset feature.
 > First, let me check the current code structure...
+```
+
+## Health Monitoring
+
+### Long Session Management
+
+**Scenario**: Working on complex feature for several hours.
+
+```bash
+# Morning: Start work with health check
+$ kc go -t "Implement payment system"
+🟢 Session healthy (100% remaining)
+Loading context...
+> Let's build the payment system...
+
+# After 2 hours of work
+$ kc check
+🟡 Session warning (35% remaining)
+📝 Last snapshot: 2.1 hours ago
+💡 Consider taking a snapshot soon
+
+# Take proactive snapshot
+$ kc snap -t "Payment gateway integrated"
+✓ Snapshot saved
+
+# Continue working
+$ kc go
+🟢 Session healthy (35% remaining)
+> Continuing with payment webhooks...
+
+# After another hour
+$ kc check --detailed
+╭─────────────────────────────────────╮
+│ 🏥 Claude Session Health Report     │
+├─────────────────────────────────────┤
+│ Status: 🔴 DANGER                   │
+│                                     │
+│ 📊 Token Usage:                     │
+│   Used: 170,000 / 200,000          │
+│   Remaining: 30,000 (15%)          │
+│                                     │
+│ 📝 Last Snapshot:                   │
+│   Title: "Payment gateway"          │
+│   Age: 1.0 hours                   │
+│                                     │
+│ ⚠️  RECOMMENDATION:                 │
+│   Take a snapshot immediately!      │
+╰─────────────────────────────────────╯
+
+# Save work immediately
+$ kc snap -t "Critical save: webhook implementation"
+```
+
+### Auto-Protection Examples
+
+**Scenario**: Auto-snapshot triggers during long session.
+
+```bash
+# Start intensive debugging session
+$ kc go -t "Debug memory leak"
+🟢 Session healthy (100% remaining)
+> Let's investigate the memory leak...
+
+# [Several hours of debugging...]
+
+# Auto-protection triggers
+⚠️ CONTEXT CRITICAL: Only 8% remaining!
+🛡️ Auto-protection activated
+Creating emergency snapshot...
+✓ Snapshot saved: "Auto-save: context protection"
+
+> I've noticed we're running low on context.
+> Your work has been automatically saved.
+> Consider starting a fresh session with: kc go
+
+# Start fresh session
+[Ctrl+D]
+$ kc go
+🟢 Session healthy (100% remaining)
+Loading auto-saved context...
+> Let's continue debugging. I see we identified 
+> the leak in the event listener...
+```
+
+### CI/CD Integration
+
+**Scenario**: Automated health checks in continuous integration.
+
+```bash
+# .github/workflows/ci.yml
+name: CI with KODAMA Protection
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Install KODAMA
+        run: |
+          curl -fsSL https://github.com/tsutomu-n/kodama-claude/releases/latest/download/install.sh | bash
+      
+      - name: Check Claude Session Health
+        run: |
+          # Check if session is at risk
+          health=$(kc check --json 2>/dev/null || echo '{"level":"healthy"}')
+          level=$(echo $health | jq -r .level)
+          
+          if [[ "$level" == "danger" ]]; then
+            echo "::warning::Claude session at risk - auto-saving"
+            kc snap -t "CI auto-save before tests"
+          fi
+      
+      - name: Run Tests with Claude
+        run: |
+          # Use Claude for test generation if needed
+          kc go -t "Generate missing tests" --no-save
+          npm test
+      
+      - name: Post-test Health Check
+        if: always()
+        run: |
+          kc check --detailed
+```
+
+**Local Git Hook Example**:
+
+```bash
+# .git/hooks/pre-push
+#!/bin/bash
+
+echo "🔍 Checking KODAMA health before push..."
+
+# Check health status
+status=$(kc check --json 2>/dev/null | jq -r .level)
+
+case "$status" in
+  "danger")
+    echo "🔴 Context critically low!"
+    echo "Creating safety snapshot before push..."
+    kc snap -t "Pre-push auto-save"
+    ;;
+  "warning")
+    echo "🟡 Context usage high (warning)"
+    read -p "Create snapshot before push? [y/N] " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+      kc snap -t "Pre-push snapshot"
+    fi
+    ;;
+  *)
+    echo "🟢 Context healthy"
+    ;;
+esac
+
+# Continue with push
+exit 0
+```
+
+**Monitoring Dashboard Script**:
+
+```bash
+#!/bin/bash
+# monitor-kodama.sh - Real-time health monitoring
+
+clear
+echo "📊 KODAMA Health Monitor"
+echo "========================"
+echo "Press Ctrl+C to exit"
+echo
+
+while true; do
+  # Get health data
+  health=$(kc check --json 2>/dev/null)
+  
+  if [[ -n "$health" ]]; then
+    # Parse JSON data
+    level=$(echo $health | jq -r .level)
+    percent=$(echo $health | jq -r .tokenUsage.percentRemaining)
+    last_snap=$(echo $health | jq -r .lastSnapshot.ageHours)
+    
+    # Clear previous line
+    printf "\r\033[K"
+    
+    # Display status with color
+    case "$level" in
+      "healthy")
+        printf "🟢 Healthy"
+        ;;
+      "warning")
+        printf "🟡 Warning"
+        ;;
+      "danger")
+        printf "🔴 DANGER"
+        # Send desktop notification
+        notify-send "KODAMA Alert" "Context usage critical: ${percent}% remaining" -u critical
+        ;;
+    esac
+    
+    printf " | Remaining: %5.1f%% | Last snap: %5.1fh ago" "$percent" "$last_snap"
+  else
+    printf "\r\033[K⚪ No active session"
+  fi
+  
+  sleep 30
+done
 ```
 
 ## Project Scenarios

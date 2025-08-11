@@ -68,6 +68,7 @@ describe("Validation Utilities", () => {
     });
 
     test("should return undefined for invalid input without fallback", () => {
+      // parseStep returns undefined when no match is found and no fallback is provided
       expect(parseStep("invalid")).toBeUndefined();
       expect(parseStep("")).toBeUndefined();
       expect(parseStep(null)).toBeUndefined();

@@ -241,6 +241,7 @@ describe("Smart Context Management", () => {
     
     it("should update only KODAMA section", async () => {
       process.env.KODAMA_CLAUDE_SYNC = "true";
+      process.env.KODAMA_CLAUDE_SYNC_DRY_RUN = "false";
       
       // Create existing CLAUDE.md with markers
       const existingContent = `# My Project
@@ -269,7 +270,7 @@ More content after.`;
         gitCommit: "abc123",
       };
       
-      manager.updateSection(snapshot, TEST_DIR);
+      manager.updateSection(snapshot, TEST_DIR, false);
       
       const updated = readFileSync(testClaudeMdPath, "utf-8");
       
@@ -282,6 +283,7 @@ More content after.`;
     
     it("should create backup before update", async () => {
       process.env.KODAMA_CLAUDE_SYNC = "true";
+      process.env.KODAMA_CLAUDE_SYNC_DRY_RUN = "false";
       
       // Create existing CLAUDE.md with KODAMA markers
       const content = `# Original content
@@ -302,7 +304,7 @@ More content after.`;
         cwd: TEST_DIR,
       };
       
-      manager.updateSection(snapshot, TEST_DIR);
+      manager.updateSection(snapshot, TEST_DIR, false);
       
       const backupPath = `${testClaudeMdPath}.backup`;
       expect(existsSync(backupPath)).toBe(true);
@@ -311,6 +313,7 @@ More content after.`;
     
     it("should skip update if no markers found", async () => {
       process.env.KODAMA_CLAUDE_SYNC = "true";
+      process.env.KODAMA_CLAUDE_SYNC_DRY_RUN = "false";
       
       const content = "# Project without markers";
       writeFileSync(testClaudeMdPath, content);
@@ -327,7 +330,7 @@ More content after.`;
         cwd: TEST_DIR,
       };
       
-      const result = manager.updateSection(snapshot, TEST_DIR);
+      const result = manager.updateSection(snapshot, TEST_DIR, false);
       
       expect(result).toBe(false);
       expect(readFileSync(testClaudeMdPath, "utf-8")).toBe(content);
@@ -348,7 +351,7 @@ More content after.`;
         cwd: TEST_DIR,
       };
       
-      const result = manager.updateSection(snapshot, TEST_DIR);
+      const result = manager.updateSection(snapshot, TEST_DIR, false);
       
       expect(result).toBe(false);
       expect(existsSync(testClaudeMdPath)).toBe(false);

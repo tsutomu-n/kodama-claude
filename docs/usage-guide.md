@@ -10,9 +10,10 @@ Learn every KODAMA Claude command with detailed examples.
 - [Detailed Command Guide](#detailed-command-guide)
   - [`kc go` - Start Working](#kc-go)
   - [`kc snap` - Save Context](#kc-snap)
+  - [`kc check` - Monitor Health](#kc-check)
   - [`kc plan` - Plan Work](#kc-plan)
   - [`kc send` - Send Context](#kc-send)
-  - [`kc doctor` - Check Health](#kc-doctor)
+  - [`kc doctor` - Check System](#kc-doctor)
 - [Working with Snapshots](#working-with-snapshots)
 - [Best Practices](#best-practices)
 
@@ -71,7 +72,8 @@ Your Brain          KODAMA              Claude CLI
 | Command | Purpose | When to use |
 |---------|---------|-------------|
 | `kc go` | Start or continue working | Beginning of work session |
-| `kc snap` | Save your progress | End of work session |
+| `kc snap` | Save your progress | End of work session or important milestone |
+| `kc check` | Monitor session health | During long sessions to check token usage |
 | `kc plan` | Plan what to do | Before starting complex work |
 | `kc send` | Send context manually | When `kc go` isn't enough |
 | `kc doctor` | Check system health | When something seems wrong |
@@ -100,20 +102,46 @@ kc go -s implementing
 #### Options Explained
 
 **`-t, --title <text>`** - Name this work session
+- **Purpose**: Provides context for your work session
+- **Format**: Short, descriptive text (2-10 words recommended)
+- **When to use**: Starting new feature, switching tasks, or documenting progress
+
 ```bash
-# Good titles are specific
-kc go -t "Add password reset feature"
-kc go -t "Fix bug #123"
-kc go -t "Refactor database queries"
+# Good titles are specific and action-oriented
+kc go -t "Add password reset feature"      # Clear feature description
+kc go -t "Fix bug #123: login timeout"     # Bug with context
+kc go -t "Refactor database queries"       # Technical task
+kc go -t "Review PR feedback"              # Code review task
+
+# Bad titles (too vague)
+kc go -t "work"                            # ❌ No context
+kc go -t "stuff"                           # ❌ Not descriptive
+kc go -t "continue"                        # ❌ Doesn't say what
 ```
 
-**`-s, --step <step>`** - What phase are you in?
+**`-s, --step <step>`** - Define your workflow phase
+- **Purpose**: Tells Claude what kind of help you need
+- **Format**: One of: `requirements`, `designing`, `implementing`, `testing`
+- **Default**: Uses previous step or `requirements` if first time
+
 ```bash
-# Available steps:
-kc go -s designing      # Planning architecture
-kc go -s implementing   # Writing code
-kc go -s testing        # Testing/debugging
-kc go -s done           # Finished
+# Step progression and their purposes:
+kc go -s requirements   # Gathering requirements, understanding the problem
+                       # Claude will ask clarifying questions
+                       
+kc go -s designing     # Planning architecture, choosing approach
+                       # Claude will discuss design patterns, trade-offs
+                       
+kc go -s implementing  # Writing actual code
+                       # Claude will write code, suggest implementations
+                       
+kc go -s testing       # Testing, debugging, optimization
+                       # Claude will help write tests, fix bugs
+
+# Smart step usage:
+kc go -s requirements -t "User auth system"  # Start new feature
+kc go -s implementing                        # Continue coding
+kc go -s testing -t "Fix auth edge cases"    # Debug specific issue
 ```
 
 **`--no-save`** - Don't save snapshot after
@@ -187,6 +215,21 @@ kc snap -t "Finished API endpoints"
 
 # From stdin (for scripts)
 echo "Completed task" | kc snap -t "Auto snapshot"
+```
+
+#### Options Explained
+
+**`-t, --title <text>`** - Quick snapshot with title only
+- **Purpose**: Fast save without interactive prompts
+- **When to use**: Quick checkpoints, before meetings, end of day
+- **Tip**: Other fields use defaults from previous snapshot
+
+```bash
+# Quick saves for different situations
+kc snap -t "Before lunch break"           # Time-based checkpoint
+kc snap -t "API endpoints working"        # Feature milestone
+kc snap -t "Before refactoring"          # Safety checkpoint
+kc snap -t "Meeting notes added"          # Documentation update
 ```
 
 #### Interactive Mode Questions
@@ -266,6 +309,132 @@ Snapshots are saved as:
 }
 ```
 
+### `kc check` - Monitor Health
+
+Monitor your Claude session's token usage and health status to prevent context loss.
+
+#### Basic Usage
+
+```bash
+# Quick 3-line status
+kc check
+
+# Detailed health report
+kc check --detailed
+
+# JSON output for automation
+kc check --json
+```
+
+#### Understanding the Output
+
+**Quick Status (default)**:
+```
+🟢 Session healthy (85% remaining)
+📝 Last snapshot: 0.5 hours ago
+💡 All systems operational
+```
+
+**Health Levels**:
+- 🟢 **Healthy** (>40% remaining) - Continue working normally
+- 🟡 **Warning** (20-40% remaining) - Consider taking a snapshot soon
+- 🔴 **Danger** (<20% remaining) - Take a snapshot immediately
+
+#### Options Explained
+
+**`--detailed, -d`** - Comprehensive health report
+- Shows exact token counts
+- Lists recent snapshots
+- Provides specific recommendations
+
+```bash
+$ kc check --detailed
+╭─────────────────────────────────────╮
+│ 🏥 Claude Session Health Report     │
+├─────────────────────────────────────┤
+│ Status: 🟢 HEALTHY                  │
+│                                     │
+│ 📊 Token Usage:                     │
+│   Used: 32,768 / 200,000           │
+│   Remaining: 167,232 (83.6%)       │
+│                                     │
+│ 📝 Last Snapshot:                   │
+│   Title: "API implementation"       │
+│   Age: 1.2 hours                   │
+│                                     │
+│ 💡 Recommendation:                  │
+│   Continue working normally         │
+╰─────────────────────────────────────╯
+```
+
+**`--json, -j`** - Machine-readable output
+- For CI/CD pipelines
+- For custom scripts
+- For monitoring tools
+
+```bash
+$ kc check --json
+{
+  "status": "healthy",
+  "level": "healthy",
+  "tokenUsage": {
+    "used": 32768,
+    "total": 200000,
+    "percentUsed": 16.4,
+    "percentRemaining": 83.6
+  },
+  "lastSnapshot": {
+    "title": "API implementation",
+    "ageHours": 1.2,
+    "timestamp": "2025-01-10T14:30:00Z"
+  },
+  "suggestion": "Continue working normally",
+  "autoAction": null
+}
+```
+
+#### Automation Examples
+
+**Auto-snapshot when critical**:
+```bash
+#!/bin/bash
+# Check health and auto-save if needed
+status=$(kc check --json | jq -r .status)
+if [[ "$status" == "danger" ]]; then
+  echo "⚠️ Context usage critical - auto-saving..."
+  kc snap -t "Auto-save: context critical"
+fi
+```
+
+**CI/CD pipeline check**:
+```bash
+# In your GitHub Actions or Jenkins pipeline
+- name: Check Claude session health
+  run: |
+    if [[ $(kc check --json | jq -r .level) == "danger" ]]; then
+      kc snap -t "CI auto-snapshot"
+    fi
+```
+
+**Monitoring script**:
+```bash
+# monitor.sh - Run with cron every 30 minutes
+#!/bin/bash
+health=$(kc check --json)
+remaining=$(echo $health | jq .tokenUsage.percentRemaining)
+
+if (( $(echo "$remaining < 20" | bc -l) )); then
+  notify-send "KODAMA Warning" "Token usage critical: ${remaining}% left"
+fi
+```
+
+#### When to Use
+
+- **During long sessions**: Check every 1-2 hours
+- **Before complex work**: Ensure enough context space
+- **In automation**: Prevent context loss in CI/CD
+- **Team handoffs**: Check before passing work
+
 ### `kc plan` - Plan Work
 
 Helps you organize before starting.
@@ -278,6 +447,21 @@ kc plan
 
 # Quick plan with title
 kc plan -t "Database migration plan"
+```
+
+#### Options Explained
+
+**`-t, --title <text>`** - Quick planning with title
+- **Purpose**: Fast planning capture without prompts
+- **When to use**: Quick task planning, meeting outcomes, brainstorming results
+- **Note**: Creates a special "planning" type snapshot
+
+```bash
+# Different planning scenarios
+kc plan -t "Sprint planning outcomes"      # Team planning
+kc plan -t "Refactoring strategy"         # Technical planning
+kc plan -t "Bug investigation plan"       # Problem solving
+kc plan -t "Feature roadmap v2"           # Product planning
 ```
 
 #### Planning Process
@@ -315,6 +499,34 @@ kc plan
 
 Manually send context to existing Claude session.
 
+#### Basic Usage
+
+```bash
+# Send latest snapshot to current session
+kc send
+
+# Send specific snapshot by ID
+kc send a1b2c3d4-e5f6-7890-abcd
+```
+
+#### Arguments Explained
+
+**`[snapshot-id]`** - Optional snapshot identifier
+- **Purpose**: Send a specific snapshot instead of latest
+- **Format**: UUID from snapshot filename or list
+- **Default**: Latest snapshot if not specified
+
+```bash
+# List available snapshots
+ls ~/.local/share/kodama-claude/snapshots/
+2025-01-10T09-00-00-a1b2c3d4.json
+2025-01-10T14-30-00-e5f6g7h8.json
+
+# Send specific snapshot
+kc send a1b2c3d4   # Can use partial ID
+kc send e5f6g7h8   # Matches most recent with this prefix
+```
+
 #### When to Use
 
 ```bash
@@ -324,13 +536,17 @@ $ claude  # Started Claude manually
 > # Now need context
 $ kc send  # In another terminal
 
-# Case 2: Send specific snapshot
-$ kc send a1b2c3d4
+# Case 2: Send older context
+$ kc send a1b2c3d4  # Send yesterday's context
 
 # Case 3: kc go didn't load context properly
 $ kc go --no-save
 > # Context missing?
 $ kc send
+
+# Case 4: Recover from cleared session
+> /clear  # Accidentally cleared
+$ kc send  # Restore context
 ```
 
 #### How It Works

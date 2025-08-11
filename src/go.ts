@@ -1,13 +1,20 @@
 /**
- * "kc go" - One-command workflow to start or continue Claude session
+ * "kc go" - Start or continue Claude session with context
+ * Two-stage execution: inject context, then open REPL
  */
 
 import { randomUUID } from "crypto";
 import { cwd } from "process";
+import { writeFileSync } from "fs";
+import { tmpdir } from "os";
+import { join } from "path";
+import { execSync } from "child_process";
 import { Storage } from "./storage";
+import { Guardian } from "./guardian";
 import { ClaudeCLI } from "./claude";
 import { ClaudeMdManager } from "./claudeMdManager";
 import { getMessage, formatError } from "./i18n";
+import { config } from "./config";
 import { getGitBranch, getGitCommit } from "./utils/git";
 import { parseStep, ValidStep } from "./utils/validation";
 import type { Snapshot } from "./types";
@@ -15,12 +22,43 @@ import type { Snapshot } from "./types";
 interface GoOptions {
   title?: string;
   step?: string;
+  noSend?: boolean;  // Skip context injection
   debug?: boolean;
 }
 
 export async function goCommand(options: GoOptions) {
+  // Show 3-line plan at the beginning
+  console.log("▶ Starting Claude session");
+  console.log("  1. Check health & create snapshot");
+  console.log("  2. Inject context with -c -p");
+  console.log("  3. Open REPL with --continue\n");
+  
   const storage = new Storage();
+  const guardian = new Guardian();
   const claude = new ClaudeCLI();
+  
+  // Perform health check at start
+  console.log("🔍 Checking session health...");
+  const health = await guardian.checkHealth();
+  
+  // Display health status (4-value only, no percentage)
+  const emoji = getStatusEmoji(health.level);
+  console.log(`${emoji} Session status: ${health.level}`);
+  
+  if (health.lastSnapshot) {
+    const hours = Math.round(health.lastSnapshot.ageHours);
+    console.log(`📸 Last snapshot: ${hours}h ago`);
+  }
+  
+  // Auto-protect if needed
+  if (health.autoAction === 'snapshot') {
+    console.log("⚠️ Context usage critical! Creating automatic snapshot...");
+    await guardian.protect();
+  } else if (health.suggestion) {
+    console.log(`💡 ${health.suggestion}`);
+  }
+  
+  console.log(""); // Empty line for clarity
   
   // Check Claude CLI availability
   if (!claude.isAvailable()) {
@@ -28,18 +66,14 @@ export async function goCommand(options: GoOptions) {
     process.exit(1);
   }
   
-  // Get or create session
-  let sessionId = storage.loadSessionId();
-  const isNewSession = !sessionId;
-  
   // Load latest snapshot for context
   const latestSnapshot = await storage.getLatestSnapshot();
   
-  // Prepare context
-  let context = "";
+  // Prepare context message
+  let contextMessage = "";
   
   if (latestSnapshot) {
-    context = buildContextFromSnapshot(latestSnapshot);
+    contextMessage = buildContextFromSnapshot(latestSnapshot);
     
     if (options.debug) {
       console.log("📚 Using snapshot:", latestSnapshot.id);
@@ -48,61 +82,32 @@ export async function goCommand(options: GoOptions) {
     }
   }
   
-  // Get current project info
+  // Add current project info
   const currentDir = cwd();
   const gitBranch = getGitBranch();
   const gitCommit = getGitCommit();
   
-  // Start or continue Claude session
-  let result;
+  contextMessage += `\n\nCurrent directory: ${currentDir}`;
+  if (gitBranch) contextMessage += `\nGit branch: ${gitBranch}`;
+  if (gitCommit) contextMessage += `\nGit commit: ${gitCommit}`;
   
-  if (isNewSession || !sessionId) {
-    // Start new session with context
-    console.log("🚀 Starting new Claude session...");
-    
-    const systemPrompt = `${context}
-
-Current directory: ${currentDir}
-Git branch: ${gitBranch || "none"}
-Git commit: ${gitCommit || "none"}
-
-You are helping with: ${options.title || latestSnapshot?.title || "development task"}
-Current step: ${options.step || latestSnapshot?.step || "requirements"}`;
-    
-    result = claude.startWithContext(systemPrompt, "Hello! I'm ready to continue our work. What should we focus on?");
-    
-    if (result.success && result.sessionId) {
-      storage.saveSessionId(result.sessionId);
-      sessionId = result.sessionId;
-    }
-  } else {
-    // Continue existing session
-    console.log("🔄 Continuing Claude session:", sessionId);
-    
-    // Inject context reminder if we have new info
-    const contextReminder = options.title || options.step ? 
-      `Reminder - Current focus: ${options.title || "current task"}, Step: ${options.step || "current"}` : 
-      undefined;
-    
-    result = claude.continue(sessionId, contextReminder);
+  if (options.title) {
+    contextMessage += `\n\nCurrent focus: ${options.title}`;
+  }
+  if (options.step) {
+    contextMessage += `\nCurrent step: ${options.step}`;
   }
   
-  if (!result.success) {
-    console.error(formatError(`${getMessage("claudeSessionFailed")} ${result.error}`));
-    process.exit(1);
-  }
-  
-  // Create snapshot of this interaction
+  // Create snapshot of this session start
   const snapshot: Snapshot = {
     version: "1.0.0",
     id: randomUUID(),
     title: options.title || latestSnapshot?.title || "Development session",
     timestamp: new Date().toISOString(),
     step: parseStep(options.step, latestSnapshot?.step as ValidStep | undefined),
-    context: context,
+    context: latestSnapshot?.context || "",
     decisions: latestSnapshot?.decisions || [],
     nextSteps: latestSnapshot?.nextSteps || [],
-    claudeSessionId: sessionId || undefined,
     cwd: currentDir,
     gitBranch,
     gitCommit,
@@ -113,19 +118,50 @@ Current step: ${options.step || latestSnapshot?.step || "requirements"}`;
   // Trigger auto-archive if enabled
   storage.triggerAutoArchive();
   
-  // Update CLAUDE.md if enabled
+  // Update CLAUDE.md if enabled (dry-run by default)
   const claudeMd = new ClaudeMdManager();
-  claudeMd.updateSection(snapshot);
+  claudeMd.updateSection(snapshot, undefined, config.claudeMdSyncDryRun);
   
-  console.log("✅ Session ready!");
-  console.log("📝 Snapshot saved:", snapshot.id);
-  
-  if (options.debug) {
-    console.log("\n--- Debug Info ---");
-    console.log("Session ID:", sessionId);
-    console.log("Snapshot ID:", snapshot.id);
-    console.log("Storage path:", storage["paths"].data);
+  // Two-stage execution for reliable context injection
+  if (!options.noSend) {
+    // Stage 1: Inject context with -c -p
+    console.log("📤 Injecting context...");
+    const injectResult = await claude.injectContext(contextMessage);
+    
+    if (!injectResult.success) {
+      console.warn("⚠️ Direct injection failed, trying fallback methods...");
+      if (config.debug) {
+        console.error(injectResult.error);
+      }
+      // Try fallback methods
+      await fallbackPaste(contextMessage);
+    } else {
+      console.log("✅ Context injected successfully");
+    }
+    
+    // Stage 2: Open REPL with --continue
+    console.log("🚀 Opening Claude REPL...");
+    const replResult = await claude.openREPL();
+    
+    if (!replResult.success) {
+      console.error(formatError(getMessage("claudeSessionFailed")));
+      if (config.debug && replResult.error) {
+        console.error(replResult.error);
+      }
+      // Try alternate methods
+      console.log("\n💡 Try running manually:");
+      console.log("   claude --continue");
+      console.log("   or");
+      console.log("   claude --resume");
+      process.exit(1);
+    }
+  } else {
+    console.log("ℹ️  Skipping context injection (--no-send)");
+    console.log("💡 Run 'claude --continue' to open Claude manually");
   }
+  
+  console.log("\n✅ Session ready!");
+  console.log(`📝 Snapshot saved: ${snapshot.id}`);
 }
 
 /**
@@ -159,3 +195,66 @@ function buildContextFromSnapshot(snapshot: Snapshot): string {
   return parts.join("\n");
 }
 
+/**
+ * Get emoji for status level (4-value only)
+ */
+function getStatusEmoji(level: string): string {
+  switch (level) {
+    case 'healthy':
+      return '🟢';
+    case 'warning':
+      return '🟡';
+    case 'danger':
+      return '🔴';
+    default:
+      return '❓';
+  }
+}
+
+/**
+ * Fallback paste methods when injection fails
+ */
+async function fallbackPaste(text: string): Promise<void> {
+  // Try clipboard first
+  const commands = [
+    { cmd: "clip.exe", args: [] },  // WSL
+    { cmd: "wl-copy", args: [] },   // Wayland
+    { cmd: "xclip", args: ["-selection", "clipboard"] },  // X11
+    { cmd: "pbcopy", args: [] },    // macOS
+  ];
+  
+  for (const { cmd, args } of commands) {
+    try {
+      execSync(`which ${cmd}`, { stdio: "ignore" });
+      const proc = require("child_process").spawn(cmd, args, {
+        stdio: ["pipe", "ignore", "ignore"],
+      });
+      proc.stdin.write(text);
+      proc.stdin.end();
+      await new Promise(resolve => setTimeout(resolve, 100));
+      console.log("✅ Context copied to clipboard");
+      console.log("💡 Paste it when Claude opens");
+      return;
+    } catch {
+      // Try next
+    }
+  }
+  
+  // Fallback to OSC52
+  try {
+    const base64 = Buffer.from(text).toString("base64");
+    const osc52 = `\x1b]52;c;${base64}\x07`;
+    process.stderr.write(osc52);
+    console.log("✅ Context copied via OSC52");
+    return;
+  } catch {
+    // Continue to file
+  }
+  
+  // Final fallback: temp file
+  const tempFile = join(tmpdir(), `kodama-context-${randomUUID()}.txt`);
+  writeFileSync(tempFile, text, "utf-8");
+  console.log("📄 Context saved to:");
+  console.log(`   ${tempFile}`);
+  console.log(`💡 Use: cat "${tempFile}" | claude`);
+}

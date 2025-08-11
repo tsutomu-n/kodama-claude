@@ -14,13 +14,22 @@ export class ClaudeMdManager {
   /**
    * Update CLAUDE.md with snapshot context
    */
-  updateSection(snapshot: Snapshot, workingDir?: string): boolean {
+  updateSection(snapshot: Snapshot, workingDir?: string, dryRun: boolean = true): boolean {
     // Check if feature is enabled (opt-in)
     if (!config.claudeMdSync) {
       if (config.debug) {
         console.log('ℹ️  CLAUDE.md sync is disabled (set KODAMA_CLAUDE_SYNC=true to enable)');
       }
       return false;
+    }
+    
+    // Dry run by default
+    if (dryRun) {
+      if (config.debug) {
+        console.log('ℹ️  CLAUDE.md dry-run mode - no changes will be made');
+        console.log('    To actually update: set KODAMA_CLAUDE_SYNC_DRY_RUN=false');
+      }
+      return this.simulateUpdate(snapshot, workingDir);
     }
     
     const claudeMdPath = join(workingDir || process.cwd(), 'CLAUDE.md');
@@ -183,5 +192,49 @@ ${this.MARKER_END}
    */
   private escapeRegex(str: string): string {
     return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+  
+  /**
+   * Simulate update without making changes (for dry-run)
+   */
+  private simulateUpdate(snapshot: Snapshot, workingDir?: string): boolean {
+    const claudeMdPath = join(workingDir || process.cwd(), 'CLAUDE.md');
+    
+    try {
+      // Check if file exists
+      const exists = existsSync(claudeMdPath);
+      
+      if (!exists) {
+        console.log('📝 [DRY-RUN] Would create CLAUDE.md with KODAMA markers');
+      } else {
+        const content = readFileSync(claudeMdPath, 'utf-8');
+        const hasMarkers = content.includes(this.MARKER_START);
+        
+        if (hasMarkers) {
+          console.log('📝 [DRY-RUN] Would update existing KODAMA section in CLAUDE.md');
+        } else {
+          console.log('📝 [DRY-RUN] Would add KODAMA markers to CLAUDE.md');
+          console.log('    Add these lines to enable auto-update:');
+          console.log(`    ${this.MARKER_START}`);
+          console.log(`    ${this.MARKER_END}`);
+        }
+      }
+      
+      // Show what would be added
+      if (config.debug) {
+        const section = this.generateSection(snapshot);
+        console.log('\n📝 [DRY-RUN] Would add this content:');
+        console.log('───────────────────────────────────');
+        console.log(section);
+        console.log('───────────────────────────────────');
+      }
+      
+      return true;
+    } catch (error) {
+      if (config.debug) {
+        console.warn(`⚠️  [DRY-RUN] Would skip CLAUDE.md update: ${error}`);
+      }
+      return false;
+    }
   }
 }

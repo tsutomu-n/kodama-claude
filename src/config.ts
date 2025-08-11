@@ -43,6 +43,15 @@ export const config = {
   get claudeMdSync(): boolean {
     return process.env.KODAMA_CLAUDE_SYNC === 'true';
   },
+  
+  /**
+   * CLAUDE.md sync dry-run mode (when sync is enabled)
+   * @default true (dry-run enabled)
+   */
+  get claudeMdSyncDryRun(): boolean {
+    // Default to true unless explicitly set to false
+    return process.env.KODAMA_CLAUDE_SYNC_DRY_RUN !== 'false';
+  },
 
   /**
    * Language setting for internationalization
@@ -192,6 +201,7 @@ export function getConfigSummary(): Record<string, any> {
     noLimit: config.noLimit,
     autoArchiveDisabled: config.autoArchiveDisabled,
     claudeMdSync: config.claudeMdSync,
+    claudeMdSyncDryRun: config.claudeMdSyncDryRun,
     language: config.language,
     systemLocale: config.systemLocale,
     archiveThresholdDays: config.archiveThresholdDays,

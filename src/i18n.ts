@@ -17,6 +17,10 @@ type SimpleMessage = {
   invalidInput: string;
   operationFailed: string;
   permissionDenied: string;
+  errorListingSnapshots: string;
+  errorLoadingSnapshot: string;
+  errorCheckingHealth: string;
+  sessionHealthy: string;
 };
 
 type ParameterizedMessage = {
@@ -28,6 +32,7 @@ type ParameterizedMessage = {
   fileReadError: (path: string, error: string) => string;
   fileWriteError: (path: string, error: string) => string;
   validationError: (field: string, reason: string) => string;
+  autoSnapshotCreated: (id: string) => string;
 };
 
 type Messages = SimpleMessage & ParameterizedMessage;
@@ -43,6 +48,10 @@ const messages: Record<Language, Messages> = {
     invalidInput: "Invalid input provided",
     operationFailed: "Operation failed",
     permissionDenied: "Permission denied",
+    errorListingSnapshots: "Error listing snapshots",
+    errorLoadingSnapshot: "Error loading snapshot details",
+    errorCheckingHealth: "Error checking session health",
+    sessionHealthy: "Session is healthy",
     
     // Parameterized messages
     errorCreating: (type) => `Error creating ${type}:`,
@@ -53,6 +62,7 @@ const messages: Record<Language, Messages> = {
     fileReadError: (path, error) => `Failed to read file ${path}: ${error}`,
     fileWriteError: (path, error) => `Failed to write file ${path}: ${error}`,
     validationError: (field, reason) => `Validation error for ${field}: ${reason}`,
+    autoSnapshotCreated: (id) => `Auto-snapshot created: ${id}`,
   },
   
   ja: {
@@ -65,6 +75,10 @@ const messages: Record<Language, Messages> = {
     invalidInput: "無効な入力です",
     operationFailed: "操作に失敗しました",
     permissionDenied: "アクセス権限がありません",
+    errorListingSnapshots: "スナップショットの一覧取得エラー",
+    errorLoadingSnapshot: "スナップショット詳細の読み込みエラー",
+    errorCheckingHealth: "セッションヘルスのチェックエラー",
+    sessionHealthy: "セッションは健康です",
     
     // Parameterized messages
     errorCreating: (type) => `${type}の作成中にエラーが発生しました:`,
@@ -75,6 +89,7 @@ const messages: Record<Language, Messages> = {
     fileReadError: (path, error) => `ファイル ${path} の読み込みに失敗しました: ${error}`,
     fileWriteError: (path, error) => `ファイル ${path} の書き込みに失敗しました: ${error}`,
     validationError: (field, reason) => `${field} の検証エラー: ${reason}`,
+    autoSnapshotCreated: (id) => `自動スナップショットを作成: ${id}`,
   }
 };
 
@@ -106,6 +121,10 @@ export function getMessage(key: 'fileNotFound'): string;
 export function getMessage(key: 'invalidInput'): string;
 export function getMessage(key: 'operationFailed'): string;
 export function getMessage(key: 'permissionDenied'): string;
+export function getMessage(key: 'errorListingSnapshots'): string;
+export function getMessage(key: 'errorLoadingSnapshot'): string;
+export function getMessage(key: 'errorCheckingHealth'): string;
+export function getMessage(key: 'sessionHealthy'): string;
 
 // Parameterized messages
 export function getMessage(key: 'errorCreating', type: string): string;
@@ -116,6 +135,7 @@ export function getMessage(key: 'planCreated', id: string): string;
 export function getMessage(key: 'fileReadError', path: string, error: string): string;
 export function getMessage(key: 'fileWriteError', path: string, error: string): string;
 export function getMessage(key: 'validationError', field: string, reason: string): string;
+export function getMessage(key: 'autoSnapshotCreated', id: string): string;
 
 // Implementation
 export function getMessage(key: keyof Messages, ...args: any[]): string {

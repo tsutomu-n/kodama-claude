@@ -44,9 +44,10 @@ Deep technical information:
 ### Using Commands
 - [`kc go` - Start working](usage-guide.md#kc-go)
 - [`kc snap` - Save your work](usage-guide.md#kc-snap)
+- [`kc check` - Monitor session health](usage-guide.md#kc-check)
 - [`kc plan` - Plan next steps](usage-guide.md#kc-plan)
 - [`kc send` - Send context](usage-guide.md#kc-send)
-- [`kc doctor` - Check health](usage-guide.md#kc-doctor)
+- [`kc doctor` - Check system](usage-guide.md#kc-doctor)
 
 ### Common Tasks
 - [Start morning work](examples.md#morning-workflow)

@@ -116,4 +116,65 @@ export class ClaudeCLI {
   resume(snapshotPath: string): ClaudeResult {
     return this.execute(["--resume", snapshotPath]);
   }
+  
+  /**
+   * Inject context with -c -p (non-interactive)
+   */
+  injectContext(context: string): ClaudeResult {
+    // Use -c (continue) with -p (print mode) to inject context
+    const result = spawnSync(this.claudePath, ["-c", "-p", context], {
+      encoding: "utf-8",
+      shell: false,
+      maxBuffer: 10 * 1024 * 1024,
+      timeout: 30000, // 30 second timeout
+    });
+    
+    if (result.error) {
+      return {
+        success: false,
+        error: result.error.message,
+      };
+    }
+    
+    if (result.status !== 0) {
+      return {
+        success: false,
+        error: result.stderr || `Process exited with code ${result.status}`,
+      };
+    }
+    
+    return {
+      success: true,
+      output: result.stdout,
+    };
+  }
+  
+  /**
+   * Open REPL with --continue (interactive)
+   */
+  openREPL(): ClaudeResult {
+    // Use spawn for interactive mode with inherited stdio
+    const result = spawnSync(this.claudePath, ["--continue"], {
+      stdio: "inherit",
+      shell: false,
+    });
+    
+    if (result.error) {
+      return {
+        success: false,
+        error: result.error.message,
+      };
+    }
+    
+    if (result.status !== 0 && result.status !== null) {
+      return {
+        success: false,
+        error: `Process exited with code ${result.status}`,
+      };
+    }
+    
+    return {
+      success: true,
+    };
+  }
 }

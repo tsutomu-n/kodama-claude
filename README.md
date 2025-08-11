@@ -20,6 +20,12 @@ KODAMA stores **human decision logs** in structured format. When `/clear` erases
 curl -fsSL https://github.com/tsutomu-n/kodama-claude/releases/latest/download/install.sh | bash
 ```
 
+**What it does:**
+- Downloads correct binary for your architecture
+- Verifies SHA256 checksum
+- Installs to `/usr/local/bin/kc`
+- Shows 3 commands to get started
+
 ### Manual Installation
 
 1. Download the binary for your architecture:
@@ -35,17 +41,12 @@ sudo mv kc-linux-x64 /usr/local/bin/kc
 
 ## Usage
 
-### Just Three Commands
+### Only 3 Commands
 
 ```bash
-# 1. Save your work context
-kc snap
-
-# 2. Continue where you left off
-kc go
-
-# 3. Plan your next steps  
-kc plan
+kc go       # Start Claude (health check → inject → REPL)
+kc save     # Save snapshot & paste
+kc status   # Check health (🟢/🟡/🔴/❓)
 ```
 
 That's it. No complex workflows. No feature creep. No cognitive overhead.
@@ -53,20 +54,32 @@ That's it. No complex workflows. No feature creep. No cognitive overhead.
 ### Example: Adding an API Endpoint
 
 ```bash
-# 1. Morning: Resume previous work
+# 1. Morning: Resume work
 $ kc go
-# → Claude recognizes "Auth API design, JWT tokens, 30-min expiry"
+# → Automatically checks health: 🟢 Healthy
+# → Loads context: "Auth API design, JWT tokens, 30-min expiry"
+# → Starts Claude session with protection enabled
 
 # 2. Work with Claude
 $ # Claude continues implementation based on previous decisions
 
-# 3. Save progress
-$ kc snap -t "Auth API implementation complete"
+# 3. After 2 hours: Check if snapshot needed (optional)
+$ kc status
+# → 🟡 Warning: Consider taking a snapshot
 
-# 4. Commit to Git (track actual code changes)
+# 4. Save progress
+$ kc save -t "Auth API implementation complete"
+
+# 5. Commit to Git (track actual code changes)
 $ git add .
 $ git commit -m "feat: Add JWT authentication endpoint"
 ```
+
+### When to Use Each Command
+
+- **`kc go`**: Starting work for the day or resuming after a break (full auto)
+- **`kc save`**: When switching tasks, taking breaks, or prompted
+- **`kc status`**: Check health state (use --strict in CI/CD)
 
 Claude gets context. Git tracks code.
 
@@ -100,68 +113,57 @@ Auto-detects Japanese from system locale.
 
 ## Commands
 
-### `kc go` - Start or Continue
-
-Main command:
-- Loads latest context
-- Starts/continues Claude session
-- Saves snapshot
+### `kc go` - Start Claude Session
 
 ```bash
-kc go
-kc go -t "Adding user authentication"
-kc go -s implementing
+kc go [options]
+  -t, --title <title>    Session title
+  -s, --step <step>      Workflow step (designing/implementing/testing/done)
+  --no-send              Skip context injection (check only)
 ```
 
-### `kc snap` - Create Snapshot
+**Actions:**
+1. Health check with auto-protection
+2. Inject context with `claude -c -p`
+3. Open REPL with `claude --continue`
 
-Interactive snapshot:
-- Accomplishments
-- Key decisions
-- Next steps
+### `kc save` - Save & Paste
 
 ```bash
-kc snap
-kc snap -t "API design complete"
+kc save [options]
+  -t, --title <title>    Snapshot title
+  -s, --step <step>      Workflow step
+  --stdin                Read from stdin
+  --file <path>          Read from file
+  -y, --yes              Skip prompts
+  --copy <mode>          auto|clipboard|osc52|file|none (default: auto)
 ```
 
-### `kc plan` - Structure Next Steps
+**Interactive mode** (default):
+- Title, step, accomplishments, decisions, next steps
+- EOF: Unix/Mac = Ctrl+D, WSL = Ctrl+Z
+- Prompts to paste after saving
 
-Plan workflow:
-- Goals
-- Tasks
-- Considerations
+### `kc status` - Health Status
 
 ```bash
-kc plan
-kc plan -t "Database migration strategy"
+kc status [options]
+  -j, --json             JSON output
+  -s, --strict           Exit 1 when dangerous (for CI/CD)
 ```
 
-### `kc send` - Send Context
-
-Send saved context to existing sessions:
-
-```bash
-kc send                    # Send latest snapshot
-kc send <snapshot-id>      # Send specific snapshot
-```
-
-### `kc doctor` - Health Check
-
-Verify system:
-
-```bash
-kc doctor
-```
+**Output:** `🟢 | basis: transcript | hint: no action needed`
 
 ## Features
 
 ### What KODAMA Does
 
+✅ **Session health tracking** - Monitor token usage and get warnings  
+✅ **Auto-protection** - Automatic snapshots when context usage is critical  
 ✅ **Atomic file operations** - Never lose data, even on power loss  
 ✅ **Proper file locking** - Safe concurrent access  
 ✅ **XDG compliance** - Respects Linux directory standards  
-✅ **Zero dependencies** - Single binary, no npm/pip/cargo  
+✅ **Single binary** - No runtime dependencies for core features  
 ✅ **Git aware** - Tracks branch and commit context  
 ✅ **Smart context management** - Auto-limits decisions to latest 5  
 ✅ **Auto-archive** - Automatically organizes snapshots older than 30 days  
@@ -177,6 +179,25 @@ kc doctor
 
 ## Technical Details
 
+### Runtime Dependencies
+
+**Required**: None (single binary runs standalone)
+
+**Optional** (for enhanced features):
+- **Clipboard integration**: 
+  - Linux X11: `xclip` or `xsel`
+  - Linux Wayland: `wl-clipboard`
+  - macOS: `pbcopy` (built-in)
+  - Windows/WSL: `clip.exe`
+- **Desktop integration**:
+  - Linux: `xdg-utils` (for opening files)
+  - All: `notify-send` (for desktop notifications)
+
+> 💡 **Note**: KODAMA works without these packages. If unavailable, it falls back to:
+> - OSC52 terminal clipboard protocol
+> - Temporary files for context passing
+> - Console output instead of notifications
+
 ### Storage Location
 
 XDG Base Directory compliant:
@@ -188,6 +209,25 @@ XDG Base Directory compliant:
 ├── events.jsonl        # Append-only event log
 └── .session           # Current Claude session ID
 ```
+
+### File Permissions
+
+KODAMA follows security best practices for file permissions:
+
+| Path | Permission | Description |
+|------|------------|-------------|
+| `~/.local/share/kodama-claude/` | `700` (drwx------) | Main data directory |
+| `snapshots/` | `700` (drwx------) | Snapshots directory |
+| `snapshots/archive/` | `700` (drwx------) | Archive directory |
+| `*.json` files | `600` (-rw-------) | Snapshot files |
+| `events.jsonl` | `600` (-rw-------) | Event log |
+| `.session` | `600` (-rw-------) | Session ID |
+
+**Security notes:**
+- All directories are created with `700` (owner-only access)
+- All files are created with `600` (owner read/write only)
+- No group or world permissions are granted
+- Files are written atomically with fsync for data integrity
 
 ### Environment Variables
 
@@ -247,8 +287,21 @@ ls dist/
 
 ## FAQ
 
-**Q: Why not use Claude's built-in `--continue` / `--resume` flags?**  
-A: Claude Code can resume conversation history, but `/clear` erases **conversation history** (while **long-term memory** like CLAUDE.md remains). Community reports show response quality degradation in long sessions. KODAMA **structures and externally stores decisions and next steps**, preserving **human work context** even after `/clear` or session switches.
+**Q: Why only 3 commands?**  
+A: Junior developers need simplicity. Everything else is automated or integrated.
+
+**Q: Where did snap/check/send/plan go?**  
+A: Integrated into the 3 core commands:
+- `snap` → `save` (better name)
+- `check` → `status` (clearer)
+- `send` → integrated into `save`'s paste prompt
+- `plan` → auto-displayed in `go` and `save`
+
+**Q: What is two-stage execution?**  
+A: `kc go` uses `claude -c -p "<context>"` to inject, then `claude --continue` to open REPL. Most reliable method per official docs.
+
+**Q: Why no token percentages?**  
+A: Claude CLI doesn't reliably expose this. We use heuristic-based 4-value status (🟢/🟡/🔴/❓) instead.
 
 **Q: Why use snapshots instead of Git?**  
 A: Git and snapshots are complementary:

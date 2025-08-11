@@ -5,6 +5,38 @@ All notable changes to KODAMA Claude will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2025-08-11
+
+### Added
+- **Health Monitoring System** - Real-time session health tracking for junior developers
+  - `kc check` command: Monitor token usage and session health
+  - Three health levels: 🟢 healthy / 🟡 warning / 🔴 danger
+  - JSON output support for automation (`--json` flag)
+  - Detailed health reports (`--detailed` flag)
+- **Auto-Protection** - Automatic safeguards against context loss
+  - Auto-snapshot when context usage is critical (<10% remaining)
+  - Integrated into `kc go` command for seamless protection
+  - Configurable thresholds via Guardian module
+- **Transcript Analysis** - Efficient Claude transcript monitoring
+  - Token usage extraction from transcript files
+  - Optimized to read only last 64KB for performance
+  - Context window percentage tracking
+- **Performance Optimizations**
+  - Lazy loading of heavy modules
+  - Improved file I/O with streaming for large files
+  - Reduced memory footprint in transcript analysis
+
+### Changed
+- `kc go` now includes automatic health checking at startup
+- Updated command ordering in documentation (go → snap → check → plan)
+- Enhanced documentation to clarify health monitoring features
+- Improved Japanese translations for health-related messages
+
+### Fixed
+- TypeScript async/await consistency in storage module
+- Test suite properly handles async operations
+- Documentation accuracy regarding "real-time" claims (now "session tracking")
+
 ## [0.2.0] - 2025-08-10
 
 ### Added
@@ -48,7 +80,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Design Principles
 - "Less is more" - Minimal feature set focused on core functionality
 - Junior developer first - 30-second learning curve
-- Zero dependencies - Single binary distribution
+- Single binary distribution - No runtime dependencies for core features
 - Fail gracefully - Multiple fallback strategies for every operation
 
 ### Technical Stack

@@ -55,9 +55,10 @@ jobs:
           # Make binaries executable
           chmod +x dist/kc-linux-*
           
-          # Generate checksums
+          # Generate checksums (both formats for compatibility)
           cd dist
-          sha256sum kc-linux-* > checksums.sha256
+          sha256sum kc-linux-* > checksums.txt
+          cp checksums.txt checksums.sha256
           cd ..
       
       - name: Upload artifacts
@@ -116,10 +117,11 @@ jobs:
             
             ## Checksums
             
-            See `checksums.sha256` for verification.
+            SHA256 checksums are available in `checksums.txt` for verification.
           files: |
             dist/kc-linux-x64
             dist/kc-linux-arm64
+            dist/checksums.txt
             dist/checksums.sha256
             install.sh
 

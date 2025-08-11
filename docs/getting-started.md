@@ -74,6 +74,70 @@ curl 7.x.x ...
 
 ❌ **If something is missing**, install it first.
 
+## Optional Dependencies
+
+While KODAMA works standalone, these packages enhance the experience:
+
+### Clipboard Support
+
+For better clipboard integration, install one of these:
+
+**Ubuntu/Debian (X11)**:
+```bash
+sudo apt install xclip
+# or
+sudo apt install xsel
+```
+
+**Ubuntu/Debian (Wayland)**:
+```bash
+sudo apt install wl-clipboard
+```
+
+**Fedora/RHEL**:
+```bash
+sudo dnf install xclip    # For X11
+sudo dnf install wl-clipboard  # For Wayland
+```
+
+**Arch Linux**:
+```bash
+sudo pacman -S xclip    # For X11
+sudo pacman -S wl-clipboard  # For Wayland
+```
+
+**macOS**: Built-in `pbcopy` is already available.
+
+**Windows (WSL)**: `clip.exe` is already available.
+
+### Desktop Notifications
+
+For desktop notifications (optional):
+```bash
+# Ubuntu/Debian
+sudo apt install libnotify-bin
+
+# Fedora/RHEL
+sudo dnf install libnotify
+
+# Arch Linux
+sudo pacman -S libnotify
+```
+
+### File Opening Support
+
+For opening files with default applications:
+```bash
+# Usually pre-installed, but if missing:
+sudo apt install xdg-utils  # Ubuntu/Debian
+sudo dnf install xdg-utils  # Fedora
+```
+
+> 💡 **Note**: KODAMA works without these packages. It will:
+> - Use OSC52 terminal protocol for clipboard (works in most modern terminals)
+> - Show messages in console instead of desktop notifications
+> - Print file paths instead of opening them
+
 ## Installation
 
 ### Method 1: Quick Install (Recommended)

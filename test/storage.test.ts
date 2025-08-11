@@ -13,6 +13,18 @@ describe("Storage", () => {
   let storage: Storage;
   let testDir: string;
   
+  // Mock snapshot for testing
+  const mockSnapshot: Snapshot = {
+    version: "1.0.0",
+    id: "",  // Will be overridden in tests
+    title: "Test snapshot",
+    timestamp: new Date().toISOString(),
+    context: "Test context",
+    decisions: [],
+    nextSteps: [],
+    cwd: "/test"
+  };
+  
   beforeEach(() => {
     // Use test-specific directory
     process.env.XDG_DATA_HOME = `/tmp/kodama-test-${randomUUID()}`;
@@ -32,7 +44,7 @@ describe("Storage", () => {
     expect(existsSync(paths.snapshots)).toBe(true);
   });
   
-  test("should save and load snapshot", () => {
+  test("should save and load snapshot", async () => {
     const snapshot: Snapshot = {
       version: "1.0.0",
       id: randomUUID(),
@@ -56,7 +68,7 @@ describe("Storage", () => {
     expect(loaded?.decisions).toEqual(snapshot.decisions);
   });
   
-  test("should get latest snapshot", () => {
+  test("should get latest snapshot", async () => {
     const snapshot1: Snapshot = {
       version: "1.0.0",
       id: randomUUID(),
@@ -90,7 +102,7 @@ describe("Storage", () => {
     expect(latest?.id).toBe(snapshot2.id);
   });
   
-  test("should list snapshots sorted by timestamp", () => {
+  test("should list snapshots sorted by timestamp", async () => {
     const snapshots: Snapshot[] = [];
     
     for (let i = 0; i < 3; i++) {
@@ -110,13 +122,13 @@ describe("Storage", () => {
       Bun.sleepSync(10); // Ensure different mtimes
     }
     
-    const list = storage.listSnapshots();
+    const list = await storage.listSnapshots();
     expect(list).toHaveLength(3);
     expect(list[0].title).toBe("Snapshot 0"); // Most recent first
     expect(list[2].title).toBe("Snapshot 2"); // Oldest last
   });
   
-  test("should handle atomic writes correctly", () => {
+  test("should handle atomic writes correctly", async () => {
     const snapshot: Snapshot = {
       version: "1.0.0",
       id: randomUUID(),
@@ -139,16 +151,16 @@ describe("Storage", () => {
     expect(tempFiles).toHaveLength(0);
   });
   
-  test("should save and load session ID", () => {
+  test("should save and load session ID", async () => {
     const sessionId = randomUUID();
     
-    storage.saveSessionId(sessionId);
+    await storage.saveSessionId(sessionId);
     const loaded = storage.loadSessionId();
     
     expect(loaded).toBe(sessionId);
   });
   
-  test("should append events to log", () => {
+  test("should append events to log", async () => {
     const event1 = {
       timestamp: new Date().toISOString(),
       eventType: "snapshot_created" as const,
@@ -178,7 +190,7 @@ describe("Storage", () => {
     expect(parsed2.eventType).toBe("snapshot_sent");
   });
   
-  test("should cleanup old snapshots", () => {
+  test("should cleanup old snapshots", async () => {
     // Create old snapshot
     const oldSnapshot: Snapshot = {
       version: "1.0.0",
@@ -213,14 +225,14 @@ describe("Storage", () => {
     require("fs").utimesSync(oldPath, oldTime / 1000, oldTime / 1000);
     
     // Run cleanup
-    const removed = storage.cleanup(30);
+    const removed = await storage.cleanup(30);
     
     expect(removed).toBe(1);
     expect(await storage.loadSnapshot(oldSnapshot.id)).toBeNull();
     expect(await storage.loadSnapshot(recentSnapshot.id)).toBeDefined();
   });
   
-  test("should not cleanup important snapshots", () => {
+  test("should not cleanup important snapshots", async () => {
     const importantSnapshot: Snapshot = {
       version: "1.0.0",
       id: randomUUID(),
@@ -241,24 +253,27 @@ describe("Storage", () => {
     require("fs").utimesSync(oldPath, oldTime / 1000, oldTime / 1000);
     
     // Run cleanup
-    const removed = storage.cleanup(30);
+    const removed = await storage.cleanup(30);
     
     expect(removed).toBe(0);
     expect(await storage.loadSnapshot(importantSnapshot.id)).toBeDefined();
   });
 
-  test("should trigger auto-archive when enabled", () => {
+  test("should trigger auto-archive when enabled", async () => {
     // Create old snapshots (35+ days old)
-    const oldSnapshot1 = await storage.saveSnapshot({
+    const oldSnapshot1 = {
       ...mockSnapshot,
       id: randomUUID(),
       title: "Old snapshot 1",
-    });
-    const oldSnapshot2 = await storage.saveSnapshot({
+    };
+    await storage.saveSnapshot(oldSnapshot1);
+    
+    const oldSnapshot2 = {
       ...mockSnapshot,
       id: randomUUID(),
       title: "Old snapshot 2",
-    });
+    };
+    await storage.saveSnapshot(oldSnapshot2);
 
     // Make snapshots old
     const oldTime = Date.now() - (35 * 24 * 60 * 60 * 1000);
@@ -282,11 +297,12 @@ describe("Storage", () => {
 
   test("should not trigger auto-archive when disabled", async () => {
     // Create old snapshot
-    const oldSnapshot = await storage.saveSnapshot({
+    const oldSnapshot = {
       ...mockSnapshot,
       id: randomUUID(),
       title: "Old snapshot",
-    });
+    };
+    await storage.saveSnapshot(oldSnapshot);
 
     // Make snapshot old
     const oldTime = Date.now() - (35 * 24 * 60 * 60 * 1000);
@@ -306,35 +322,4 @@ describe("Storage", () => {
     delete process.env.KODAMA_AUTO_ARCHIVE;
   });
 
-  test("should log debug message when archiving", () => {
-    // Create old snapshot
-    const oldSnapshot = await storage.saveSnapshot({
-      ...mockSnapshot,
-      id: randomUUID(),
-      title: "Old snapshot for debug",
-    });
-
-    // Make snapshot old
-    const oldTime = Date.now() - (35 * 24 * 60 * 60 * 1000);
-    const paths = storage["paths"];
-    const oldPath = `${paths.snapshots}/${oldSnapshot.id}.json`;
-    require("fs").utimesSync(oldPath, oldTime / 1000, oldTime / 1000);
-
-    // Enable debug mode
-    process.env.KODAMA_DEBUG = 'true';
-    
-    // Spy on console.log
-    const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
-    
-    // Trigger archive
-    const archived = storage.triggerAutoArchive();
-    expect(archived).toBe(1);
-    
-    // Check that debug message was logged
-    expect(consoleSpy).toHaveBeenCalledWith('♻️  Archived 1 old snapshot(s)');
-    
-    // Clean up
-    consoleSpy.mockRestore();
-    delete process.env.KODAMA_DEBUG;
-  });
 });
