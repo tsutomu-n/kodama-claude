@@ -21,7 +21,7 @@ Solutions for common problems and errors.
 
 Always start with:
 ```bash
-kc doctor
+kc status
 ```
 
 This checks:
@@ -507,7 +507,7 @@ rm -rf /tmp/kodama-*
 | `Session expired` | Old Claude session | Start new with `kc go` |
 | `Storage directory not found` | First run or deleted | `mkdir -p ~/.local/share/kodama-claude` |
 | `Git not found` | Git not installed | `sudo apt install git` |
-| `No snapshots found` | Fresh install | Create first with `kc snap` |
+| `No snapshots found` | Fresh install | Create first with `kc save` |
 
 ## Recovery Procedures
 
@@ -534,7 +534,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     curl -fsSL https://github.com/tsutomu-n/kodama-claude/releases/latest/download/install.sh | bash
     
     # Verify
-    kc doctor
+    kc status
     
     echo "✅ Reset complete. Backup saved to ~/kodama-backup-*.tar.gz"
 fi
@@ -565,7 +565,7 @@ tar -xzf "$BACKUP_FILE" -C ~/
 chmod -R 755 ~/.local/share/kodama-claude
 
 # Verify
-kc doctor
+kc status
 
 echo "✅ Restored from $BACKUP_FILE"
 ```
@@ -593,7 +593,7 @@ echo "Available Claude sessions:"
 claude --list-sessions
 
 # 4. Create emergency snapshot
-cat << EOF | kc snap -t "Emergency recovery"
+cat << EOF | kc save -t "Emergency recovery" --stdin -y
 Recovered from system crash.
 Check git log for recent commits.
 Current branch: $(git branch --show-current)
@@ -714,10 +714,10 @@ export KODAMA_AUTO_ARCHIVE=true
 chmod 755 ~/.local/share/kodama-claude/snapshots/
 
 # Trigger archive manually by running any command
-kc doctor  # This will trigger the archive process
+kc status  # This will trigger the archive process
 ```
 
-**Note**: Archive runs automatically when you use `kc snap`, `kc go`, or `kc plan`.
+**Note**: Archive runs automatically when you use `kc save` or `kc go`.
 
 ## Getting More Help
 
@@ -735,7 +735,7 @@ When asking for help, include:
     echo "=== Claude CLI ==="
     claude --version
     echo "=== Doctor Output ==="
-    kc doctor
+    kc status
     echo "=== Storage ==="
     ls -la ~/.local/share/kodama-claude/
     echo "=== Recent Errors ==="

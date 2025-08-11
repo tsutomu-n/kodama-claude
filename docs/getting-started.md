@@ -323,7 +323,7 @@ Starting Claude CLI...
 When done, exit Claude (Ctrl+D), then:
 ```bash
 # Save a snapshot
-kc snap
+kc save
 ```
 
 It will ask you questions:
@@ -364,11 +364,11 @@ Run this test sequence:
 # 1. Check version
 kc --version
 
-# 2. Run doctor
-kc doctor
+# 2. Check status
+kc status
 
 # 3. Create a test snapshot
-echo "Test project" | kc snap -t "Test snapshot"
+echo "Test project" | kc save -t "Test snapshot" --stdin -y
 
 # 4. Load it
 kc go

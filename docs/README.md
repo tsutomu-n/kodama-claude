@@ -4,24 +4,18 @@ Welcome to the complete documentation for KODAMA Claude.
 
 ## 📚 Documentation Structure
 
-### For Beginners
-Start here if you are new to KODAMA Claude:
+### 🟢 Essential (Start Here)
+1. **[Getting Started](getting-started.md)** - Install KODAMA in 2 minutes
+2. **[3 Commands Guide](usage-guide.md)** - Master `go`, `save`, and `status`
+3. **[Daily Workflows](examples.md)** - Real-world examples
 
-1. **[Getting Started](getting-started.md)** - Install and set up KODAMA Claude
-2. **[Usage Guide](usage-guide.md)** - Learn all commands step by step
-3. **[Examples](examples.md)** - See real workflows with pictures
-
-### For Daily Users
-Quick references for your work:
-
-- **[API Reference](api-reference.md)** - All commands and options
-- **[Customization](customization.md)** - Change settings for your needs
+### 🟡 Configuration
 - **[Troubleshooting](troubleshooting.md)** - Fix common problems
+- **[Customization](customization.md)** - Adjust settings
 
-### For Advanced Users
-Deep technical information:
-
-- **[Internals](internals.md)** - How KODAMA Claude works inside
+### 🔴 Advanced
+- **[API Reference](api-reference.md)** - Complete command details
+- **[Internals](internals.md)** - How KODAMA works inside
 
 ## 🎯 Quick Navigation
 
@@ -94,7 +88,7 @@ Each section has a level:
 
 1. **Read the error message** - It often tells you what to do
 2. **Check [Troubleshooting](troubleshooting.md)** - Most problems are there
-3. **Run `kc doctor`** - It checks your setup
+3. **Run `kc status`** - It checks your setup
 4. **Search this documentation** - Use Ctrl+F to find keywords
 5. **Open an issue** - https://github.com/tsutomu-n/kodama-claude/issues
 
