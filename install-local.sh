@@ -24,7 +24,7 @@ if command -v kc &> /dev/null; then
     echo "✅ Installation successful!"
     kc --version
     echo ""
-    kc doctor
+    kc status
 else
     echo "⚠️ Installed but 'kc' not in PATH"
     echo "   Add to PATH: export PATH=~/.local/bin:\$PATH"
