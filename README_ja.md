@@ -127,20 +127,27 @@ kc uninstall --remove-all
 - `--dry-run` - 削除対象をプレビュー
 - `--force` - 確認プロンプトをスキップ
 
-### 簡易アンインストール後の完全削除
+### 手動アンインストール
 
-すでに`kc uninstall`を実行済みで、残ったデータも削除したい場合：
+KODAMAを手動で完全削除する場合：
 
 ```bash
-# 手動でデータディレクトリを削除
+# バイナリを削除
+sudo rm -f /usr/local/bin/kc
+
+# データディレクトリを削除
 rm -rf ~/.local/share/kodama-claude
 
 # 設定ディレクトリも削除（もしあれば）
 rm -rf ~/.config/kodama-claude
 ```
 
-または、uninstallスクリプトを再実行：
+または、uninstallスクリプトを使用：
 ```bash
+# データを保持してバイナリのみ削除
+curl -fsSL https://github.com/tsutomu-n/kodama-claude/releases/latest/download/uninstall.sh | bash
+
+# すべて削除
 curl -fsSL https://github.com/tsutomu-n/kodama-claude/releases/latest/download/uninstall.sh | bash -s -- --remove-all
 ```
 

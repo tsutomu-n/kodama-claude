@@ -110,10 +110,13 @@ With --remove-all:
 ### Manual Uninstall
 ```bash
 # Remove binary
-sudo rm /usr/local/bin/kc
+sudo rm -f /usr/local/bin/kc
 
-# Remove data (optional)
+# Remove data (optional)  
 rm -rf ~/.local/share/kodama-claude
+
+# Remove config (optional)
+rm -rf ~/.config/kodama-claude
 ```
 
 ## Usage
@@ -194,46 +197,22 @@ Auto-detects Japanese from system locale.
 
 ## Commands
 
+KODAMA Claude uses just **3 simple commands**:
+
 ### `kc go` - Start Claude Session
-
-```bash
-kc go [options]
-  -t, --title <title>    Session title
-  -s, --step <step>      Workflow step (designing/implementing/testing/done)
-  --no-send              Skip context injection (check only)
-```
-
-**Actions:**
-1. Health check with auto-protection
-2. Inject context with `claude -c -p`
-3. Open REPL with `claude --continue`
+Automatically loads your past context and starts Claude
 
 ### `kc save` - Save & Paste
+Saves your work as a snapshot and copies to clipboard
 
-```bash
-kc save [options]
-  -t, --title <title>    Snapshot title
-  -s, --step <step>      Workflow step
-  --stdin                Read from stdin
-  --file <path>          Read from file
-  -y, --yes              Skip prompts
-  --copy <mode>          auto|clipboard|osc52|file|none (default: auto)
-```
+### `kc status` - Health Status  
+Shows session health (🟢 healthy / 🟡 warning / 🔴 danger / ❓ unknown)
 
-**Interactive mode** (default):
-- Title, step, accomplishments, decisions, next steps
-- EOF: Unix/Mac = Ctrl+D, WSL = Ctrl+Z
-- Prompts to paste after saving
-
-### `kc status` - Health Status
-
-```bash
-kc status [options]
-  -j, --json             JSON output
-  -s, --strict           Exit 1 when dangerous (for CI/CD)
-```
-
-**Output:** `🟢 | basis: transcript | hint: no action needed`
+📚 **[Detailed Command Reference →](docs/command-details.md)**
+- All options and parameters
+- Copy modes explained (auto/clipboard/osc52/file/none)
+- Workflow steps usage
+- Practical examples
 
 ## Features
 

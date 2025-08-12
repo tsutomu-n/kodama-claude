@@ -357,6 +357,31 @@ kc go
 # - What to do next
 ```
 
+## Uninstalling KODAMA
+
+If you need to uninstall KODAMA Claude:
+
+### Method 1: Using Uninstall Command (Recommended)
+```bash
+# Keep your data (default)
+kc uninstall
+
+# Remove everything including data
+kc uninstall --remove-all
+```
+
+### Method 2: Manual Uninstall
+```bash
+# Remove binary
+sudo rm -f /usr/local/bin/kc
+
+# Remove data (optional)
+rm -rf ~/.local/share/kodama-claude
+
+# Remove config (optional)
+rm -rf ~/.config/kodama-claude
+```
+
 ## Verify Everything Works
 
 Run this test sequence:

@@ -8,7 +8,8 @@ Welcome to the complete documentation for KODAMA Claude.
 1. **[Getting Started](getting-started.md)** - Install KODAMA in 2 minutes
 2. **[3 Commands Guide](usage-guide.md)** - Master `go`, `save`, and `status`
 3. **[Daily Workflows](examples.md)** - Real-world examples
-4. **[コマンド詳細（日本語）](command-details-ja.md)** - Japanese command reference
+4. **[Command Details](command-details.md)** - Detailed command reference
+5. **[コマンド詳細（日本語）](command-details-ja.md)** - Japanese command reference
 
 ### 🟡 Configuration
 - **[Troubleshooting](troubleshooting.md)** - Fix common problems

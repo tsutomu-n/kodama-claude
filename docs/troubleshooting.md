@@ -528,8 +528,14 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     tar -czf ~/kodama-backup-$(date +%Y%m%d).tar.gz \
         ~/.local/share/kodama-claude/
     
+    # Remove binary
+    sudo rm -f /usr/local/bin/kc
+    
     # Remove all data
     rm -rf ~/.local/share/kodama-claude/
+    
+    # Remove config (if exists)
+    rm -rf ~/.config/kodama-claude/
     
     # Reinstall
     curl -fsSL https://github.com/tsutomu-n/kodama-claude/releases/latest/download/install.sh | bash
@@ -794,7 +800,12 @@ echo "Debug report saved to kodama-debug.txt"
 If completely stuck:
 
 1. Backup your snapshots
-2. Completely uninstall KODAMA
+2. Completely uninstall KODAMA:
+   ```bash
+   sudo rm -f /usr/local/bin/kc
+   rm -rf ~/.local/share/kodama-claude
+   rm -rf ~/.config/kodama-claude
+   ```
 3. Fresh install
 4. Restore snapshots from backup
 
