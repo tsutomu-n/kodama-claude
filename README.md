@@ -208,7 +208,7 @@ Saves your work as a snapshot and copies to clipboard
 ### `kc status` - Health Status  
 Shows session health (🟢 healthy / 🟡 warning / 🔴 danger / ❓ unknown)
 
-📚 **[Detailed Command Reference →](docs/command-details.md)**
+📚 **[Detailed Command Reference →](docs/en/command-details.md)**
 - All options and parameters
 - Copy modes explained (auto/clipboard/osc52/file/none)
 - Workflow steps usage

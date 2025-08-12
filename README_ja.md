@@ -103,7 +103,7 @@ $ kc go
 # 前回の作業内容が自動的にClaudeに伝わる！
 ```
 
-💡 **うまくいかない時**: [トラブルシューティング](docs/troubleshooting.md)を参照
+💡 **うまくいかない時**: [トラブルシューティング](docs/ja/troubleshooting.md)を参照
 
 ## アンインストール
 
@@ -208,7 +208,7 @@ KODAMA Claudeは**3つのコマンド**だけ：
 ### `kc status` - 健康状態確認
 セッションの状態を確認（🟢健康 / 🟡警告 / 🔴危険 / ❓不明）
 
-📚 **[コマンドの詳細な説明はこちら →](docs/command-details-ja.md)**
+📚 **[コマンドの詳細な説明はこちら →](docs/ja/command-details.md)**
 - 各オプションの意味と使い方
 - `--copy`モードの詳細（auto/clipboard/osc52/file/none）
 - ワークフローステップの使い分け
