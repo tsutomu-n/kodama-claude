@@ -230,14 +230,29 @@ describe("Configuration Management", () => {
     });
 
     test("should detect CI environment", () => {
+      // Save original values
+      const originalCI = process.env.CI;
+      const originalGHA = process.env.GITHUB_ACTIONS;
+      
+      // Clear CI environment variables
+      delete process.env.CI;
+      delete process.env.GITHUB_ACTIONS;
       expect(config.isCI).toBe(false);
       
+      // Test CI=true
       process.env.CI = 'true';
       expect(config.isCI).toBe(true);
       
+      // Test GITHUB_ACTIONS=true
       delete process.env.CI;
       process.env.GITHUB_ACTIONS = 'true';
       expect(config.isCI).toBe(true);
+      
+      // Restore original values
+      delete process.env.CI;
+      delete process.env.GITHUB_ACTIONS;
+      if (originalCI) process.env.CI = originalCI;
+      if (originalGHA) process.env.GITHUB_ACTIONS = originalGHA;
     });
   });
 
