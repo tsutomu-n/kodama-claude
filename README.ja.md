@@ -66,7 +66,7 @@ sudo mv kc-linux-x64 /usr/local/bin/kc
 ```bash
 # Kodamaのバージョン確認
 $ kc --version
-0.3.0
+Kodama for Claude Code 0.3.1
 
 # Claude Codeの確認
 $ claude --version

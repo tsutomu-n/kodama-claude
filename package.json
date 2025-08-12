@@ -1,6 +1,6 @@
 {
   "name": "@kodama/claude",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Kodama for Claude Code — Reliable session memory & smart restart for the Claude CLI",
   "main": "dist/index.js",
   "bin": {

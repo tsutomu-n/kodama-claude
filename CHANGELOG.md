@@ -5,6 +5,32 @@ All notable changes to KODAMA Claude will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.1] - 2025-08-12
+
+### Security
+- Fixed command injection vulnerabilities in git.ts, go.ts, and save.ts
+- Replaced all unsafe `execSync` with string interpolation to safe `spawnSync` with array arguments
+- Enhanced binary identification to prevent accidental deletion of other 'kc' tools
+- Added `is_kodama_binary()` function to verify Kodama binaries by version string
+- Improved PATH conflict detection and resolution in installers
+
+### Added
+- SECURITY.md with vulnerability reporting guidelines
+- Dependabot configuration for automated dependency updates
+- GitHub topics configuration guide (TOPICS.md)
+- Japanese translations for root documentation files
+
+### Changed
+- Rebranded to "Kodama for Claude Code" for clarity and searchability
+- Updated all version strings to include "Kodama for Claude Code" signature
+- Enhanced installer to detect and warn about PATH priority conflicts
+- Improved error messages with actionable solutions
+
+### Fixed
+- Security vulnerabilities where user input could be injected into shell commands
+- Installer detecting wrong version due to PATH priority issues
+- Uninstaller potentially affecting non-Kodama 'kc' commands
+
 ## [0.3.0] - 2025-08-12
 
 ### Added
