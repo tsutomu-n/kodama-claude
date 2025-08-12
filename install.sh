@@ -142,27 +142,89 @@ main() {
     # Check requirements
     check_requirements
     
-    # Check for existing installation
-    if command -v $BINARY_NAME &> /dev/null; then
-        local existing_version
-        existing_version=$($BINARY_NAME --version 2>/dev/null || echo "unknown")
+    # Function to check if a binary is Kodama
+    is_kodama_binary() {
+        local binary="$1"
         
-        if [ "${existing_version}" = "0.1.0" ]; then
-            echo -e "${YELLOW}⚠️  Old version 0.1.0 detected${NC}"
-            echo "  This version has known issues. Removing it..."
-            
-            # Try to remove old version
-            if [ -w "$INSTALL_DIR/$BINARY_NAME" ]; then
-                rm -f "$INSTALL_DIR/$BINARY_NAME"
-            else
-                echo "🔐 Administrator access required to remove old version"
-                sudo rm -f "$INSTALL_DIR/$BINARY_NAME"
+        # Check if binary exists and is executable
+        if [ ! -x "$binary" ]; then
+            return 1
+        fi
+        
+        # Check for Kodama in help output
+        if "$binary" --help 2>&1 | grep -qi "kodama.*claude"; then
+            return 0
+        fi
+        
+        # Check for Kodama-specific subcommands
+        if "$binary" go --help 2>&1 | grep -qi "claude.*context"; then
+            return 0
+        fi
+        
+        return 1
+    }
+    
+    # Check for existing installations in multiple locations
+    local found_binaries=()
+    local kodama_binaries=()
+    local other_kc_found=false
+    
+    # Check common installation locations
+    for check_path in "$HOME/.local/bin/$BINARY_NAME" "/usr/local/bin/$BINARY_NAME" "/usr/bin/$BINARY_NAME"; do
+        if [ -f "$check_path" ]; then
+            found_binaries+=("$check_path")
+        fi
+    done
+    
+    # Also check using which -a to find all instances
+    if command -v which &> /dev/null; then
+        while IFS= read -r binary_path; do
+            if [ -n "$binary_path" ] && [[ ! " ${found_binaries[@]} " =~ " ${binary_path} " ]]; then
+                found_binaries+=("$binary_path")
             fi
-            echo "  Old version removed. Continuing with installation..."
-            echo ""
-        elif [ "${existing_version}" != "unknown" ]; then
-            echo -e "${YELLOW}ℹ️  Existing version found: ${existing_version}${NC}"
-            echo "  Installing latest version..."
+        done < <(which -a $BINARY_NAME 2>/dev/null || true)
+    fi
+    
+    # Check each found binary
+    if [ ${#found_binaries[@]} -gt 0 ]; then
+        echo "📍 Found existing 'kc' installations:"
+        for binary_path in "${found_binaries[@]}"; do
+            local version="unknown"
+            local is_kodama=false
+            
+            if [ -x "$binary_path" ]; then
+                version=$("$binary_path" --version 2>/dev/null | head -1 || echo "unknown")
+                if is_kodama_binary "$binary_path"; then
+                    is_kodama=true
+                    kodama_binaries+=("$binary_path")
+                fi
+            fi
+            
+            if [ "$is_kodama" = true ]; then
+                echo "   $binary_path (Kodama: $version)"
+                
+                # Remove old Kodama versions
+                if [[ "$version" =~ (0\.1\.0|0\.2\.0) ]]; then
+                    echo -e "   ${YELLOW}→ Removing old Kodama version...${NC}"
+                    if [ -w "$binary_path" ]; then
+                        rm -f "$binary_path"
+                    elif command -v sudo &> /dev/null; then
+                        sudo rm -f "$binary_path"
+                    else
+                        echo -e "   ${RED}❌ Cannot remove $binary_path (no write permission)${NC}"
+                    fi
+                fi
+            else
+                echo -e "   ${YELLOW}$binary_path (OTHER TOOL - NOT KODAMA)${NC}"
+                other_kc_found=true
+            fi
+        done
+        echo ""
+        
+        if [ "$other_kc_found" = true ]; then
+            echo -e "${YELLOW}⚠️  Warning: Found other 'kc' command(s) that are NOT Kodama${NC}"
+            echo "  Kodama will be installed to $INSTALL_DIR/$BINARY_NAME"
+            echo "  You may need to adjust your PATH or use full path to run Kodama"
             echo ""
         fi
     fi
@@ -251,22 +313,48 @@ main() {
     echo "📂 Installing to $INSTALL_DIR/$BINARY_NAME..."
     $use_sudo mv "$temp_dir/$binary_name" "$INSTALL_DIR/$BINARY_NAME"
     
-    # Verify installation
+    # Verify installation and check for PATH issues
     if command -v $BINARY_NAME &> /dev/null; then
         local installed_version
+        local actual_path
+        actual_path=$(command -v $BINARY_NAME)
         installed_version=$($BINARY_NAME --version 2>/dev/null || echo "unknown")
+        
+        # Check if the correct version is being executed
+        if [ "$actual_path" != "$INSTALL_DIR/$BINARY_NAME" ]; then
+            echo -e "${YELLOW}⚠️  Warning: Wrong binary in PATH${NC}"
+            echo "  Executing: $actual_path (version: $installed_version)"
+            echo "  Installed: $INSTALL_DIR/$BINARY_NAME"
+            
+            # Try to get version of newly installed binary
+            local new_version="unknown"
+            if [ -x "$INSTALL_DIR/$BINARY_NAME" ]; then
+                new_version=$("$INSTALL_DIR/$BINARY_NAME" --version 2>/dev/null || echo "unknown")
+            fi
+            echo "  New version: $new_version"
+            echo ""
+            
+            # Suggest fix
+            if [ "$actual_path" = "$HOME/.local/bin/$BINARY_NAME" ]; then
+                echo "  To fix this issue:"
+                echo "    rm -f $HOME/.local/bin/$BINARY_NAME"
+                echo "    hash -r  # Clear command cache"
+                echo ""
+                echo "  Or use the new version directly:"
+                echo "    $INSTALL_DIR/$BINARY_NAME"
+            fi
+        fi
         
         # Warn if very old version is somehow still present
         if [ "${installed_version}" = "0.1.0" ] || [ "${installed_version}" = "0.2.0" ]; then
-            echo -e "${YELLOW}⚠️  Warning: Installation may have failed${NC}"
-            echo "  Detected version: ${installed_version}"
-            echo "  Expected: 0.3.0 or newer"
+            echo -e "${RED}❌ Installation completed but old version still in PATH${NC}"
+            echo "  Please remove the old version:"
+            echo "    rm -f $actual_path"
+            echo "    hash -r  # Clear command cache"
             echo ""
-            echo "  To fix, please run:"
-            echo "    sudo rm -f /usr/local/bin/kc"
-            echo "    wget https://github.com/tsutomu-n/kodama-claude/releases/download/v0.3.0/kc-linux-x64"
-            echo "    chmod +x kc-linux-x64"
-            echo "    sudo mv kc-linux-x64 /usr/local/bin/kc"
+            echo "  Then verify:"
+            echo "    which kc  # Should show: $INSTALL_DIR/$BINARY_NAME"
+            echo "    kc --version  # Should show: 0.3.0 or newer"
             exit 1
         fi
         

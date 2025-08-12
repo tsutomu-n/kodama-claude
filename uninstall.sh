@@ -12,10 +12,13 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-BINARY_PATH="/usr/local/bin/kc"
+BINARY_NAME="kc"
 DATA_DIR="$HOME/.local/share/kodama-claude"
 CONFIG_DIR="$HOME/.config/kodama-claude"
 BACKUP_DIR="$HOME/kodama-claude-backup-$(date +%Y%m%d-%H%M%S)"
+
+# Binary paths will be detected dynamically
+BINARY_PATHS=()
 
 # Default options
 KEEP_DATA=true
@@ -110,13 +113,65 @@ success() {
     fi
 }
 
+# Function to check if a binary is Kodama
+is_kodama_binary() {
+    local binary="$1"
+    
+    # Check if binary exists and is executable
+    if [ ! -x "$binary" ]; then
+        return 1
+    fi
+    
+    # Check for Kodama in help output
+    if "$binary" --help 2>&1 | grep -qi "kodama.*claude"; then
+        return 0
+    fi
+    
+    # Check for Kodama-specific subcommands
+    if "$binary" go --help 2>&1 | grep -qi "claude.*context"; then
+        return 0
+    fi
+    
+    return 1
+}
+
 # Check if KODAMA is installed
 check_installation() {
     local found=false
     
-    if [ -f "$BINARY_PATH" ]; then
-        found=true
-        log "${BLUE}Found binary:${NC} $BINARY_PATH"
+    # Find all kc binaries
+    local check_paths=(
+        "$HOME/.local/bin/$BINARY_NAME"
+        "/usr/local/bin/$BINARY_NAME"
+        "/usr/bin/$BINARY_NAME"
+    )
+    
+    # Check each path
+    for path in "${check_paths[@]}"; do
+        if [ -f "$path" ] && is_kodama_binary "$path"; then
+            BINARY_PATHS+=("$path")
+            found=true
+            local version
+            version=$("$path" --version 2>/dev/null | head -1 || echo "unknown")
+            log "${BLUE}Found Kodama binary:${NC} $path (version: $version)"
+        elif [ -f "$path" ]; then
+            log "${YELLOW}Found non-Kodama 'kc':${NC} $path (will NOT remove)"
+        fi
+    done
+    
+    # Also check using which
+    if command -v which &> /dev/null; then
+        while IFS= read -r binary_path; do
+            if [ -n "$binary_path" ] && [[ ! " ${BINARY_PATHS[@]} " =~ " ${binary_path} " ]]; then
+                if is_kodama_binary "$binary_path"; then
+                    BINARY_PATHS+=("$binary_path")
+                    found=true
+                    local version
+                    version=$("$binary_path" --version 2>/dev/null | head -1 || echo "unknown")
+                    log "${BLUE}Found Kodama binary:${NC} $binary_path (version: $version)"
+                fi
+            fi
+        done < <(which -a $BINARY_NAME 2>/dev/null || true)
     fi
     
     if [ -d "$DATA_DIR" ]; then
@@ -129,7 +184,7 @@ check_installation() {
     fi
     
     if [ "$found" = false ]; then
-        error "KODAMA Claude is not installed on this system"
+        error "Kodama for Claude Code is not installed on this system"
     fi
 }
 
@@ -138,12 +193,14 @@ calculate_removal() {
     log "\n${BLUE}📊 Removal Summary:${NC}"
     log "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     
-    # Binary
-    if [ -f "$BINARY_PATH" ]; then
-        local binary_size
-        binary_size=$(du -h "$BINARY_PATH" 2>/dev/null | cut -f1 || echo "unknown")
+    # Binaries
+    if [ ${#BINARY_PATHS[@]} -gt 0 ]; then
         log "${GREEN}Will remove:${NC}"
-        log "  • Binary: $BINARY_PATH ($binary_size)"
+        for binary_path in "${BINARY_PATHS[@]}"; do
+            local binary_size
+            binary_size=$(du -h "$binary_path" 2>/dev/null | cut -f1 || echo "unknown")
+            log "  • Binary: $binary_path ($binary_size)"
+        done
     fi
     
     # Data
@@ -216,39 +273,45 @@ confirm_removal() {
     fi
 }
 
-# Remove binary
-remove_binary() {
-    if [ -f "$BINARY_PATH" ]; then
+# Remove binaries
+remove_binaries() {
+    for binary_path in "${BINARY_PATHS[@]}"; do
         if [ "$DRY_RUN" = true ]; then
-            log "${BLUE}[DRY RUN]${NC} Would remove: $BINARY_PATH"
+            log "${BLUE}[DRY RUN]${NC} Would remove: $binary_path"
         else
+            # Double-check it's still Kodama (safety)
+            if ! is_kodama_binary "$binary_path"; then
+                warning "Skipping $binary_path - not a Kodama binary"
+                continue
+            fi
+            
             # Validate binary path
-            if [[ "$BINARY_PATH" != */kc ]]; then
-                error "Unexpected binary path: $BINARY_PATH"
-                return 1
+            if [[ "$binary_path" != */kc ]]; then
+                error "Unexpected binary path: $binary_path"
+                continue
             fi
             
             # Check if we need sudo
-            if [ -w "$BINARY_PATH" ] || [ -w "$(dirname "$BINARY_PATH")" ]; then
-                rm -f "$BINARY_PATH" || warning "Failed to remove binary"
+            if [ -w "$binary_path" ] || [ -w "$(dirname "$binary_path")" ]; then
+                rm -f "$binary_path" || warning "Failed to remove $binary_path"
             else
-                log "${YELLOW}Administrator access required${NC}"
+                log "${YELLOW}Administrator access required for $binary_path${NC}"
                 if command -v sudo &> /dev/null; then
-                    sudo rm -f "$BINARY_PATH" || warning "Failed to remove binary with sudo"
+                    sudo rm -f "$binary_path" || warning "Failed to remove $binary_path with sudo"
                 else
-                    error "Cannot remove binary without sudo access"
-                    return 1
+                    warning "Cannot remove $binary_path without sudo access"
+                    continue
                 fi
             fi
             
             # Verify removal
-            if [ ! -f "$BINARY_PATH" ]; then
-                success "Binary removed"
+            if [ ! -f "$binary_path" ]; then
+                success "Removed: $binary_path"
             else
-                warning "Binary may not have been removed completely"
+                warning "May not have removed: $binary_path"
             fi
         fi
-    fi
+    done
 }
 
 # Validate path safety
@@ -310,10 +373,12 @@ verify_removal() {
     if [ "$DRY_RUN" = false ]; then
         local all_removed=true
         
-        if [ -f "$BINARY_PATH" ]; then
-            warning "Binary still exists: $BINARY_PATH"
-            all_removed=false
-        fi
+        for binary_path in "${BINARY_PATHS[@]}"; do
+            if [ -f "$binary_path" ]; then
+                warning "Binary still exists: $binary_path"
+                all_removed=false
+            fi
+        done
         
         if [ "$KEEP_DATA" = false ] && [ -d "$DATA_DIR" ]; then
             warning "Data directory still exists: $DATA_DIR"
@@ -352,7 +417,7 @@ main() {
     
     # Perform removal
     log "\n${BLUE}🔧 Uninstalling...${NC}"
-    remove_binary
+    remove_binaries
     remove_data
     
     # Verify

@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 
 /**
- * KODAMA Claude - Minimal Claude Code extension
+ * Kodama for Claude Code - Unofficial extension for persistent context
  * 
  * Philosophy: "Less is more" - Only 3 commands for junior developers
  * go / save / status - That's all you need.
@@ -17,8 +17,8 @@ import { version } from "../package.json";
 
 program
   .name("kc")
-  .description("KODAMA Claude - Simple context management for Claude Code")
-  .version(version)
+  .description("Kodama for Claude Code - Unofficial extension for persistent context")
+  .version(`Kodama for Claude Code ${version}`)
   .option("-d, --debug", "Enable debug output");
 
 // Core 3 commands only

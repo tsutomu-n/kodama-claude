@@ -1,16 +1,16 @@
-# KODAMA Claude
+# Kodama for Claude Code
 
 [🇯🇵 日本語](README.ja.md) | [🌐 English](README.md)
 
-Minimal Claude Code extension for persistent dialogue memory.
+**Unofficial extension for Claude Code CLI** - Persistent context & smart restart for Claude Code.
 
-> **What is Claude Code?** Anthropic's official terminal AI assistant. Writes, debugs, and refactors code using natural language. Can resume conversations with `--continue` / `--resume`, but **lacks structured storage for decisions and next steps**. KODAMA solves this.
+> **What is Claude Code?** Anthropic's official terminal AI assistant. Writes, debugs, and refactors code using natural language. Can resume conversations with `--continue` / `--resume`, but **lacks structured storage for decisions and next steps**. Kodama solves this.
 
 ## Philosophy
 
-> "Less is more" - KODAMA only does what KODAMA can uniquely do for Claude Code.
+> "Less is more" - Kodama only does what Kodama can uniquely do for Claude Code.
 
-KODAMA stores **human decision logs** in structured format. When `/clear` erases conversation history or sessions switch, **work context remains intact**.
+Kodama stores **human decision logs** in structured format. When `/clear` erases conversation history or sessions switch, **work context remains intact**.
 
 ## Quick Start
 
@@ -44,7 +44,7 @@ sudo mv kc-linux-x64 /usr/local/bin/kc
 
 ## Uninstallation
 
-KODAMA Claude provides a safe, user-friendly uninstaller that preserves your data by default.
+Kodama for Claude Code provides a safe, user-friendly uninstaller that preserves your data by default.
 
 ### Quick Uninstall (keeps your snapshots)
 ```bash
@@ -146,21 +146,21 @@ Set language to Japanese:
 
 ```bash
 # Temporary
-export KODAMA_LANG=ja
+export Kodama_LANG=ja
 kc go
 
 # Permanent
 # Bash
-echo 'export KODAMA_LANG=ja' >> ~/.bashrc
+echo 'export Kodama_LANG=ja' >> ~/.bashrc
 source ~/.bashrc
 
 # Zsh
-echo 'export KODAMA_LANG=ja' >> ~/.zshrc
+echo 'export Kodama_LANG=ja' >> ~/.zshrc
 source ~/.zshrc
 
 # XDG compliant (systemd environments)
 mkdir -p ~/.config/environment.d
-echo 'KODAMA_LANG=ja' >> ~/.config/environment.d/kodama.conf
+echo 'Kodama_LANG=ja' >> ~/.config/environment.d/kodama.conf
 # Relogin to apply
 ```
 
@@ -168,7 +168,7 @@ Auto-detects Japanese from system locale.
 
 ## Commands
 
-KODAMA Claude uses just **3 simple commands**:
+Kodama for Claude Code uses just **3 simple commands**:
 
 ### `kc go` - Start Claude Session
 Automatically loads your past context and starts Claude
@@ -187,7 +187,7 @@ Shows session health (🟢 healthy / 🟡 warning / 🔴 danger / ❓ unknown)
 
 ## Features
 
-### What KODAMA Does
+### What Kodama Does
 
 ✅ **Session health tracking** - Monitor token usage and get warnings  
 ✅ **Auto-protection** - Automatic snapshots when context usage is critical  
@@ -200,7 +200,7 @@ Shows session health (🟢 healthy / 🟡 warning / 🔴 danger / ❓ unknown)
 ✅ **Auto-archive** - Automatically organizes snapshots older than 30 days  
 ✅ **CLAUDE.md sync** - Auto-syncs AI context (opt-in)  
 
-### What KODAMA Doesn't Do
+### What Kodama Doesn't Do
 
 ❌ No cloud sync (use Git)  
 ❌ No complex workflows (use existing tools)  
@@ -224,7 +224,7 @@ Shows session health (🟢 healthy / 🟡 warning / 🔴 danger / ❓ unknown)
   - Linux: `xdg-utils` (for opening files)
   - All: `notify-send` (for desktop notifications)
 
-> 💡 **Note**: KODAMA works without these packages. If unavailable, it falls back to:
+> 💡 **Note**: Kodama works without these packages. If unavailable, it falls back to:
 > - OSC52 terminal clipboard protocol
 > - Temporary files for context passing
 > - Console output instead of notifications
@@ -245,7 +245,7 @@ XDG Base Directory compliant:
 
 ### File Permissions
 
-KODAMA follows security best practices for file permissions:
+Kodama follows security best practices for file permissions:
 
 | Path | Permission | Description |
 |------|------------|-------------|
@@ -266,13 +266,13 @@ KODAMA follows security best practices for file permissions:
 
 ```bash
 # Smart context management controls
-export KODAMA_NO_LIMIT=true        # Show all decisions (default: 5 only)
-export KODAMA_AUTO_ARCHIVE=false   # Disable auto-archive
-export KODAMA_ARCHIVE_DAYS=14      # Archive after 14 days (default: 30)
-export KODAMA_MAX_DECISIONS=10     # Keep 10 decisions (default: 5)
-export KODAMA_CLAUDE_SYNC=true     # Enable CLAUDE.md auto-update
-export KODAMA_DEBUG=true           # Show debug information
-export KODAMA_LANG=ja              # Japanese error messages
+export Kodama_NO_LIMIT=true        # Show all decisions (default: 5 only)
+export Kodama_AUTO_ARCHIVE=false   # Disable auto-archive
+export Kodama_ARCHIVE_DAYS=14      # Archive after 14 days (default: 30)
+export Kodama_MAX_DECISIONS=10     # Keep 10 decisions (default: 5)
+export Kodama_CLAUDE_SYNC=true     # Enable CLAUDE.md auto-update
+export Kodama_DEBUG=true           # Show debug information
+export Kodama_LANG=ja              # Japanese error messages
 ```
 
 ### Snapshot Format
@@ -341,7 +341,7 @@ A: Claude doesn't reliably expose this. We use heuristic-based 4-value status (�
 **Q: Why use snapshots instead of Git?**  
 A: Git and snapshots are complementary:
 
-| Aspect | Git | KODAMA Snapshots |
+| Aspect | Git | Kodama Snapshots |
 |--------|-----|------------------|
 | Purpose | Track code changes | Save work context |
 | Content | File diffs | Decisions, thoughts, next steps |
@@ -352,7 +352,7 @@ A: Git and snapshots are complementary:
 A: Single binary distribution, faster startup, better DX.
 
 **Q: Why not integrate with VS Code?**  
-A: KODAMA is editor-agnostic. Use it with any editor.
+A: Kodama is editor-agnostic. Use it with any editor.
 
 **Q: Can I sync snapshots across machines?**  
 A: Put `~/.local/share/kodama-claude` in a Git repo or use symlinks.
@@ -367,4 +367,4 @@ For developers who value simplicity over features.
 
 ---
 
-**Remember**: The best tool is the one you actually use. KODAMA aims to be that tool.
+**Remember**: The best tool is the one you actually use. Kodama aims to be that tool.

@@ -1,7 +1,7 @@
 {
   "name": "@kodama/claude",
   "version": "0.3.0",
-  "description": "Minimal Claude Code extension for persistent dialogue memory",
+  "description": "Kodama for Claude Code - Unofficial extension for persistent context and smart restart",
   "main": "dist/index.js",
   "bin": {
     "kc": "./bin/kc.ts"
@@ -20,15 +20,16 @@
     "format:check": "prettier --check ."
   },
   "keywords": [
+    "claude-code",
     "claude",
-    "cli",
-    "memory",
-    "dialogue",
     "kodama",
-    "ai",
-    "assistant",
     "context",
-    "persistence"
+    "memory",
+    "persistence",
+    "session",
+    "cli",
+    "extension",
+    "unofficial"
   ],
   "author": "kodama-cli",
   "license": "MIT",

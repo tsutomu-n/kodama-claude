@@ -1,10 +1,10 @@
-# KODAMA Claude
+# Kodama for Claude Code
 
 [🇯🇵 日本語](README.ja.md) | [🌐 English](README.md)
 
-Claude Code のための永続対話メモリ拡張ツール
+**Claude Code CLIの非公式拡張** - Claude Codeのための永続的コンテキストとスマート再開
 
-> **Claude Code とは**: Anthropic の公式ターミナルAIアシスタント。自然言語でコードを書き、デバッグし、リファクタリングする。`--continue` / `--resume` で会話を再開できるが、**意思決定や次のステップを構造化して保持する仕組みではない**。KODAMA がこの問題を解決。
+> **Claude Code とは**: Anthropic の公式ターミナルAIアシスタント。自然言語でコードを書き、デバッグし、リファクタリングする。`--continue` / `--resume` で会話を再開できるが、**意思決定や次のステップを構造化して保持する仕組みではない**。Kodama がこの問題を解決。
 
 ## 始める前に
 
@@ -25,9 +25,9 @@ Claude Code のための永続対話メモリ拡張ツール
 
 ## 理念
 
-> 「Less is more」 ― KODAMA は、Claude Code に対して必要なことだけをやる。
+> 「Less is more」 ― Kodama は、Claude Code に対して必要なことだけをやる。
 
-KODAMA Claude は **人間の意思決定ログ** を外部に構造化して保存する軽量ツール。`/clear` で会話履歴が消えても、セッションを切り替えても、**作業文脈を損なわない**設計。
+Kodama Claude は **人間の意思決定ログ** を外部に構造化して保存する軽量ツール。`/clear` で会話履歴が消えても、セッションを切り替えても、**作業文脈を損なわない**設計。
 
 ## クイックスタート
 
@@ -64,7 +64,7 @@ sudo mv kc-linux-x64 /usr/local/bin/kc
 ### 1. 動作確認
 
 ```bash
-# KODAMAのバージョン確認
+# Kodamaのバージョン確認
 $ kc --version
 0.3.0
 
@@ -72,7 +72,7 @@ $ kc --version
 $ claude --version
 Claude Code version 1.0.x
 
-# KODAMAの状態確認
+# Kodamaの状態確認
 $ kc status
 ❓ | basis: no_session | hint: 初回起動時は正常
 ```
@@ -109,7 +109,7 @@ $ kc go
 
 ## アンインストール
 
-KODAMA Claudeは安全でユーザーフレンドリーなアンインストーラーを提供します（デフォルトでデータを保持）。
+Kodama Claudeは安全でユーザーフレンドリーなアンインストーラーを提供します（デフォルトでデータを保持）。
 
 ### クイックアンインストール（スナップショットを保持）
 ```bash
@@ -131,7 +131,7 @@ kc uninstall --remove-all
 
 ### 手動アンインストール
 
-KODAMAを手動で完全削除する場合：
+Kodamaを手動で完全削除する場合：
 
 ```bash
 # バイナリを削除
@@ -177,21 +177,21 @@ kc uninstall # 安全な削除（デフォルトでデータ保持）
 
 ```bash
 # 一時的に日本語化
-export KODAMA_LANG=ja
+export Kodama_LANG=ja
 kc go
 
 # 永続的に日本語化
 # Bash
-echo 'export KODAMA_LANG=ja' >> ~/.bashrc
+echo 'export Kodama_LANG=ja' >> ~/.bashrc
 source ~/.bashrc
 
 # Zsh
-echo 'export KODAMA_LANG=ja' >> ~/.zshrc
+echo 'export Kodama_LANG=ja' >> ~/.zshrc
 source ~/.zshrc
 
 # XDG 準拠（systemd 環境）
 mkdir -p ~/.config/environment.d
-echo 'KODAMA_LANG=ja' >> ~/.config/environment.d/kodama.conf
+echo 'Kodama_LANG=ja' >> ~/.config/environment.d/kodama.conf
 # 再ログインで有効化
 ```
 
@@ -199,7 +199,7 @@ echo 'KODAMA_LANG=ja' >> ~/.config/environment.d/kodama.conf
 
 ## コマンド概要
 
-KODAMA Claudeは**3つのコマンド**だけ：
+Kodama Claudeは**3つのコマンド**だけ：
 
 ### `kc go` - Claudeセッションを開始
 過去の文脈を自動で引き継いでClaudeを起動
@@ -280,7 +280,7 @@ Claude が文脈を理解し、Git がコード変更を追跡。
 
 ## 機能
 
-### KODAMA ができること
+### Kodama ができること
 
 ✅ **セッション健康追跡** ― トークン使用量の監視と警告  
 ✅ **自動保護** ― コンテキスト危険時の自動スナップショット  
@@ -293,7 +293,7 @@ Claude が文脈を理解し、Git がコード変更を追跡。
 ✅ **自動アーカイブ** ― 30日超のスナップショットを整理  
 ✅ **CLAUDE.md 連携** ― AI コンテキストを自動同期（オプトイン）  
 
-### KODAMA がやらないこと
+### Kodama がやらないこと
 
 ❌ クラウド同期（同期は Git を使う）  
 ❌ 複雑なワークフロー（既存ツールを使う）  
@@ -317,7 +317,7 @@ Claude が文脈を理解し、Git がコード変更を追跡。
   - Linux: `xdg-utils`（ファイルを開く）
   - 全OS: `notify-send`（デスクトップ通知）
 
-> 💡 **注**: KODAMA はこれらのパッケージなしでも動作します。利用できない場合は以下にフォールバック:
+> 💡 **注**: Kodama はこれらのパッケージなしでも動作します。利用できない場合は以下にフォールバック:
 > - OSC52 ターミナルクリップボードプロトコル
 > - コンテキスト渡し用の一時ファイル
 > - 通知の代わりにコンソール出力
@@ -338,7 +338,7 @@ XDG Base Directory 準拠。
 
 ### ファイルパーミッション
 
-KODAMA はセキュリティベストプラクティスに従ったパーミッション設定：
+Kodama はセキュリティベストプラクティスに従ったパーミッション設定：
 
 | パス | パーミッション | 説明 |
 |------|------------|------|
@@ -359,13 +359,13 @@ KODAMA はセキュリティベストプラクティスに従ったパーミッ�
 
 ```bash
 # スマートコンテキスト管理
-export KODAMA_NO_LIMIT=true        # すべての決定事項を表示（デフォルト: 5件のみ）
-export KODAMA_AUTO_ARCHIVE=false   # 自動アーカイブを無効化
-export KODAMA_ARCHIVE_DAYS=14      # 14日後にアーカイブ（デフォルト: 30）
-export KODAMA_MAX_DECISIONS=10     # 10件の決定事項を保持（デフォルト: 5）
-export KODAMA_CLAUDE_SYNC=true     # CLAUDE.md 自動更新を有効化
-export KODAMA_DEBUG=true           # デバッグ出力を有効化
-export KODAMA_LANG=ja              # 日本語エラーメッセージ
+export Kodama_NO_LIMIT=true        # すべての決定事項を表示（デフォルト: 5件のみ）
+export Kodama_AUTO_ARCHIVE=false   # 自動アーカイブを無効化
+export Kodama_ARCHIVE_DAYS=14      # 14日後にアーカイブ（デフォルト: 30）
+export Kodama_MAX_DECISIONS=10     # 10件の決定事項を保持（デフォルト: 5）
+export Kodama_CLAUDE_SYNC=true     # CLAUDE.md 自動更新を有効化
+export Kodama_DEBUG=true           # デバッグ出力を有効化
+export Kodama_LANG=ja              # 日本語エラーメッセージ
 ```
 
 ### スナップショット形式
@@ -422,7 +422,7 @@ export KODAMA_LANG=ja              # 日本語エラーメッセージ
 
 ```bash
 # デバッグ出力を有効化
-KODAMA_DEBUG=1 kc go
+Kodama_DEBUG=1 kc go
 ```
 
 ## ソースからビルド
@@ -473,7 +473,7 @@ A: Claude Codeはこれを確実に公開していない。代わりにヒュー
 **Q: なぜ Git ではなくスナップショットを使うのか？**  
 A: Git とスナップショットは補完関係：
 
-| 項目 | Git | KODAMA スナップショット |
+| 項目 | Git | Kodama スナップショット |
 |------|-----|----------------------|
 | 目的 | コード変更の履歴管理 | 作業コンテキストの保存 |
 | 保存内容 | ファイルの差分 | 決定事項、思考過程、次のステップ |
@@ -507,4 +507,4 @@ MIT
 
 ---
 
-**覚えておく**: 最高のツールは「実際に使われる」ツール。KODAMA Claude はそれを目指す。
+**覚えておく**: 最高のツールは「実際に使われる」ツール。Kodama Claude はそれを目指す。
