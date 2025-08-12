@@ -95,6 +95,61 @@ bun test guardian.test.ts
 bun test --coverage
 ```
 
+## Translation Guidelines
+
+### Current Languages
+- **English** (`en`) - Primary language
+- **Japanese** (`ja`) - 日本語
+
+### File Structure
+```
+docs/
+├── en/           # English documentation
+│   └── *.md
+└── ja/           # Japanese documentation
+    └── *.md
+
+README.md         # English (default)
+README.ja.md      # Japanese
+```
+
+### How to Contribute Translations
+
+1. **For new translations:**
+   - Copy the English file to the target language folder
+   - Translate the content
+   - Keep the same file name and structure
+   - Update internal links to use relative paths
+
+2. **For updating translations:**
+   - Check `.github/translation-status.yml` for outdated translations
+   - Compare with the English version
+   - Update the translation
+   - Mark status as `translated` in the status file
+
+3. **Translation conventions:**
+   - Keep code blocks and examples in English
+   - Translate comments within code blocks
+   - Keep command names (`kc go`, `kc save`) unchanged
+   - Use native number formats and date formats
+
+### Translation Status
+
+Check `.github/translation-status.yml` to see which files need translation or updates.
+
+Status values:
+- `translated` - Fully translated and up-to-date
+- `placeholder` - Auto-generated placeholder, needs translation
+- `outdated` - Translation exists but English version has changed
+
+### Adding a New Language
+
+1. Create a new folder under `docs/` with the language code
+2. Add README file with language selector at top
+3. Update all existing READMEs with the new language option
+4. Add language to `package.json` configuration
+5. Update `src/i18n.ts` if adding UI translations
+
 ## Questions?
 
 Open an issue for discussion before making large changes.

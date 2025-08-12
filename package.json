@@ -49,5 +49,15 @@
   },
   "engines": {
     "bun": ">=1.0.0"
+  },
+  "kodama": {
+    "i18n": {
+      "defaultLanguage": "en",
+      "supportedLanguages": ["en", "ja"],
+      "documentation": {
+        "en": "docs/en",
+        "ja": "docs/ja"
+      }
+    }
   }
 }

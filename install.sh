@@ -281,13 +281,25 @@ main() {
             echo "  Run 'kc status' for details"
         fi
         
+        # Detect language for documentation
+        local doc_lang="en"
+        if [[ "${LANG:-}" == ja* ]] || [[ "${LANGUAGE:-}" == ja* ]]; then
+            doc_lang="ja"
+        fi
+        
         echo ""
         echo "🚀 Quick start (only 3 commands!):"
         echo "   kc go      - Start Claude with context"
         echo "   kc save    - Save snapshot & paste"
         echo "   kc status  - Check health (🟢/🟡/🔴/❓)"
         echo ""
-        echo "📚 Documentation: https://github.com/${REPO}"
+        if [ "$doc_lang" = "ja" ]; then
+            echo "📚 ドキュメント: https://github.com/${REPO}/blob/main/README.ja.md"
+            echo "   詳細: https://github.com/${REPO}/tree/main/docs/ja"
+        else
+            echo "📚 Documentation: https://github.com/${REPO}"
+            echo "   Details: https://github.com/${REPO}/tree/main/docs/en"
+        fi
         echo "🗑️  Uninstall: kc uninstall"
     else
         echo -e "${RED}❌ Installation may have succeeded but 'kc' is not in PATH${NC}" >&2

@@ -1,0 +1,98 @@
+name: Check Translations
+
+on:
+  pull_request:
+    paths:
+      - 'docs/**'
+      - 'README*.md'
+      - '.github/translation-status.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/**'
+      - 'README*.md'
+
+jobs:
+  check-structure:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Check documentation structure
+        run: |
+          # Check that English and Japanese folders exist
+          if [ ! -d "docs/en" ]; then
+            echo "❌ Missing docs/en folder"
+            exit 1
+          fi
+          
+          if [ ! -d "docs/ja" ]; then
+            echo "❌ Missing docs/ja folder"
+            exit 1
+          fi
+          
+          # Check that files exist in both languages
+          for file in docs/en/*.md; do
+            basename_file=$(basename "$file")
+            if [ ! -f "docs/ja/$basename_file" ]; then
+              echo "⚠️ Missing Japanese translation: docs/ja/$basename_file"
+            fi
+          done
+          
+          echo "✅ Documentation structure check passed"
+      
+      - name: Check README files
+        run: |
+          # Check main README files exist
+          if [ ! -f "README.md" ]; then
+            echo "❌ Missing README.md"
+            exit 1
+          fi
+          
+          if [ ! -f "README.ja.md" ]; then
+            echo "❌ Missing README.ja.md"
+            exit 1
+          fi
+          
+          echo "✅ README files check passed"
+      
+      - name: Validate translation status
+        run: |
+          # Check translation status file exists
+          if [ ! -f ".github/translation-status.yml" ]; then
+            echo "❌ Missing .github/translation-status.yml"
+            exit 1
+          fi
+          
+          echo "✅ Translation status file exists"
+      
+      - name: Check for broken links
+        run: |
+          # Simple check for broken internal links
+          echo "Checking for broken internal links..."
+          
+          # Check English docs
+          for file in docs/en/*.md README.md; do
+            if [ -f "$file" ]; then
+              # Look for markdown links
+              grep -oE '\[([^\]]+)\]\(([^)]+)\)' "$file" | grep -oE '\(([^)]+)\)' | tr -d '()' | while read -r link; do
+                # Skip external links and anchors
+                if [[ "$link" != http* ]] && [[ "$link" != "#"* ]]; then
+                  # Resolve relative path
+                  dir=$(dirname "$file")
+                  target="$dir/$link"
+                  target=$(realpath --relative-to=. "$target" 2>/dev/null || echo "$target")
+                  
+                  # Remove anchor if present
+                  target="${target%%#*}"
+                  
+                  if [ ! -f "$target" ] && [ ! -d "$target" ]; then
+                    echo "⚠️ Broken link in $file: $link"
+                  fi
+                fi
+              done
+            fi
+          done
+          
+          echo "✅ Link check completed"

@@ -1,6 +1,6 @@
 # KODAMA Claude
 
-**日本語** | [English](README.md)
+[🇯🇵 日本語](README.ja.md) | [🌐 English](README.md)
 
 Claude Code CLI のための永続対話メモリ拡張ツール
 
