@@ -501,6 +501,7 @@ rm -rf /tmp/kodama-*
 | `kc: command not found` | Not installed or not in PATH | Add to PATH or reinstall |
 | `Permission denied` | No execute permission | `chmod +x /usr/local/bin/kc` |
 | `Claude CLI not found` | Claude not installed | Install Claude CLI |
+| `unknown option '--system'` | Old v0.1.0 version | See [v0.1.0 upgrade](#upgrade-from-v010) |
 | `Missing API key` | ANTHROPIC_API_KEY not set | Set environment variable |
 | `Invalid JSON` | Corrupted snapshot | Use previous snapshot |
 | `Cannot acquire lock` | Another process running | Remove `.lock` file |
@@ -718,6 +719,43 @@ kc status  # This will trigger the archive process
 ```
 
 **Note**: Archive runs automatically when you use `kc save` or `kc go`.
+
+## Upgrade from v0.1.0
+
+### Problem: Error `unknown option '--system'`
+
+This error indicates you have the old v0.1.0 version installed. Version 0.1.0 used a non-existent `--system` flag.
+
+**Solution 1: Automatic (Recommended)**
+```bash
+# The installer now automatically detects and removes v0.1.0
+curl -fsSL https://github.com/tsutomu-n/kodama-claude/releases/latest/download/install.sh | bash
+```
+
+**Solution 2: Manual**
+```bash
+# 1. Remove old version
+sudo rm -f /usr/local/bin/kc
+
+# 2. Download correct version
+wget https://github.com/tsutomu-n/kodama-claude/releases/download/v0.3.0/kc-linux-x64
+
+# 3. Install
+chmod +x kc-linux-x64
+sudo mv kc-linux-x64 /usr/local/bin/kc
+
+# 4. Verify
+kc --version  # Should show 0.3.0
+```
+
+### Why This Happened
+
+- v0.1.0 used `claude --system` which doesn't exist
+- v0.3.0 fixed this with two-stage execution:
+  1. `claude -c -p` for context injection
+  2. `claude --continue` for REPL
+
+The installer now checks for old versions and removes them automatically.
 
 ## Getting More Help
 

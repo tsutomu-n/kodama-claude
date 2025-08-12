@@ -21,6 +21,7 @@ curl -fsSL https://github.com/tsutomu-n/kodama-claude/releases/latest/download/i
 ```
 
 **What it does:**
+- Automatically detects and removes old versions (v0.1.0, v0.2.0)
 - Downloads correct binary for your architecture
 - Verifies SHA256 checksum
 - Installs to `/usr/local/bin/kc`
@@ -67,6 +68,8 @@ kc --version  # Should show 0.3.0
 
 ### Known Issue with v0.1.0
 If you see error `unknown option '--system'`, you have v0.1.0. Please upgrade.
+
+**Note**: The installer now automatically detects and removes v0.1.0 if present.
 
 ## Uninstallation
 

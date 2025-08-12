@@ -37,6 +37,13 @@ KODAMA Claude は **人間の意思決定ログ** を外部に構造化して保
 curl -fsSL https://github.com/tsutomu-n/kodama-claude/releases/latest/download/install.sh | bash
 ```
 
+⚠️ **v0.1.0からのアップグレード**: 既にv0.1.0がインストールされている場合は、先に削除してください：
+```bash
+# 古いバージョンを完全削除してから再インストール
+sudo rm -f /usr/local/bin/kc
+curl -fsSL https://github.com/tsutomu-n/kodama-claude/releases/latest/download/install.sh | bash
+```
+
 ### 手動インストール
 
 1. 使用アーキテクチャに合うバイナリをダウンロード
@@ -377,7 +384,7 @@ export KODAMA_LANG=ja              # 日本語エラーメッセージ
 | `Claude Code CLI が見つかりません` | [Claude Code CLI をインストール](https://docs.anthropic.com/en/docs/claude-code/setup) |
 | `認証が必要` | `claude` で OAuth 認証（ブラウザが開きます） |
 | スナップショット保存に失敗 | `chmod 755 ~/.local/share/kodama-claude` |
-| `unknown option '--system'` | 古いv0.1.0がインストールされている → 再インストール |
+| `unknown option '--system'` | 古いv0.1.0がインストールされている → [再インストール手順](#v010からのアップグレード) |
 
 ### エラーが出たら
 

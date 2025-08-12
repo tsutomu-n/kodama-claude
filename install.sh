@@ -142,6 +142,31 @@ main() {
     # Check requirements
     check_requirements
     
+    # Check for existing installation
+    if command -v $BINARY_NAME &> /dev/null; then
+        local existing_version
+        existing_version=$($BINARY_NAME --version 2>/dev/null || echo "unknown")
+        
+        if [ "${existing_version}" = "0.1.0" ]; then
+            echo -e "${YELLOW}⚠️  Old version 0.1.0 detected${NC}"
+            echo "  This version has known issues. Removing it..."
+            
+            # Try to remove old version
+            if [ -w "$INSTALL_DIR/$BINARY_NAME" ]; then
+                rm -f "$INSTALL_DIR/$BINARY_NAME"
+            else
+                echo "🔐 Administrator access required to remove old version"
+                sudo rm -f "$INSTALL_DIR/$BINARY_NAME"
+            fi
+            echo "  Old version removed. Continuing with installation..."
+            echo ""
+        elif [ "${existing_version}" != "unknown" ]; then
+            echo -e "${YELLOW}ℹ️  Existing version found: ${existing_version}${NC}"
+            echo "  Installing latest version..."
+            echo ""
+        fi
+    fi
+    
     # Detect system
     local os=$(detect_os)
     local arch=$(detect_arch)
@@ -230,6 +255,21 @@ main() {
     if command -v $BINARY_NAME &> /dev/null; then
         local installed_version
         installed_version=$($BINARY_NAME --version 2>/dev/null || echo "unknown")
+        
+        # Warn if very old version is somehow still present
+        if [ "${installed_version}" = "0.1.0" ] || [ "${installed_version}" = "0.2.0" ]; then
+            echo -e "${YELLOW}⚠️  Warning: Installation may have failed${NC}"
+            echo "  Detected version: ${installed_version}"
+            echo "  Expected: 0.3.0 or newer"
+            echo ""
+            echo "  To fix, please run:"
+            echo "    sudo rm -f /usr/local/bin/kc"
+            echo "    wget https://github.com/tsutomu-n/kodama-claude/releases/download/v0.3.0/kc-linux-x64"
+            echo "    chmod +x kc-linux-x64"
+            echo "    sudo mv kc-linux-x64 /usr/local/bin/kc"
+            exit 1
+        fi
+        
         echo -e "${GREEN}✅ KODAMA Claude installed successfully!${NC}"
         echo "   Version: ${installed_version}"
         echo ""
