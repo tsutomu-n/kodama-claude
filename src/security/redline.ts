@@ -104,12 +104,17 @@ export function redactSensitiveData(text: string): { text: string; redactionCoun
     return "password <REDACTED>";
   });
   
-  // Then redact long random strings that might be tokens
-  const tokenPattern = /\b[a-zA-Z0-9]{20,}\b/g;
+  // Then redact long random strings that might be tokens (with upper limit to prevent ReDoS)
+  const tokenPattern = /\b[a-zA-Z0-9]{20,100}\b/g;
   const tokenMatches = redactedText.match(tokenPattern);
   if (tokenMatches) {
-    redactionCount += tokenMatches.length;
-    redactedText = redactedText.replace(tokenPattern, "<REDACTED>");
+    // Additional check: only redact if it looks like a token (has mixed case or underscore)
+    tokenMatches.forEach(match => {
+      if (/[A-Z]/.test(match) || /_/.test(match) || /[a-z].*[0-9]/.test(match)) {
+        redactionCount++;
+        redactedText = redactedText.replace(match, "<REDACTED>");
+      }
+    });
   }
   
   return { text: redactedText, redactionCount };

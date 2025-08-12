@@ -2,7 +2,7 @@
  * Storage module - Atomic file operations with proper locking
  */
 
-import { existsSync, mkdirSync, renameSync, openSync, fsyncSync, closeSync, readdirSync, statSync, readFileSync } from "fs";
+import { existsSync, mkdirSync, renameSync, openSync, fsyncSync, closeSync, readdirSync, statSync, readFileSync, unlinkSync } from "fs";
 import { join, dirname } from "path";
 import { randomUUID } from "crypto";
 import { file, write } from "bun";
@@ -113,15 +113,15 @@ export class Storage {
       // Rollback: remove tmp file if it exists
       if (tmpPath && existsSync(tmpPath)) {
         try {
-          const fs = await import("fs");
-          fs.unlinkSync(tmpPath);
+          unlinkSync(tmpPath);
         } catch {
           // Best effort cleanup
         }
       }
       
-      // Re-throw with context
-      throw new Error(`Atomic write failed for ${path}: ${error}`);
+      // Re-throw with sanitized error (prevent info leakage)
+      const sanitizedPath = config.debug ? path : path.replace(/^.*\//, '*/');
+      throw new Error(`Atomic write failed for ${sanitizedPath}: ${config.debug ? error : 'See logs for details'}`);
     } finally {
       // Always release lock
       lock.release();

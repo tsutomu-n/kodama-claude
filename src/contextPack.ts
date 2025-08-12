@@ -8,7 +8,7 @@ import { config } from "./config";
 import type { Snapshot } from "./types";
 
 /**
- * Context Pack configuration
+ * Context Pack configuration with validation
  */
 export interface PackConfig {
   maxDecisions: number;        // Default: 5
@@ -29,6 +29,43 @@ const DEFAULT_CONFIG: PackConfig = {
   includeTimestamp: true,
   templateVersion: "A",
 };
+
+/**
+ * Validate and sanitize PackConfig values
+ */
+function validatePackConfig(config: Partial<PackConfig>): PackConfig {
+  const validated: PackConfig = { ...DEFAULT_CONFIG };
+  
+  if (config.maxDecisions !== undefined) {
+    validated.maxDecisions = Math.max(1, Math.min(20, Math.floor(config.maxDecisions)));
+  }
+  
+  if (config.maxNextSteps !== undefined) {
+    validated.maxNextSteps = Math.max(1, Math.min(20, Math.floor(config.maxNextSteps)));
+  }
+  
+  if (config.maxLineLength !== undefined) {
+    validated.maxLineLength = Math.max(50, Math.min(500, Math.floor(config.maxLineLength)));
+  }
+  
+  if (config.maxContextLength !== undefined) {
+    validated.maxContextLength = Math.max(100, Math.min(10000, Math.floor(config.maxContextLength)));
+  }
+  
+  if (config.includeGitInfo !== undefined) {
+    validated.includeGitInfo = Boolean(config.includeGitInfo);
+  }
+  
+  if (config.includeTimestamp !== undefined) {
+    validated.includeTimestamp = Boolean(config.includeTimestamp);
+  }
+  
+  if (config.templateVersion === "A" || config.templateVersion === "B") {
+    validated.templateVersion = config.templateVersion;
+  }
+  
+  return validated;
+}
 
 /**
  * Template A: Standard format with clear headers
@@ -82,7 +119,7 @@ export class ContextPack {
   private template: string;
   
   constructor(config?: Partial<PackConfig>) {
-    this.config = { ...DEFAULT_CONFIG, ...config };
+    this.config = validatePackConfig(config || {});
     this.template = this.config.templateVersion === "A" ? TEMPLATE_A : TEMPLATE_B;
   }
   

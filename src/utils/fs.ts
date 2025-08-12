@@ -44,7 +44,7 @@ export function getExistingParent(path: string): string | null {
 }
 
 /**
- * Clean up old tmp files (rollback mechanism)
+ * Clean up old tmp files and stale locks (rollback mechanism)
  * Called on startup to recover from crashes
  */
 export function cleanupTmpFiles(directory: string, maxAgeMs: number = 24 * 60 * 60 * 1000): number {
@@ -59,9 +59,10 @@ export function cleanupTmpFiles(directory: string, maxAgeMs: number = 24 * 60 * 
     const files = readdirSync(directory);
     
     for (const file of files) {
-      // Only clean tmp files with our UUID pattern
+      const filePath = join(directory, file);
+      
+      // Clean tmp files with our UUID pattern
       if (file.includes(".tmp.") && file.length > 40) {
-        const filePath = join(directory, file);
         try {
           const stat = statSync(filePath);
           const age = now - stat.mtime.getTime();
@@ -81,10 +82,63 @@ export function cleanupTmpFiles(directory: string, maxAgeMs: number = 24 * 60 * 
           }
         }
       }
+      
+      // Also clean stale lock files (.lock extension)
+      if (file.endsWith(".lock")) {
+        try {
+          const stat = statSync(filePath);
+          const age = now - stat.mtime.getTime();
+          
+          // Check if lock is stale (older than 1 hour)
+          if (age > 60 * 60 * 1000) {
+            // Try to read PID and check if process exists
+            try {
+              const pidStr = require("fs").readFileSync(filePath, "utf-8").trim();
+              const pid = parseInt(pidStr);
+              
+              if (!isNaN(pid)) {
+                try {
+                  process.kill(pid, 0);
+                  // Process exists, don't remove
+                  continue;
+                } catch {
+                  // Process doesn't exist, safe to remove
+                }
+              }
+            } catch {
+              // Can't read PID, remove if old enough
+            }
+            
+            unlinkSync(filePath);
+            cleaned++;
+            
+            if (config.debug) {
+              console.log(`♻️  Cleaned stale lock: ${file}`);
+            }
+          }
+        } catch (error) {
+          if (config.debug) {
+            console.warn(`Could not clean lock file ${file}:`, error);
+          }
+        }
+      }
+      
+      // Clean .stale.* files from atomic lock removal
+      if (file.includes(".stale.")) {
+        try {
+          unlinkSync(filePath);
+          cleaned++;
+          if (config.debug) {
+            console.log(`♻️  Cleaned stale lock remnant: ${file}`);
+          }
+        } catch {
+          // Best effort
+        }
+      }
     }
   } catch (error) {
     if (config.debug) {
-      console.warn("Error during tmp cleanup:", error);
+      console.warn("Error during cleanup:", error);
     }
   }
   
@@ -124,12 +178,12 @@ export class FileLock {
         return true;
       } catch (error: any) {
         if (error.code === "EEXIST") {
-          // Lock exists, check if stale
-          if (this.isStale()) {
-            this.forceRelease();
-            // Don't continue immediately, let the next iteration try
+          // Lock exists, check if stale and try atomic removal
+          if (await this.tryRemoveStaleAtomic()) {
+            // Stale lock removed, try again in next iteration
+            continue;
           } else {
-            // Wait a bit before retry
+            // Active lock, wait a bit before retry
             await new Promise(resolve => setTimeout(resolve, Math.min(100, timeoutMs / retries)));
           }
         } else {
@@ -163,45 +217,59 @@ export class FileLock {
   }
   
   /**
-   * Check if lock is stale (process doesn't exist)
+   * Try to remove stale lock atomically
+   * Returns true if stale lock was removed, false if lock is active
    */
-  private isStale(): boolean {
+  private async tryRemoveStaleAtomic(): Promise<boolean> {
+    const fs = require("fs");
+    
     try {
-      const fs = require("fs");
+      // Read lock file to check PID
       if (!fs.existsSync(this.lockPath)) {
-        return false; // No lock to check
+        return false; // No lock, nothing to remove
       }
       
       const pidStr = fs.readFileSync(this.lockPath, "utf-8").trim();
       const pid = parseInt(pidStr);
       
       if (isNaN(pid)) {
-        return true; // Invalid PID
+        // Invalid PID, safe to remove
+        try {
+          fs.unlinkSync(this.lockPath);
+          if (config.debug) {
+            console.log("🔓 Removed invalid lock");
+          }
+          return true;
+        } catch {
+          return false; // Someone else removed it
+        }
       }
       
       // Check if process exists
       try {
         process.kill(pid, 0);
-        return false; // Process exists
+        return false; // Process exists, lock is active
       } catch {
-        return true; // Process doesn't exist
+        // Process doesn't exist, try to remove atomically
+        try {
+          // Use rename to move lock aside first (atomic check)
+          const stalePath = `${this.lockPath}.stale.${Date.now()}`;
+          fs.renameSync(this.lockPath, stalePath);
+          fs.unlinkSync(stalePath);
+          
+          if (config.debug) {
+            console.log("🔓 Removed stale lock for PID:", pid);
+          }
+          return true;
+        } catch {
+          return false; // Someone else is handling it
+        }
       }
-    } catch {
-      return true; // Can't read lock file
-    }
-  }
-  
-  /**
-   * Force release a stale lock
-   */
-  private forceRelease(): void {
-    try {
-      unlinkSync(this.lockPath);
+    } catch (error) {
       if (config.debug) {
-        console.log("🔓 Released stale lock");
+        console.warn("Error checking stale lock:", error);
       }
-    } catch {
-      // Already gone
+      return false;
     }
   }
 }
