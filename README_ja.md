@@ -6,6 +6,23 @@ Claude Code CLI のための永続対話メモリ拡張ツール
 
 > **Claude Code CLI とは**: Anthropic の公式ターミナルAIアシスタント。自然言語でコードを書き、デバッグし、リファクタリングする。`--continue` / `--resume` で会話を再開できるが、**意思決定や次のステップを構造化して保持する仕組みではない**。KODAMA がこの問題を解決。
 
+## 始める前に
+
+### 必要なもの
+
+1. **Claude Code CLI** - [公式インストールガイド](https://docs.anthropic.com/en/docs/claude-code/setup)
+   ```bash
+   # macOS/Linux
+   curl -fsSL https://claude.ai/install.sh | bash
+   
+   # または npm
+   npm install -g @anthropic-ai/claude-code
+   ```
+
+2. **Linux/WSL環境** - Ubuntu推奨（macOSも可）
+
+3. **基本的なターミナル知識** - cd、ls、catなどの基本コマンド
+
 ## 理念
 
 > 「Less is more」 ― KODAMA は、Claude Code CLI に対して必要なことだけをやる。
@@ -33,6 +50,54 @@ chmod +x kc-linux-x64
 sudo mv kc-linux-x64 /usr/local/bin/kc
 ```
 
+## インストール後の最初の10分
+
+### 1. 動作確認
+
+```bash
+# KODAMAのバージョン確認
+$ kc --version
+0.3.0
+
+# Claude CLIの確認
+$ claude --version
+Claude CLI version 1.0.x
+
+# KODAMAの状態確認
+$ kc status
+❓ | basis: no_session | hint: 初回起動時は正常
+```
+
+### 2. 初めての起動
+
+```bash
+# 最初のセッション開始
+$ kc go
+# 初回は「前のコンテキストがありません」と表示される（正常）
+# Claudeが起動したら、簡単な質問をしてみましょう
+
+> こんにちは、今日は何を作りましょうか？
+```
+
+### 3. 最初の保存
+
+```bash
+# Claudeを終了（Ctrl+D）してから
+$ kc save -t "初回セッション"
+# 対話形式で内容を入力
+# Enterを2回押すか、Ctrl+D（WSLはCtrl+Z）で入力終了
+```
+
+### 4. 作業の再開
+
+```bash
+# 次回から前回の内容を引き継げる
+$ kc go
+# 前回の作業内容が自動的にClaudeに伝わる！
+```
+
+💡 **うまくいかない時**: [トラブルシューティング](docs/troubleshooting.md)を参照
+
 ## アンインストール
 
 KODAMA Claudeは安全でユーザーフレンドリーなアンインストーラーを提供します（デフォルトでデータを保持）。
@@ -54,6 +119,23 @@ kc uninstall --remove-all
 - `--backup` - データ削除前にバックアップを作成
 - `--dry-run` - 削除対象をプレビュー
 - `--force` - 確認プロンプトをスキップ
+
+### 簡易アンインストール後の完全削除
+
+すでに`kc uninstall`を実行済みで、残ったデータも削除したい場合：
+
+```bash
+# 手動でデータディレクトリを削除
+rm -rf ~/.local/share/kodama-claude
+
+# 設定ディレクトリも削除（もしあれば）
+rm -rf ~/.config/kodama-claude
+```
+
+または、uninstallスクリプトを再実行：
+```bash
+curl -fsSL https://github.com/tsutomu-n/kodama-claude/releases/latest/download/uninstall.sh | bash -s -- --remove-all
+```
 
 ## 使い方
 
@@ -99,48 +181,24 @@ echo 'KODAMA_LANG=ja' >> ~/.config/environment.d/kodama.conf
 
 システムロケールが日本語なら自動検出。
 
-## コマンド詳細
+## コマンド概要
+
+KODAMA Claudeは**3つのコマンド**だけ：
 
 ### `kc go` - Claudeセッションを開始
-
-```bash
-kc go [オプション]
-  -t, --title <title>    セッションタイトル
-  -s, --step <step>      ワークフローステップ (designing/implementing/testing/done)
-  --no-send              コンテキスト注入をスキップ（チェックのみ）
-```
-
-**動作：**
-1. 健康チェックと自動保護
-2. `claude -c -p`でコンテキスト注入
-3. `claude --continue`でREPLを開く
+過去の文脈を自動で引き継いでClaudeを起動
 
 ### `kc save` - 保存＆貼り付け
+作業内容をスナップショットとして保存し、クリップボードへコピー
 
-```bash
-kc save [オプション]
-  -t, --title <title>    スナップショットタイトル
-  -s, --step <step>      ワークフローステップ
-  --stdin                stdinから読み込み
-  --file <path>          ファイルから読み込み
-  -y, --yes              プロンプトをスキップ
-  --copy <mode>          auto|clipboard|osc52|file|none (デフォルト: auto)
-```
+### `kc status` - 健康状態確認
+セッションの状態を確認（🟢健康 / 🟡警告 / 🔴危険 / ❓不明）
 
-**対話モード**（デフォルト）：
-- タイトル、ステップ、達成内容、決定事項、次のステップ
-- EOF: Unix/Mac = Ctrl+D、WSL = Ctrl+Z
-- 保存後に貼り付けを促す
-
-### `kc status` - 健康状態
-
-```bash
-kc status [オプション]
-  -j, --json             JSON出力
-  -s, --strict           危険時にexit 1 (CI/CD用)
-```
-
-**出力：** `🟢 | basis: transcript | hint: no action needed`
+📚 **[コマンドの詳細な説明はこちら →](docs/command-details-ja.md)**
+- 各オプションの意味と使い方
+- `--copy`モードの詳細（auto/clipboard/osc52/file/none）
+- ワークフローステップの使い分け
+- 実践的な使用例
 
 ## 日常のワークフロー
 
@@ -171,29 +229,29 @@ kc save -t "本日の作業完了"
 ```bash
 # 1. 朝：作業開始
 $ kc go
-▶ Starting Claude session
-  1. Check health & create snapshot
-  2. Inject context with -c -p
-  3. Open REPL with --continue
+▶ Claudeセッションを開始
+  1. 健康チェックとスナップショット作成
+  2. -c -p でコンテキスト注入
+  3. --continue でREPL開始
 
-🟢 Session status: healthy
-📸 Last snapshot: 2h ago
-📤 Injecting context...
-✅ Context injected successfully
-🚀 Opening Claude REPL...
+🟢 セッション状態: 健康
+📸 最後のスナップショット: 2時間前
+📤 コンテキストを注入中...
+✅ コンテキスト注入成功
+🚀 Claude REPLを開いています...
 
 # 2. Claude と対話（インタラクティブセッション）
 
 # 3. 進捗を保存
 $ kc save -t "認証API完了"
-📝 Save your work context
+📝 作業内容を保存
 [対話形式のプロンプト...]
-[Y/n] Paste to clipboard now? y
-✅ Context copied to clipboard
+[Y/n] クリップボードに貼り付けますか？ y
+✅ クリップボードにコピーしました
 
 # 4. いつでも状態確認
 $ kc status
-🟡 | basis: heuristic | hint: save recommended
+🟡 | basis: heuristic | hint: 保存を推奨
 ```
 
 ### 各コマンドの使い時
@@ -316,9 +374,27 @@ export KODAMA_LANG=ja              # 日本語エラーメッセージ
 |------|------|
 | `kc: コマンドが見つかりません` | `/usr/local/bin` を PATH に追加 |
 | `権限がありません` | `sudo chmod +x /usr/local/bin/kc` |
-| `Claude Code CLI が見つかりません` | Claude Code CLI をインストール |
-| `認証が必要` | `claude` で OAuth 認証 |
+| `Claude Code CLI が見つかりません` | [Claude Code CLI をインストール](https://docs.anthropic.com/en/docs/claude-code/setup) |
+| `認証が必要` | `claude` で OAuth 認証（ブラウザが開きます） |
 | スナップショット保存に失敗 | `chmod 755 ~/.local/share/kodama-claude` |
+| `unknown option '--system'` | 古いv0.1.0がインストールされている → 再インストール |
+
+### エラーが出たら
+
+1. **まずは状態確認**
+   ```bash
+   kc status
+   ```
+
+2. **Claude CLIの確認**
+   ```bash
+   claude --version
+   claude doctor  # 診断ツール
+   ```
+
+3. **詳しいヘルプ**
+   - 📚 [詳細なトラブルシューティングガイド](docs/troubleshooting.md)
+   - 💬 [GitHub Issues](https://github.com/tsutomu-n/kodama-claude/issues)
 
 ### デバッグモード
 
