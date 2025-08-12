@@ -12,6 +12,7 @@ Welcome to the complete documentation for KODAMA Claude.
 5. **[コマンド詳細（日本語）](../ja/command-details.md)** - Japanese command reference
 
 ### 🟡 Configuration
+- **[Storage Management](storage-management.md)** - Understand storage & capacity planning
 - **[Troubleshooting](troubleshooting.md)** - Fix common problems
 - **[Customization](customization.md)** - Adjust settings
 
@@ -27,6 +28,7 @@ Welcome to the complete documentation for KODAMA Claude.
 | Learn basic commands | [Usage Guide](usage-guide.md#basic-commands) |
 | See real examples | [Examples](examples.md) |
 | Fix an error | [Troubleshooting](troubleshooting.md) |
+| Manage storage | [Storage Management](storage-management.md) |
 | Change settings | [Customization](customization.md) |
 | Understand the code | [Internals](internals.md) |
 

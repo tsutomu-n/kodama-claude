@@ -235,11 +235,13 @@ XDG Base Directory compliant:
 
 ```
 ~/.local/share/kodama-claude/
-├── snapshots/          # JSON snapshots
+├── snapshots/          # JSON snapshots (1-2KB each)
 │   └── archive/        # Auto-archived after 30 days
 ├── events.jsonl        # Append-only event log
 └── .session           # Current Claude session ID
 ```
+
+**Storage usage**: ~5-15 MB per year. See [Storage Management](docs/en/storage-management.md) for details.
 
 ### File Permissions
 
@@ -264,8 +266,10 @@ KODAMA follows security best practices for file permissions:
 
 ```bash
 # Smart context management controls
-export KODAMA_NO_LIMIT=true        # Disable 5-decision limit
-export KODAMA_AUTO_ARCHIVE=false   # Disable auto-archive  
+export KODAMA_NO_LIMIT=true        # Show all decisions (default: 5 only)
+export KODAMA_AUTO_ARCHIVE=false   # Disable auto-archive
+export KODAMA_ARCHIVE_DAYS=14      # Archive after 14 days (default: 30)
+export KODAMA_MAX_DECISIONS=10     # Keep 10 decisions (default: 5)
 export KODAMA_CLAUDE_SYNC=true     # Enable CLAUDE.md auto-update
 export KODAMA_DEBUG=true           # Show debug information
 export KODAMA_LANG=ja              # Japanese error messages

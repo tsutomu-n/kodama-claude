@@ -328,11 +328,13 @@ XDG Base Directory 準拠。
 
 ```
 ~/.local/share/kodama-claude/
-├── snapshots/          # JSON スナップショット
+├── snapshots/          # JSON スナップショット（各1-2KB）
 │   └── archive/        # 30日超の自動アーカイブ
 ├── events.jsonl        # 追記専用イベントログ
 └── .session            # 現在の Claude セッション ID
 ```
+
+**ストレージ使用量**: 年間約5-15 MB。詳細は[ストレージ管理](docs/ja/storage-management.md)を参照。
 
 ### ファイルパーミッション
 
@@ -357,8 +359,10 @@ KODAMA はセキュリティベストプラクティスに従ったパーミッ�
 
 ```bash
 # スマートコンテキスト管理
-export KODAMA_NO_LIMIT=true        # 決定事項5件制限を無効化
+export KODAMA_NO_LIMIT=true        # すべての決定事項を表示（デフォルト: 5件のみ）
 export KODAMA_AUTO_ARCHIVE=false   # 自動アーカイブを無効化
+export KODAMA_ARCHIVE_DAYS=14      # 14日後にアーカイブ（デフォルト: 30）
+export KODAMA_MAX_DECISIONS=10     # 10件の決定事項を保持（デフォルト: 5）
 export KODAMA_CLAUDE_SYNC=true     # CLAUDE.md 自動更新を有効化
 export KODAMA_DEBUG=true           # デバッグ出力を有効化
 export KODAMA_LANG=ja              # 日本語エラーメッセージ

@@ -11,6 +11,7 @@ KODAMA Claudeの完全なドキュメントへようこそ。
 4. **[コマンド詳細](command-details.md)** - 詳細なコマンドリファレンス
 
 ### 🟡 設定
+- **[ストレージ管理](storage-management.md)** - ストレージと容量計画の理解
 - **[トラブルシューティング](troubleshooting.md)** - 一般的な問題を解決
 - **[カスタマイズ](customization.md)** - 設定を調整
 
@@ -26,6 +27,7 @@ KODAMA Claudeの完全なドキュメントへようこそ。
 | 基本コマンドを学ぶ | [使用ガイド](usage-guide.md#basic-commands) |
 | 実例を見る | [例](examples.md) |
 | エラーを修正 | [トラブルシューティング](troubleshooting.md) |
+| ストレージ管理 | [ストレージ管理](storage-management.md) |
 | 設定を変更 | [カスタマイズ](customization.md) |
 | コードを理解 | [内部構造](internals.md) |
 
