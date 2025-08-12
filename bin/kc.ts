@@ -39,6 +39,7 @@ program
   .option("--file <path>", "Read from file")
   .option("-y, --yes", "Skip confirmation prompts")
   .option("--copy <mode>", "Copy mode: auto|clipboard|osc52|file|none (default: auto)")
+  .option("--tags <tags>", "Work tags (comma/space separated)")
   .action(saveCommand);
 
 program
@@ -58,6 +59,47 @@ program
   .option("--backup", "Create backup before removing data")
   .option("-q, --quiet", "Suppress non-error output")
   .action(uninstallCommand);
+
+// Restart command (Smart Restart)
+program
+  .command("restart")
+  .description("Smart restart with context preservation (/clear independent)")
+  .option("-f, --force", "Force kill existing Claude process")
+  .option("--no-inject", "Skip context injection")
+  .option("--verify", "Verify context recognition")
+  .action(async (options) => {
+    const { restartCommand } = await import("../src/restart");
+    await restartCommand(options);
+  });
+
+// Tags command (Work Tags)
+program
+  .command("tags")
+  .description("Manage and filter work tags")
+  .option("-l, --list", "List all tags with counts")
+  .option("-f, --filter <tags>", "Filter snapshots by tags")
+  .option("-s, --stats", "Show tag statistics")
+  .option("--suggest <partial>", "Suggest tags based on partial input")
+  .option("--merge", "Suggest tag merges for typos")
+  .option("-j, --json", "Output in JSON format")
+  .action(async (options) => {
+    const { tagsCommand } = await import("../src/tags");
+    await tagsCommand(options);
+  });
+
+// Resume command (One-Key Resume)
+program
+  .command("resume")
+  .description("Quick resume with optional save (one-key operation)")
+  .option("-m, --message <msg>", "Quick update message")
+  .option("-t, --tags <tags>", "Tags for quick save")
+  .option("--no-save", "Skip saving, just resume")
+  .option("--no-inject", "Skip context injection")
+  .option("-f, --force", "Force resume even with warnings")
+  .action(async (options) => {
+    const { resumeCommand } = await import("../src/resume");
+    await resumeCommand(options);
+  });
 
 // Parse and execute
 program.parse();

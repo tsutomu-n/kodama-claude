@@ -194,7 +194,7 @@ sudo rm /usr/local/bin/kc
 curl -fsSL https://github.com/tsutomu-n/kodama-claude/releases/latest/download/install.sh | bash
 
 # バージョン確認
-kc --version  # 0.3.0以上であることを確認
+kc --version  # 0.4.0以上であることを確認
 ```
 
 ## デバッグ方法

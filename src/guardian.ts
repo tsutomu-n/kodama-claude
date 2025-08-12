@@ -113,6 +113,7 @@ export class Guardian {
         decisions: [],
         nextSteps: [],
         cwd: process.cwd(),
+        tags: ["auto-save"],
       };
 
       await this.storage.saveSnapshot(snapshot);

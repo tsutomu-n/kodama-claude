@@ -16,6 +16,7 @@ import { getMessage, formatError } from "./i18n";
 import { config } from "./config";
 import { getGitBranch, getGitCommit } from "./utils/git";
 import { parseStep, ValidStep } from "./utils/validation";
+import { TagManager } from "./utils/tags";
 import type { Snapshot } from "./types";
 
 export interface SaveOptions {
@@ -26,11 +27,13 @@ export interface SaveOptions {
   yes?: boolean;
   copy?: 'auto' | 'clipboard' | 'osc52' | 'file' | 'none';
   debug?: boolean;
+  tags?: string;  // Comma or space separated tags
 }
 
 export async function saveCommand(options: SaveOptions) {
   try {
     const storage = new Storage();
+    const tagManager = new TagManager();
     
     // Show 3-line plan at the beginning
     console.log("📝 Save your work context");
@@ -43,6 +46,7 @@ export async function saveCommand(options: SaveOptions) {
     let context = "";
     let decisions: string[] = [];
     let nextSteps: string[] = [];
+    let tags: string[] = [];
     
     // Get input based on mode
     if (options.stdin) {
@@ -143,6 +147,30 @@ export async function saveCommand(options: SaveOptions) {
       });
       
       nextSteps = nextStepLines;
+      
+      // Tags (optional)
+      const rl4 = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout,
+      });
+      
+      console.log(`\n🏷️  Tags (optional, comma/space separated, Enter to skip):`);
+      const tagInput = await rl4.question("   ");
+      rl4.close();
+      
+      if (tagInput) {
+        tags = tagManager.parseTags(tagInput);
+      }
+    }
+    
+    // Parse tags from command line option
+    if (options.tags) {
+      tags = tagManager.parseTags(options.tags);
+    }
+    
+    // Add automatic tags if no manual tags provided
+    if (tags.length === 0) {
+      tags = tagManager.generateAutoTags();
     }
     
     // Create snapshot
@@ -158,6 +186,7 @@ export async function saveCommand(options: SaveOptions) {
       cwd: cwd(),
       gitBranch: getGitBranch(),
       gitCommit: getGitCommit(),
+      tags,
     };
     
     // Save snapshot
@@ -174,6 +203,9 @@ export async function saveCommand(options: SaveOptions) {
     console.log("📦 ID:", snapshot.id);
     console.log("📝 Title:", snapshot.title);
     console.log("📊 Step:", snapshot.step || "none");
+    if (tags.length > 0) {
+      console.log("🏷️  Tags:", tags.join(", "));
+    }
     
     // Ask about pasting (unless --yes with --copy specified, or --copy=none)
     const copyMode = options.copy || 'auto';

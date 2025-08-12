@@ -30,6 +30,7 @@ describe("ContextPack", () => {
       "Add OAuth providers",
     ],
     cwd: "/home/user/project",
+    tags: ["auth", "jwt", "testing"],
   };
   
   describe("generate", () => {
@@ -187,6 +188,7 @@ describe("AdaptiveContextPack", () => {
     decisions: ["Use template A first"],
     nextSteps: ["Check response"],
     cwd: "/home/user/project",
+    tags: ["adaptive", "test"],
   };
   
   it("should generate pack with primary template", () => {

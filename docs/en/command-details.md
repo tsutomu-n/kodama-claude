@@ -2,13 +2,18 @@
 
 🟢 **Difficulty**: Beginner to Intermediate | **Read time**: 10 minutes
 
-This guide provides detailed explanations of KODAMA Claude's 3 commands, their options, and usage.
+This guide provides detailed explanations of KODAMA Claude's commands, their options, and usage.
 
 ## Table of Contents
 - [Terminology](#terminology)
-- [kc go - Start Session Command](#kc-go---start-session-command)
-- [kc save - Save & Paste Command](#kc-save---save--paste-command)
-- [kc status - Health Check Command](#kc-status---health-check-command)
+- [Core Commands](#core-commands)
+  - [kc go - Start Session Command](#kc-go---start-session-command)
+  - [kc save - Save & Paste Command](#kc-save---save--paste-command)
+  - [kc status - Health Check Command](#kc-status---health-check-command)
+- [Advanced Features (v0.4.0+)](#advanced-features-v040)
+  - [kc restart - Smart Restart Command](#kc-restart---smart-restart-command)
+  - [kc tags - Work Tag Management](#kc-tags---work-tag-management)
+  - [kc resume - One-Key Resume](#kc-resume---one-key-resume)
 - [Practical Examples](#practical-examples)
 
 ## Terminology
@@ -24,6 +29,8 @@ For those new to KODAMA Claude, here are common terms explained:
 | **Session** | A series of conversations with Claude | Work from morning to evening |
 | **Workflow Step** | Stage of work | design→implement→test→done |
 | **EOF** | End Of File. Marks end of input | Ctrl+D or Ctrl+Z |
+
+## Core Commands
 
 ## `kc go` - Start Session Command
 
@@ -171,6 +178,18 @@ kc save --file ~/work-notes.txt
 kc save --file ./docs/decisions.md -t "Design decisions"
 ```
 
+#### `--tags <tags>` - Work Tags
+
+**Purpose**: Add tags to organize your work
+
+```bash
+# Save with tags
+kc save --tags "feature,auth,login"
+
+# Mix with other options
+kc save -t "Login implementation" --tags "auth,frontend"
+```
+
 #### `-y, --yes` - Skip Confirmations
 
 **Purpose**: Use in automation or scripts
@@ -311,6 +330,284 @@ steps:
       kc status --strict
 ```
 
+## Advanced Features (v0.4.0+)
+
+These powerful features are available when you need them, while keeping the core simple.
+
+## `kc restart` - Smart Restart Command
+
+### Purpose
+
+Restart Claude session with context preservation, independent of `/clear` command.
+
+### Basic Operation
+
+```bash
+# Smart restart with context
+kc restart
+
+# Force restart even with warnings
+kc restart --force
+
+# Restart without context injection
+kc restart --no-inject
+```
+
+### How It Works
+
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│ 1. Check    │ --> │ 2. Kill     │ --> │ 3. Restart  │
+│   Process   │     │   Safely    │     │  + Context  │
+└─────────────┘     └─────────────┘     └─────────────┘
+```
+
+1. **Process Detection**: Checks if Claude is running in current project
+2. **Safe Termination**: Gracefully stops existing session
+3. **Context Restart**: Starts new session with latest context
+
+### Option Details
+
+#### `--force` - Force Restart
+Forces restart even when warnings exist (critical context usage, etc.)
+
+```bash
+# Restart despite warnings
+kc restart --force
+```
+
+#### `--no-inject` - Skip Context Injection
+Restart without loading previous context (fresh start)
+
+```bash
+# Clean restart
+kc restart --no-inject
+```
+
+#### `--verify` - Verify Context Recognition
+Check that Claude properly recognized the injected context
+
+```bash
+# Restart with verification
+kc restart --verify
+```
+
+### Use Cases
+
+- **Context Too Large**: When `/clear` would lose important context
+- **Session Stuck**: When Claude becomes unresponsive  
+- **Project Switch**: When switching between different projects
+- **Memory Issues**: When session needs fresh memory but with context
+
+## `kc tags` - Work Tag Management
+
+### Purpose
+
+Organize and filter your work with intelligent tagging system.
+
+### Basic Operations
+
+```bash
+# List all tags with usage counts
+kc tags --list
+
+# Filter snapshots by tags
+kc tags --filter "auth,api"
+
+# Show tag statistics
+kc tags --stats
+
+# Get tag suggestions
+kc tags --suggest "fea"  # Suggests "feature"
+```
+
+### Tag Management Features
+
+#### Automatic Tagging
+- Git branch names become tags
+- Date-based tags for temporal organization
+- Auto-suggested tags based on history
+
+#### Intelligent Suggestions
+- Levenshtein distance for similarity matching
+- Frequency-based recommendations
+- Typo detection and correction suggestions
+
+### Option Details
+
+#### `--list` - List All Tags
+Shows all tags with usage frequency
+
+```bash
+kc tags --list
+
+# Output:
+# 🏷️  Tags in use:
+# 
+#    feature  ████████████ (12)
+#    auth     ████████ (8)
+#    api      ██████ (6)
+#    bugfix   ████ (4)
+```
+
+#### `--filter <tags>` - Filter by Tags
+Find snapshots that match specified tags
+
+```bash
+# Find auth-related work
+kc tags --filter "auth"
+
+# Multiple tags (OR logic)
+kc tags --filter "auth,api,feature"
+```
+
+#### `--stats` - Show Statistics
+Display comprehensive tag analytics
+
+```bash
+kc tags --stats
+
+# Output includes:
+# - Total unique tags
+# - Most used tags
+# - Recently used tags
+```
+
+#### `--suggest <partial>` - Tag Suggestions
+Get suggestions based on partial input
+
+```bash
+# Get suggestions for "fea"
+kc tags --suggest "fea"
+# Output: feature, feat, refactor
+
+# Get top 10 most used tags
+kc tags --suggest
+```
+
+#### `--merge` - Suggest Tag Merges
+Find similar tags that might be typos
+
+```bash
+kc tags --merge
+
+# Output:
+# 🔀 Suggested tag merges (potential typos):
+# 
+#    "featuer" → "feature" (85% similar)
+#    "auht" → "auth" (75% similar)
+```
+
+### Integration with Save
+
+Tags work seamlessly with the save command:
+
+```bash
+# Save with tags
+kc save --tags "feature,auth,login"
+
+# Interactive mode prompts for tags
+kc save  # Will ask for tags during input
+```
+
+## `kc resume` - One-Key Resume
+
+### Purpose
+
+Quick resume workflow that combines save + go in a single operation.
+
+### Basic Operations
+
+```bash
+# Interactive resume (with optional save)
+kc resume
+
+# Quick resume with message
+kc resume -m "Fixed auth bug"
+
+# Resume with tags
+kc resume -m "API update" -t "api,feature"
+
+# Resume without saving (just restart)
+kc resume --no-save
+```
+
+### How It Works
+
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│ 1. Quick    │ --> │ 2. Health   │ --> │ 3. Smart    │
+│   Save      │     │   Check     │     │   Restart   │
+│ (optional)  │     │             │     │             │
+└─────────────┘     └─────────────┘     └─────────────┘
+```
+
+1. **Quick Save**: Optionally save current progress with brief message
+2. **Health Check**: Verify session state and context usage
+3. **Smart Restart**: Resume with full context loaded
+
+### Option Details
+
+#### `-m, --message <msg>` - Quick Update Message
+Save progress with a brief update message
+
+```bash
+# Quick save and resume
+kc resume -m "Completed user registration"
+```
+
+#### `-t, --tags <tags>` - Tags for Quick Save
+Add tags when saving quick update
+
+```bash
+# Resume with tagged save
+kc resume -m "Bug fix complete" -t "bugfix,auth"
+```
+
+#### `--no-save` - Skip Saving
+Resume without saving (just restart with context)
+
+```bash
+# Just resume, don't save
+kc resume --no-save
+```
+
+#### `--no-inject` - Skip Context Injection
+Resume without loading context (fresh start)
+
+```bash
+# Resume without context
+kc resume --no-inject
+```
+
+#### `--force` - Force Resume
+Resume even with warnings (critical context usage, etc.)
+
+```bash
+# Force resume despite warnings
+kc resume --force
+```
+
+### Interactive Mode
+
+When called without message, prompts for optional update:
+
+```bash
+kc resume
+
+# Prompts:
+# ⚡ Quick Resume - What have you done since last session?
+# 📝 Update (optional, Enter to skip): [your input]
+# 🏷️  Tags (optional): [your tags]
+```
+
+### Use Cases
+
+- **Break Return**: Coming back from lunch/meeting
+- **Day Start**: Beginning work with optional progress note
+- **Context Switch**: Moving between different features
+- **Quick Checkpoint**: Save + restart in one command
+
 ## Troubleshooting
 
 ### Clipboard Not Working
@@ -355,13 +652,19 @@ kc save -s done       # Record completion
 
 ## Summary
 
-KODAMA Claude's 3 commands look simple but have rich options:
+KODAMA Claude starts with 3 simple commands and adds powerful features when needed:
 
+### Core Commands
 1. **`kc go`** - Start/resume work (automatically continues context)
-2. **`kc save`** - Save progress (various copy methods available)
+2. **`kc save`** - Save progress (various copy methods, tags support)
 3. **`kc status`** - Check health (supports automation)
 
-Start with basic usage and utilize options as you become familiar.
+### Advanced Features (v0.4.0+)
+4. **`kc restart`** - Smart restart with context preservation
+5. **`kc tags`** - Intelligent work tag management
+6. **`kc resume`** - One-key resume (save + go combined)
+
+Start with the core 3 commands, then discover advanced features as your workflow matures.
 
 ---
 

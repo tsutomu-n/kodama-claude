@@ -2,6 +2,63 @@
 
 This guide covers version migrations for KODAMA Claude.
 
+## Migration from v0.3.0 to v0.4.0
+
+**New Features:** v0.4.0 adds powerful new commands while keeping the core simple.
+
+### New Commands Added
+
+| New Command | Purpose | Benefit |
+|-------------|---------|---------|
+| `kc restart` | Smart restart with context | Never lose context when Claude restarts |
+| `kc tags` | Work tag management | Organize and find your work easily |
+| `kc resume` | One-key resume | Quick save + restart in one command |
+
+### Enhanced Features
+
+- **`kc save`** now supports `--tags` option for work organization
+- **All commands** now support better error handling and process management
+- **Context preservation** improved with atomic file operations
+
+### Migration Process
+
+**Good News**: No breaking changes! All existing commands work exactly the same.
+
+```bash
+# Check current version
+kc --version
+
+# Update if needed
+curl -fsSL https://github.com/tsutomu-n/kodama-claude/releases/latest/download/install.sh | bash
+
+# Verify new version
+kc --version  # Should show 0.4.0+
+```
+
+### New Workflow Options
+
+After upgrading, you can optionally use new features:
+
+```bash
+# Traditional workflow (still works)
+kc go
+kc save
+kc status
+
+# Enhanced workflow (new options)
+kc save --tags "feature,auth"      # Add tags
+kc restart                         # Smart restart
+kc resume -m "Fixed bug"           # Quick resume
+kc tags --filter "auth"            # Find auth work
+```
+
+### Compatibility
+
+- **Snapshots**: All existing snapshots work unchanged
+- **Commands**: All v0.3.0 commands work identically
+- **Scripts**: No script changes needed
+- **Data**: No data migration required
+
 ## Migration from v0.1.0 to v0.3.0
 
 **Breaking Changes:** v0.3.0 completely redesigned the command structure to be simpler and more intuitive.
@@ -40,7 +97,7 @@ sudo rm /usr/local/bin/kc
 curl -fsSL https://github.com/tsutomu-n/kodama-claude/releases/latest/download/install.sh | bash
 
 # 3. Verify version
-kc --version  # Should show 0.3.0 or later
+kc --version  # Should show 0.4.0 or later
 ```
 
 ### Troubleshooting

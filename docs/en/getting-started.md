@@ -10,6 +10,7 @@ This guide helps you install and start using KODAMA Claude.
 - [Installation](#installation)
 - [First Time Setup](#first-time-setup)
 - [Your First Command](#your-first-command)
+- [Advanced Features (When You're Ready)](#advanced-features-when-youre-ready)
 - [Next Steps](#next-steps)
 
 ## What is KODAMA Claude?
@@ -403,6 +404,43 @@ kc go
 
 If all commands work, you're ready! 🎉
 
+## Advanced Features (When You're Ready)
+
+KODAMA Claude starts simple but has powerful features when you need them:
+
+### 🔄 Smart Restart (`kc restart`)
+When Claude gets stuck or you need a fresh session with context:
+```bash
+kc restart          # Restart with all your context
+kc restart --force  # Force restart despite warnings
+```
+
+### 🏷️ Work Tags (`kc tags`)
+Organize your work with intelligent tagging:
+```bash
+kc save --tags "feature,auth"    # Tag your work
+kc tags --filter "auth"          # Find auth-related work
+kc tags --list                   # See all your tags
+```
+
+### ⚡ One-Key Resume (`kc resume`)
+Quick resume with optional update:
+```bash
+kc resume                        # Interactive resume
+kc resume -m "Fixed bug"         # Quick update + resume
+```
+
+### When to Use Advanced Features
+
+**Start with basics**: `go`, `save`, `status` are all you need for weeks.
+
+**Add features gradually**:
+- **Tags**: When you have 10+ snapshots and want organization
+- **Restart**: When Claude becomes unresponsive or memory is full
+- **Resume**: When you want faster break/return workflow
+
+**Philosophy**: Simple core, powerful when needed.
+
 ## Next Steps
 
 Now that KODAMA Claude is installed:
@@ -416,16 +454,22 @@ Now that KODAMA Claude is installed:
 Print this and keep it nearby:
 
 ```
-┌─────────────────────────────────────────┐
-│        KODAMA CLAUDE QUICK CARD         │
-├─────────────────────────────────────────┤
-│ kc go     - Start/continue work         │
-│ kc save   - Save & paste snapshot       │
-│ kc status - Check health (🟢/🟡/🔴/❓)   │
-├─────────────────────────────────────────┤
-│ Exit Claude: Ctrl+D                     │
-│ Get help: kc --help                     │
-└─────────────────────────────────────────┘
+┌───────────────────────────────────────────────┐
+│          KODAMA CLAUDE QUICK CARD             │
+├───────────────────────────────────────────────┤
+│ CORE COMMANDS:                                │
+│ kc go      - Start/continue work              │
+│ kc save    - Save & paste (--tags supported)  │
+│ kc status  - Check health (🟢/🟡/🔴/❓)        │
+├───────────────────────────────────────────────┤
+│ ADVANCED (v0.4.0+):                          │
+│ kc restart - Smart restart with context       │
+│ kc tags    - Manage work tags                 │
+│ kc resume  - One-key resume                   │
+├───────────────────────────────────────────────┤
+│ Exit Claude: Ctrl+D                          │
+│ Get help: kc --help                          │
+└───────────────────────────────────────────────┘
 ```
 
 ## Common First-Day Issues

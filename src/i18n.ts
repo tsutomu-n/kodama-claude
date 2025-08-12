@@ -21,6 +21,8 @@ type SimpleMessage = {
   errorLoadingSnapshot: string;
   errorCheckingHealth: string;
   sessionHealthy: string;
+  restartFailed: string;
+  resumeFailed: string;
 };
 
 type ParameterizedMessage = {
@@ -52,6 +54,8 @@ const messages: Record<Language, Messages> = {
     errorLoadingSnapshot: "Error loading snapshot details",
     errorCheckingHealth: "Error checking session health",
     sessionHealthy: "Session is healthy",
+    restartFailed: "Failed to restart Claude session",
+    resumeFailed: "Failed to resume Claude session",
     
     // Parameterized messages
     errorCreating: (type) => `Error creating ${type}:`,
@@ -79,6 +83,8 @@ const messages: Record<Language, Messages> = {
     errorLoadingSnapshot: "スナップショット詳細の読み込みエラー",
     errorCheckingHealth: "セッションヘルスのチェックエラー",
     sessionHealthy: "セッションは健康です",
+    restartFailed: "Claudeセッションの再起動に失敗しました",
+    resumeFailed: "Claudeセッションの再開に失敗しました",
     
     // Parameterized messages
     errorCreating: (type) => `${type}の作成中にエラーが発生しました:`,
@@ -125,6 +131,8 @@ export function getMessage(key: 'errorListingSnapshots'): string;
 export function getMessage(key: 'errorLoadingSnapshot'): string;
 export function getMessage(key: 'errorCheckingHealth'): string;
 export function getMessage(key: 'sessionHealthy'): string;
+export function getMessage(key: 'restartFailed'): string;
+export function getMessage(key: 'resumeFailed'): string;
 
 // Parameterized messages
 export function getMessage(key: 'errorCreating', type: string): string;

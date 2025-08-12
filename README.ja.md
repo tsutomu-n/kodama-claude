@@ -2,7 +2,7 @@
 
 [🇯🇵 日本語](README.ja.md) | [🌐 English](README.md)
 
-**Claude Code CLIの非公式拡張** - Claude Codeのための永続的コンテキストとスマート再開
+**Claude Code CLIの非公式拡張** - スマート再開、ワークタグ、ワンキーレジューム機能
 
 > **Claude Code とは**: Anthropic の公式ターミナルAIアシスタント。自然言語でコードを書き、デバッグし、リファクタリングする。`--continue` / `--resume` で会話を再開できるが、**意思決定や次のステップを構造化して保持する仕組みではない**。Kodama がこの問題を解決。
 
@@ -66,7 +66,7 @@ sudo mv kc-linux-x64 /usr/local/bin/kc
 ```bash
 # Kodamaのバージョン確認
 $ kc --version
-Kodama for Claude Code 0.3.1
+Kodama for Claude Code 0.4.0
 
 # Claude Codeの確認
 $ claude --version
@@ -155,7 +155,7 @@ curl -fsSL https://github.com/tsutomu-n/kodama-claude/releases/latest/download/u
 
 ## 使い方
 
-### コア3コマンド＋アンインストール
+### コア3コマンド＋高度な機能
 
 ```bash
 # コアワークフローコマンド
@@ -163,11 +163,16 @@ kc go       # Claudeを起動（健康チェック → 注入 → REPL）
 kc save     # スナップショット保存＆貼り付け
 kc status   # 健康状態を確認（🟢/🟡/🔴/❓）
 
+# 高度な機能（v0.4.0+）
+kc restart  # スマート再開（/clear非依存）
+kc tags     # ワークタグ管理
+kc resume   # ワンキーレジューム（save + go）
+
 # メンテナンス
 kc uninstall # 安全な削除（デフォルトでデータ保持）
 ```
 
-これで十分。複雑なワークフローも機能過多も不要。
+シンプルなコア、必要時に強力な機能。
 
 ## 日本語サポート
 
@@ -199,16 +204,47 @@ echo 'Kodama_LANG=ja' >> ~/.config/environment.d/kodama.conf
 
 ## コマンド概要
 
-Kodama Claudeは**3つのコマンド**だけ：
+Kodama Claudeは**3つのシンプルなコマンド**から始めて、必要な時に強力な機能を提供：
 
-### `kc go` - Claudeセッションを開始
+### コアコマンド
+
+**`kc go`** - Claudeセッションを開始  
 過去の文脈を自動で引き継いでClaudeを起動
 
-### `kc save` - 保存＆貼り付け
+**`kc save`** - 保存＆貼り付け  
 作業内容をスナップショットとして保存し、クリップボードへコピー
+```bash
+kc save --tags "機能,認証"  # ワークタグ付きで保存
+```
 
-### `kc status` - 健康状態確認
+**`kc status`** - 健康状態確認  
 セッションの状態を確認（🟢健康 / 🟡警告 / 🔴危険 / ❓不明）
+
+### 高度な機能（v0.4.0+）
+
+**`kc restart`** - スマート再開  
+/clear非依存でコンテキスト保持しながら再開
+```bash
+kc restart          # コンテキスト付きスマート再開
+kc restart --force  # 警告があっても強制再開
+```
+
+**`kc tags`** - ワークタグ管理  
+インテリジェントタグ機能で作業を整理・フィルタ
+```bash
+kc tags --list              # 使用回数付きタグ一覧
+kc tags --filter "認証,API" # タグでスナップショットをフィルタ
+kc tags --stats             # タグ統計表示
+kc tags --suggest "機"      # タグ候補（"機能"）
+```
+
+**`kc resume`** - ワンキーレジューム  
+オプション付き保存で素早く再開（save + go の組み合わせ）
+```bash
+kc resume                                    # インタラクティブ再開
+kc resume -m "認証バグ修正" -t "バグ修正"   # アップデート付きクイック再開
+kc resume --no-save                          # 保存せずに再開のみ
+```
 
 📚 **[コマンドの詳細な説明はこちら →](docs/ja/command-details.md)**
 - 各オプションの意味と使い方
@@ -284,6 +320,9 @@ Claude が文脈を理解し、Git がコード変更を追跡。
 
 ✅ **セッション健康追跡** ― トークン使用量の監視と警告  
 ✅ **自動保護** ― コンテキスト危険時の自動スナップショット  
+✅ **スマート再開** ― /clear非依存でコンテキスト保持しながら再開  
+✅ **ワークタグ** ― インテリジェントタグ機能とサジェスト機能でスナップショット整理  
+✅ **ワンキーレジューム** ― クイック再開ワークフロー（save + go を1コマンドで）  
 ✅ **アトミックなファイル更新** ― 電源断でも破損しない  
 ✅ **適切なファイルロック** ― 安全な同時アクセス  
 ✅ **XDG 準拠** ― Linux ディレクトリ標準に従う  
@@ -382,7 +421,8 @@ export Kodama_LANG=ja              # 日本語エラーメッセージ
   "nextSteps": ["テストを追加", "..."],
   "cwd": "/home/user/project",
   "gitBranch": "feature/auth",
-  "gitCommit": "abc123"
+  "gitCommit": "abc123",
+  "tags": ["機能", "認証", "API"]
 }
 ```
 

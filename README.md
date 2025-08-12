@@ -2,7 +2,7 @@
 
 [🇯🇵 日本語](README.ja.md) | [🌐 English](README.md)
 
-**Unofficial extension for Claude Code CLI** - Persistent context & smart restart for Claude Code.
+**Unofficial extension for Claude Code CLI** - Smart restart, work tags, and one-key resume for Claude sessions.
 
 > **What is Claude Code?** Anthropic's official terminal AI assistant. Writes, debugs, and refactors code using natural language. Can resume conversations with `--continue` / `--resume`, but **lacks structured storage for decisions and next steps**. Kodama solves this.
 
@@ -92,7 +92,7 @@ rm -rf ~/.config/kodama-claude
 
 ## Usage
 
-### Core 3 Commands + Uninstall
+### Core 3 Commands + Advanced Features
 
 ```bash
 # Core workflow commands
@@ -100,11 +100,16 @@ kc go       # Start Claude (health check → inject → REPL)
 kc save     # Save snapshot & paste
 kc status   # Check health (🟢/🟡/🔴/❓)
 
+# Advanced features (v0.4.0+)
+kc restart  # Smart restart (/clear independent)
+kc tags     # Manage work tags
+kc resume   # One-key resume (save + go)
+
 # Maintenance
 kc uninstall # Safe removal (preserves data by default)
 ```
 
-That's it. No complex workflows. No feature creep. No cognitive overhead.
+Simple core, powerful when needed.
 
 ### Example: Adding an API Endpoint
 
@@ -168,16 +173,47 @@ Auto-detects Japanese from system locale.
 
 ## Commands
 
-Kodama for Claude Code uses just **3 simple commands**:
+Kodama for Claude Code starts with **3 simple commands** and adds powerful features when you need them:
 
-### `kc go` - Start Claude Session
+### Core Commands
+
+**`kc go`** - Start Claude Session  
 Automatically loads your past context and starts Claude
 
-### `kc save` - Save & Paste
+**`kc save`** - Save & Paste  
 Saves your work as a snapshot and copies to clipboard
+```bash
+kc save --tags "feature,auth"  # Add work tags
+```
 
-### `kc status` - Health Status  
+**`kc status`** - Health Status  
 Shows session health (🟢 healthy / 🟡 warning / 🔴 danger / ❓ unknown)
+
+### Advanced Features (v0.4.0+)
+
+**`kc restart`** - Smart Restart  
+/clear-independent restart with context preservation
+```bash
+kc restart          # Smart restart with context
+kc restart --force  # Force restart even with warnings
+```
+
+**`kc tags`** - Work Tag Management  
+Organize and filter your work with intelligent tagging
+```bash
+kc tags --list              # List all tags with usage counts
+kc tags --filter "auth,api" # Filter snapshots by tags
+kc tags --stats             # Show tag statistics
+kc tags --suggest "fea"     # Suggest tags ("feature")
+```
+
+**`kc resume`** - One-Key Resume  
+Quick resume with optional save (combines save + go)
+```bash
+kc resume                                    # Interactive resume
+kc resume -m "Fixed auth bug" -t "bugfix"   # Quick resume with update
+kc resume --no-save                          # Just resume, don't save
+```
 
 📚 **[Detailed Command Reference →](docs/en/command-details.md)**
 - All options and parameters
@@ -191,6 +227,9 @@ Shows session health (🟢 healthy / 🟡 warning / 🔴 danger / ❓ unknown)
 
 ✅ **Session health tracking** - Monitor token usage and get warnings  
 ✅ **Auto-protection** - Automatic snapshots when context usage is critical  
+✅ **Smart restart** - /clear-independent restart with context preservation  
+✅ **Work tags** - Organize snapshots with intelligent tagging and suggestions  
+✅ **One-key resume** - Quick resume workflow (save + go in one command)  
 ✅ **Atomic file operations** - Never lose data, even on power loss  
 ✅ **Proper file locking** - Safe concurrent access  
 ✅ **XDG compliance** - Respects Linux directory standards  
@@ -289,7 +328,8 @@ export Kodama_LANG=ja              # Japanese error messages
   "nextSteps": ["Add tests", "..."],
   "cwd": "/home/user/project",
   "gitBranch": "feature/auth",
-  "gitCommit": "abc123"
+  "gitCommit": "abc123",
+  "tags": ["feature", "auth", "api"]
 }
 ```
 

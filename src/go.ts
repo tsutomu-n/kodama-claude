@@ -111,6 +111,7 @@ export async function goCommand(options: GoOptions) {
     cwd: currentDir,
     gitBranch,
     gitCommit,
+    tags: [],
   };
   
   await storage.saveSnapshot(snapshot);

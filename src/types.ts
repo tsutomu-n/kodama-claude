@@ -18,6 +18,7 @@ export const SnapshotSchema = z.object({
   cwd: z.string(),
   gitBranch: z.string().optional(),
   gitCommit: z.string().optional(),
+  tags: z.array(z.string()).default([]), // Work tags for organization
 });
 
 export type Snapshot = z.infer<typeof SnapshotSchema>;

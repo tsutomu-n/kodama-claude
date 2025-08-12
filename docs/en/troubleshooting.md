@@ -744,20 +744,20 @@ curl -fsSL https://github.com/tsutomu-n/kodama-claude/releases/latest/download/i
 sudo rm -f /usr/local/bin/kc
 
 # 2. Download correct version
-wget https://github.com/tsutomu-n/kodama-claude/releases/download/v0.3.0/kc-linux-x64
+wget https://github.com/tsutomu-n/kodama-claude/releases/download/v0.4.0/kc-linux-x64
 
 # 3. Install
 chmod +x kc-linux-x64
 sudo mv kc-linux-x64 /usr/local/bin/kc
 
 # 4. Verify
-kc --version  # Should show 0.3.0
+kc --version  # Should show 0.4.0
 ```
 
 ### Why This Happened
 
 - v0.1.0 used `claude --system` which doesn't exist
-- v0.3.0 fixed this with two-stage execution:
+- v0.4.0 fixed this with two-stage execution:
   1. `claude -c -p` for context injection
   2. `claude --continue` for REPL
 

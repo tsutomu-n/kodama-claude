@@ -57,7 +57,7 @@ kc status
 
 期待される出力：
 ```
-KODAMA Claude v0.3.0
+KODAMA Claude v0.4.0
 ❓ | basis: no_session | hint: start with 'kc go'
 ```
 

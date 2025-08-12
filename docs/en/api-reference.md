@@ -2,9 +2,9 @@
 
 🔴 **Difficulty**: Advanced | **Read time**: 3 minutes
 
-Complete technical reference for KODAMA Claude's 3 commands.
+Complete technical reference for KODAMA Claude's commands.
 
-## Command Reference
+## Core Commands
 
 ### `kc go`
 
@@ -50,6 +50,7 @@ kc save [options]
 | `--file <path>` | | Read from file | Interactive mode |
 | `--yes` | `-y` | Skip prompts | false |
 | `--copy <mode>` | | Copy mode | auto |
+| `--tags <tags>` | | Work tags (comma/space separated) | [] |
 
 **Copy modes:**
 - `auto` - Detect best method
@@ -105,6 +106,87 @@ kc status [options]
 | `danger` | 🔴 | > 80% context | Save immediately |
 | `unknown` | ❓ | No session data | Start with `kc go` |
 
+## Advanced Features (v0.4.0+)
+
+### `kc restart`
+
+Smart restart with context preservation.
+
+```bash
+kc restart [options]
+```
+
+**Options:**
+| Option | Short | Description | Default |
+|--------|-------|-------------|---------|
+| `--force` | `-f` | Force restart despite warnings | false |
+| `--no-inject` | | Skip context injection | false |
+| `--verify` | | Verify context recognition | false |
+
+**Exit codes:**
+- `0` - Success
+- `1` - Process detection failed
+- `2` - Kill process failed
+- `3` - Restart failed
+
+### `kc tags`
+
+Work tag management and filtering.
+
+```bash
+kc tags [options]
+```
+
+**Options:**
+| Option | Short | Description | Default |
+|--------|-------|-------------|---------|
+| `--list` | `-l` | List all tags with counts | false |
+| `--filter <tags>` | `-f` | Filter snapshots by tags | - |
+| `--stats` | `-s` | Show tag statistics | false |
+| `--suggest <partial>` | | Suggest tags based on input | - |
+| `--merge` | | Suggest tag merges (typos) | false |
+| `--json` | `-j` | JSON output | false |
+
+**Tag filtering logic:**
+- Multiple tags use OR logic
+- Tags are normalized (lowercase, no spaces)
+- Partial matching supported with similarity algorithm
+
+**JSON output format:**
+```json
+{
+  "totalTags": 25,
+  "topTags": [
+    {"tag": "feature", "count": 12},
+    {"tag": "auth", "count": 8}
+  ],
+  "recentTags": ["feature", "bugfix", "api"]
+}
+```
+
+### `kc resume`
+
+One-key resume with optional save.
+
+```bash
+kc resume [options]
+```
+
+**Options:**
+| Option | Short | Description | Default |
+|--------|-------|-------------|---------|
+| `--message <msg>` | `-m` | Quick update message | Interactive |
+| `--tags <tags>` | `-t` | Tags for quick save | Auto-generated |
+| `--no-save` | | Skip saving, just resume | false |
+| `--no-inject` | | Skip context injection | false |
+| `--force` | `-f` | Force resume despite warnings | false |
+
+**Exit codes:**
+- `0` - Success
+- `1` - Save failed (if saving)
+- `2` - Resume failed
+- `3` - Health check failed
+
 ## Environment Variables
 
 ### Language & Debug
@@ -146,6 +228,7 @@ interface Snapshot {
   cwd?: string;         // Working directory
   gitBranch?: string;
   gitCommit?: string;
+  tags: string[];       // Work tags for organization
 }
 ```
 
@@ -210,4 +293,4 @@ fi
 
 ---
 
-**Note**: This reference covers v0.3.0 with the simplified 3-command structure.
+**Note**: This reference covers v0.4.0 with core 3 commands + advanced features.
