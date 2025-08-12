@@ -1,7 +1,7 @@
 {
   "name": "@kodama/claude",
   "version": "0.3.0",
-  "description": "Persistent context for Claude Code CLI - Unofficial extension to save decisions & resume sessions (kc)",
+  "description": "Kodama for Claude Code — Reliable session memory & smart restart for the Claude CLI",
   "main": "dist/index.js",
   "bin": {
     "kc": "./bin/kc.ts"

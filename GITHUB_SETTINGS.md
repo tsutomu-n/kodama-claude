@@ -2,7 +2,7 @@
 
 ## Description (About section)
 ```
-Persistent context for Claude Code CLI - Unofficial extension to save decisions & resume sessions (kc)
+Kodama for Claude Code — Reliable session memory & smart restart for the Claude CLI
 ```
 
 ## Website
@@ -41,9 +41,9 @@ wsl
 
 ## Why This Description Works
 
-- **Front-loaded keywords**: "Persistent context" and "Claude Code CLI" appear first
-- **Clear value prop**: "save decisions & resume sessions" 
-- **Legal safety**: "Unofficial extension" disclaimer
-- **Command hint**: "(kc)" helps users understand the CLI command
-- **Under 100 chars**: Fits GitHub's description limit
-- **SEO optimized**: Contains primary search terms users would use
+- **Product name first**: "Kodama for Claude Code" establishes brand identity
+- **Clear value props**: "Reliable session memory" and "smart restart" 
+- **Natural language**: "the Claude CLI" flows better than "Claude Code CLI"
+- **Professional tone**: Em dash (—) adds polish
+- **Under 100 chars**: 86 characters, fits GitHub's description limit
+- **SEO optimized**: Contains key search terms (session, memory, restart, Claude CLI)
