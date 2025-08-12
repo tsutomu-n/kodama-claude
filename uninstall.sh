@@ -121,8 +121,10 @@ check_installation() {
     
     if [ -d "$DATA_DIR" ]; then
         found=true
-        local snapshot_count=$(find "$DATA_DIR/snapshots" -name "*.json" 2>/dev/null | wc -l || echo 0)
-        local data_size=$(du -sh "$DATA_DIR" 2>/dev/null | cut -f1 || echo "0")
+        local snapshot_count
+        local data_size
+        snapshot_count=$(find "$DATA_DIR/snapshots" -name "*.json" 2>/dev/null | wc -l || echo 0)
+        data_size=$(du -sh "$DATA_DIR" 2>/dev/null | cut -f1 || echo "0")
         log "${BLUE}Found data:${NC} $DATA_DIR ($snapshot_count snapshots, $data_size)"
     fi
     
@@ -138,21 +140,25 @@ calculate_removal() {
     
     # Binary
     if [ -f "$BINARY_PATH" ]; then
-        local binary_size=$(du -h "$BINARY_PATH" 2>/dev/null | cut -f1 || echo "unknown")
+        local binary_size
+        binary_size=$(du -h "$BINARY_PATH" 2>/dev/null | cut -f1 || echo "unknown")
         log "${GREEN}Will remove:${NC}"
         log "  • Binary: $BINARY_PATH ($binary_size)"
     fi
     
     # Data
     if [ "$KEEP_DATA" = false ] && [ -d "$DATA_DIR" ]; then
-        local snapshot_count=$(find "$DATA_DIR/snapshots" -name "*.json" 2>/dev/null | wc -l || echo 0)
-        local data_size=$(du -sh "$DATA_DIR" 2>/dev/null | cut -f1 || echo "0")
+        local snapshot_count
+        local data_size
+        snapshot_count=$(find "$DATA_DIR/snapshots" -name "*.json" 2>/dev/null | wc -l || echo 0)
+        data_size=$(du -sh "$DATA_DIR" 2>/dev/null | cut -f1 || echo "0")
         log "  • Data directory: $DATA_DIR"
         log "    - $snapshot_count snapshot(s)"
         log "    - Total size: $data_size"
     elif [ -d "$DATA_DIR" ]; then
         log "\n${YELLOW}Will keep:${NC}"
-        local snapshot_count=$(find "$DATA_DIR/snapshots" -name "*.json" 2>/dev/null | wc -l || echo 0)
+        local snapshot_count
+        snapshot_count=$(find "$DATA_DIR/snapshots" -name "*.json" 2>/dev/null | wc -l || echo 0)
         log "  • Snapshots: $DATA_DIR/snapshots/ ($snapshot_count files)"
         log "  • Event log: $DATA_DIR/events.jsonl"
         log "\n  ${BLUE}ℹ️  Use --remove-all to delete data${NC}"
@@ -216,16 +222,56 @@ remove_binary() {
         if [ "$DRY_RUN" = true ]; then
             log "${BLUE}[DRY RUN]${NC} Would remove: $BINARY_PATH"
         else
+            # Validate binary path
+            if [[ "$BINARY_PATH" != */kc ]]; then
+                error "Unexpected binary path: $BINARY_PATH"
+                return 1
+            fi
+            
             # Check if we need sudo
             if [ -w "$BINARY_PATH" ] || [ -w "$(dirname "$BINARY_PATH")" ]; then
-                rm -f "$BINARY_PATH"
+                rm -f "$BINARY_PATH" || warning "Failed to remove binary"
             else
                 log "${YELLOW}Administrator access required${NC}"
-                sudo rm -f "$BINARY_PATH"
+                if command -v sudo &> /dev/null; then
+                    sudo rm -f "$BINARY_PATH" || warning "Failed to remove binary with sudo"
+                else
+                    error "Cannot remove binary without sudo access"
+                    return 1
+                fi
             fi
-            success "Binary removed"
+            
+            # Verify removal
+            if [ ! -f "$BINARY_PATH" ]; then
+                success "Binary removed"
+            else
+                warning "Binary may not have been removed completely"
+            fi
         fi
     fi
+}
+
+# Validate path safety
+validate_path() {
+    local path="$1"
+    
+    # Check if path is not empty and not root
+    if [ -z "$path" ] || [ "$path" = "/" ] || [ "$path" = "$HOME" ]; then
+        error "Refusing to remove unsafe path: $path"
+        return 1
+    fi
+    
+    # Check if path contains kodama-claude
+    if [[ "$path" != *"kodama-claude"* ]]; then
+        warning "Path does not contain 'kodama-claude': $path"
+        read -p "Are you sure you want to remove this? [y/N]: " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            return 1
+        fi
+    fi
+    
+    return 0
 }
 
 # Remove data
@@ -235,8 +281,12 @@ remove_data() {
             if [ "$DRY_RUN" = true ]; then
                 log "${BLUE}[DRY RUN]${NC} Would remove: $DATA_DIR"
             else
-                rm -rf "$DATA_DIR"
-                success "Data directory removed"
+                if validate_path "$DATA_DIR"; then
+                    rm -rf "$DATA_DIR"
+                    success "Data directory removed"
+                else
+                    warning "Skipped removing data directory"
+                fi
             fi
         fi
         
@@ -244,8 +294,12 @@ remove_data() {
             if [ "$DRY_RUN" = true ]; then
                 log "${BLUE}[DRY RUN]${NC} Would remove: $CONFIG_DIR"
             else
-                rm -rf "$CONFIG_DIR"
-                success "Config directory removed"
+                if validate_path "$CONFIG_DIR"; then
+                    rm -rf "$CONFIG_DIR"
+                    success "Config directory removed"
+                else
+                    warning "Skipped removing config directory"
+                fi
             fi
         fi
     fi

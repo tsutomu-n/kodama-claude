@@ -29,9 +29,18 @@ const CONFIG_DIR = join(homedir(), ".config", "kodama-claude");
 function getDirectorySize(dir: string): string {
   if (!existsSync(dir)) return "0";
   
-  const result = spawnSync("du", ["-sh", dir], { encoding: "utf-8" });
-  if (result.status === 0) {
-    return result.stdout.split("\t")[0];
+  try {
+    const result = spawnSync("du", ["-sh", dir], { 
+      encoding: "utf-8",
+      timeout: 5000 // 5 second timeout
+    });
+    if (result.status === 0 && result.stdout) {
+      return result.stdout.split("\t")[0] || "unknown";
+    }
+  } catch (error) {
+    if (config.debug) {
+      console.error("Failed to calculate directory size:", error);
+    }
   }
   return "unknown";
 }
@@ -104,17 +113,42 @@ function executeUninstall(options: UninstallOptions): void {
     join(homedir(), ".local", "share", "kodama-claude", "uninstall.sh")
   ];
   
-  let scriptPath = scriptPaths.find(p => existsSync(p));
+  let scriptPath = scriptPaths.find(p => {
+    try {
+      return existsSync(p);
+    } catch {
+      return false;
+    }
+  });
   
   if (!scriptPath) {
+    // Check if curl is available
+    const curlCheck = spawnSync("which", ["curl"], { encoding: "utf-8" });
+    if (curlCheck.status !== 0) {
+      console.error("❌ Uninstall script not found and curl is not available");
+      showManualInstructions(options);
+      process.exit(1);
+    }
+    
     // Fallback to downloading from GitHub
     console.log("📥 Downloading uninstall script...");
     const result = spawnSync("curl", [
       "-fsSL",
+      "--max-time", "30",
       "https://raw.githubusercontent.com/tsutomu-n/kodama-claude/main/uninstall.sh"
-    ], { encoding: "utf-8" });
+    ], { 
+      encoding: "utf-8",
+      timeout: 35000 // 35 second timeout
+    });
     
-    if (result.status === 0) {
+    if (result.status === 0 && result.stdout) {
+      // Validate downloaded script
+      if (!result.stdout.includes("KODAMA Claude - Uninstaller")) {
+        console.error("❌ Downloaded script appears invalid");
+        showManualInstructions(options);
+        process.exit(1);
+      }
+      
       // Execute downloaded script
       const bashResult = spawnSync("bash", ["-s", "--", ...args], {
         input: result.stdout,
@@ -123,21 +157,46 @@ function executeUninstall(options: UninstallOptions): void {
       process.exit(bashResult.status || 0);
     } else {
       console.error("❌ Failed to download uninstall script");
-      console.log("\nManual uninstall:");
-      console.log("  sudo rm /usr/local/bin/kc");
-      if (options.removeAll) {
-        console.log("  rm -rf ~/.local/share/kodama-claude");
+      if (result.stderr) {
+        console.error("Error:", result.stderr);
       }
+      showManualInstructions(options);
       process.exit(1);
     }
   }
   
-  // Execute local script
-  const result = spawnSync("bash", [scriptPath, ...args], {
-    stdio: "inherit"
-  });
+  // Validate script path
+  if (!scriptPath.includes("uninstall.sh")) {
+    console.error("❌ Invalid script path:", scriptPath);
+    process.exit(1);
+  }
   
-  process.exit(result.status || 0);
+  // Execute local script
+  try {
+    const result = spawnSync("bash", [scriptPath, ...args], {
+      stdio: "inherit"
+    });
+    
+    process.exit(result.status || 0);
+  } catch (error) {
+    console.error("❌ Failed to execute uninstall script:", error);
+    showManualInstructions(options);
+    process.exit(1);
+  }
+}
+
+/**
+ * Show manual uninstall instructions
+ */
+function showManualInstructions(options: UninstallOptions): void {
+  console.log("\n📝 Manual uninstall instructions:");
+  console.log("  sudo rm /usr/local/bin/kc");
+  if (options.removeAll) {
+    console.log("  rm -rf ~/.local/share/kodama-claude");
+    console.log("  rm -rf ~/.config/kodama-claude");
+  }
+  console.log("\nOr download and run the uninstall script:");
+  console.log("  curl -fsSL https://github.com/tsutomu-n/kodama-claude/releases/latest/download/uninstall.sh | bash");
 }
 
 /**

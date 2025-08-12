@@ -118,12 +118,24 @@ jobs:
             ## Checksums
             
             SHA256 checksums are available in `checksums.txt` for verification.
+            
+            ## Uninstallation
+            
+            To safely uninstall KODAMA Claude:
+            ```bash
+            # Keep your data (default)
+            kc uninstall
+            
+            # Or remove everything
+            kc uninstall --remove-all
+            ```
           files: |
             dist/kc-linux-x64
             dist/kc-linux-arm64
             dist/checksums.txt
             dist/checksums.sha256
             install.sh
+            uninstall.sh
 
   docker:
     name: Build Docker Image (Optional)

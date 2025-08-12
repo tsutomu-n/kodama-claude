@@ -48,10 +48,10 @@ program
   .option("-s, --strict", "Exit with code 1 on danger (for CI/CD)")
   .action(statusCommand);
 
-// Uninstall command (hidden from main help)
+// Uninstall command
 program
-  .command("uninstall", { hidden: true })
-  .description("Uninstall KODAMA Claude")
+  .command("uninstall")
+  .description("Safely uninstall KODAMA Claude (preserves data by default)")
   .option("--remove-all", "Remove all data including snapshots")
   .option("--dry-run", "Show what would be removed without removing")
   .option("-f, --force", "Skip confirmation prompts")
