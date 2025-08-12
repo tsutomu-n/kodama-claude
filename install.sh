@@ -151,14 +151,22 @@ main() {
             return 1
         fi
         
-        # Check for Kodama in help output
-        if "$binary" --help 2>&1 | grep -qi "kodama.*claude"; then
+        # Check version output for Kodama signature
+        local version_output
+        version_output=$("$binary" --version 2>&1 | head -1 || true)
+        if [[ "$version_output" =~ ^Kodama\ for\ Claude\ Code ]]; then
             return 0
         fi
         
-        # Check for Kodama-specific subcommands
-        if "$binary" go --help 2>&1 | grep -qi "claude.*context"; then
-            return 0
+        # Legacy check for old versions
+        if [[ "$version_output" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            # Plain version number might be old Kodama
+            # Check for Kodama-specific subcommands
+            if "$binary" go --help 2>&1 | grep -qi "claude.*context" && \
+               "$binary" save --help 2>&1 | grep -qi "snapshot" && \
+               "$binary" status --help 2>&1 | grep -qi "health"; then
+                return 0
+            fi
         fi
         
         return 1

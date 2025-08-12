@@ -2,14 +2,22 @@
  * Shared Git utility functions
  */
 
-import { execSync } from "child_process";
+import { spawnSync } from "child_process";
 
 /**
  * Get current git branch
  */
 export function getGitBranch(): string | undefined {
   try {
-    return execSync("git branch --show-current", { encoding: "utf-8" }).trim();
+    const result = spawnSync("git", ["branch", "--show-current"], { 
+      encoding: "utf-8",
+      shell: false
+    });
+    
+    if (result.status === 0 && result.stdout) {
+      return result.stdout.trim();
+    }
+    return undefined;
   } catch {
     return undefined;
   }
@@ -20,7 +28,15 @@ export function getGitBranch(): string | undefined {
  */
 export function getGitCommit(): string | undefined {
   try {
-    return execSync("git rev-parse --short HEAD", { encoding: "utf-8" }).trim();
+    const result = spawnSync("git", ["rev-parse", "--short", "HEAD"], { 
+      encoding: "utf-8",
+      shell: false
+    });
+    
+    if (result.status === 0 && result.stdout) {
+      return result.stdout.trim();
+    }
+    return undefined;
   } catch {
     return undefined;
   }

@@ -8,7 +8,7 @@ import { cwd } from "process";
 import { readFileSync, existsSync, writeFileSync, unlinkSync } from "fs";
 import { tmpdir } from "os";
 import { join } from "path";
-import { execSync } from "child_process";
+import { spawnSync } from "child_process";
 import * as readline from "readline/promises";
 import { Storage } from "./storage";
 import { ClaudeMdManager } from "./claudeMdManager";
@@ -323,21 +323,26 @@ async function trySystemClipboard(text: string): Promise<boolean> {
   
   for (const { cmd, args } of commands) {
     try {
-      // Check if command exists
-      execSync(`which ${cmd}`, { stdio: "ignore" });
-      
-      // Try to copy
-      const proc = require("child_process").spawn(cmd, args, {
-        stdio: ["pipe", "ignore", "ignore"],
+      // Check if command exists (safe)
+      const checkResult = spawnSync("which", [cmd], { 
+        encoding: "utf-8",
+        shell: false
       });
       
-      proc.stdin.write(text);
-      proc.stdin.end();
-      
-      // Wait a bit for the command to complete
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      return true;
+      if (checkResult.status === 0) {
+        // Try to copy
+        const proc = require("child_process").spawn(cmd, args, {
+          stdio: ["pipe", "ignore", "ignore"],
+        });
+        
+        proc.stdin.write(text);
+        proc.stdin.end();
+        
+        // Wait a bit for the command to complete
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        return true;
+      }
     } catch {
       // Try next command
     }

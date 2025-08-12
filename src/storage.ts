@@ -56,8 +56,12 @@ export class Storage {
         const dirFd = openSync(dir, "r");
         fsyncSync(dirFd);
         closeSync(dirFd);
-      } catch {
-        // Directory fsync may fail on some filesystems
+      } catch (error) {
+        // Directory fsync may fail on some filesystems (e.g., NFS, some FUSE)
+        // This is non-critical as the file itself is already synced
+        if (config.debug) {
+          console.warn("Directory fsync failed (non-critical):", error);
+        }
       }
     }
   }

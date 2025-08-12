@@ -1,6 +1,6 @@
-# KODAMA Claude Documentation
+# Kodama for Claude Code Documentation
 
-Welcome to the complete documentation for KODAMA Claude.
+Welcome to the complete documentation for Kodama for Claude Code.
 
 ## 📚 Documentation Structure
 
@@ -24,7 +24,7 @@ Welcome to the complete documentation for KODAMA Claude.
 
 | What do you want to do? | Go to this page |
 |-------------------------|-----------------|
-| Install KODAMA Claude | [Getting Started](getting-started.md#installation) |
+| Install Kodama for Claude Code | [Getting Started](getting-started.md#installation) |
 | Learn basic commands | [Usage Guide](usage-guide.md#basic-commands) |
 | See real examples | [Examples](examples.md) |
 | Fix an error | [Troubleshooting](troubleshooting.md) |
@@ -54,7 +54,7 @@ Welcome to the complete documentation for KODAMA Claude.
 - [Claude not found](troubleshooting.md#claude-not-found)
 - [Permission denied](troubleshooting.md#permission-errors)
 - [File lock errors](troubleshooting.md#file-locks)
-- [API key problems](troubleshooting.md#api-key)
+- [Authentication problems](troubleshooting.md#authentication)
 
 ## 📖 How to Read This Documentation
 

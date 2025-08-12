@@ -8,7 +8,7 @@ import { cwd } from "process";
 import { writeFileSync } from "fs";
 import { tmpdir } from "os";
 import { join } from "path";
-import { execSync } from "child_process";
+import { spawnSync } from "child_process";
 import { Storage } from "./storage";
 import { Guardian } from "./guardian";
 import { ClaudeCLI } from "./claude";
@@ -225,16 +225,23 @@ async function fallbackPaste(text: string): Promise<void> {
   
   for (const { cmd, args } of commands) {
     try {
-      execSync(`which ${cmd}`, { stdio: "ignore" });
-      const proc = require("child_process").spawn(cmd, args, {
-        stdio: ["pipe", "ignore", "ignore"],
+      // Check if command exists (safe)
+      const checkResult = spawnSync("which", [cmd], { 
+        encoding: "utf-8",
+        shell: false
       });
-      proc.stdin.write(text);
-      proc.stdin.end();
-      await new Promise(resolve => setTimeout(resolve, 100));
-      console.log("✅ Context copied to clipboard");
-      console.log("💡 Paste it when Claude opens");
-      return;
+      
+      if (checkResult.status === 0) {
+        const proc = require("child_process").spawn(cmd, args, {
+          stdio: ["pipe", "ignore", "ignore"],
+        });
+        proc.stdin.write(text);
+        proc.stdin.end();
+        await new Promise(resolve => setTimeout(resolve, 100));
+        console.log("✅ Context copied to clipboard");
+        console.log("💡 Paste it when Claude opens");
+        return;
+      }
     } catch {
       // Try next
     }
