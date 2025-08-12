@@ -23,10 +23,10 @@ run_test() {
     
     if eval "$test_command" > /dev/null 2>&1; then
         echo -e "${GREEN}✓${NC}"
-        ((TESTS_PASSED++))
+        TESTS_PASSED=$((TESTS_PASSED + 1))
     else
         echo -e "${RED}✗${NC}"
-        ((TESTS_FAILED++))
+        TESTS_FAILED=$((TESTS_FAILED + 1))
     fi
 }
 
@@ -73,14 +73,19 @@ run_test "Invalid command handling" "! $KC invalid-command"
 
 # Test 10: Binary size check
 echo -n "Testing: Binary size optimization ... "
-SIZE=$(stat -c%s dist/kc-linux-x64 2>/dev/null || stat -f%z dist/kc-linux-x64 2>/dev/null)
-SIZE_MB=$((SIZE / 1024 / 1024))
-if [ $SIZE_MB -lt 150 ]; then
-    echo -e "${GREEN}✓${NC} (${SIZE_MB}MB)"
-    ((TESTS_PASSED++))
+if [ -f "dist/kc-linux-x64" ]; then
+    SIZE=$(stat -c%s dist/kc-linux-x64 2>/dev/null || stat -f%z dist/kc-linux-x64 2>/dev/null || wc -c < dist/kc-linux-x64)
+    SIZE_MB=$((SIZE / 1024 / 1024))
+    if [ $SIZE_MB -lt 150 ]; then
+        echo -e "${GREEN}✓${NC} (${SIZE_MB}MB)"
+        TESTS_PASSED=$((TESTS_PASSED + 1))
+    else
+        echo -e "${YELLOW}⚠${NC} (${SIZE_MB}MB - larger than expected)"
+        TESTS_PASSED=$((TESTS_PASSED + 1))
+    fi
 else
-    echo -e "${YELLOW}⚠${NC} (${SIZE_MB}MB - larger than expected)"
-    ((TESTS_PASSED++))
+    echo -e "${RED}✗${NC} (file not found)"
+    TESTS_FAILED=$((TESTS_FAILED + 1))
 fi
 
 echo ""
