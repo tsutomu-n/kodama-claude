@@ -115,12 +115,16 @@ rm -rf ~/.local/share/kodama-claude
 
 ## Usage
 
-### Only 3 Commands
+### Core 3 Commands + Uninstall
 
 ```bash
+# Core workflow commands
 kc go       # Start Claude (health check → inject → REPL)
 kc save     # Save snapshot & paste
 kc status   # Check health (🟢/🟡/🔴/❓)
+
+# Maintenance
+kc uninstall # Safe removal (preserves data by default)
 ```
 
 That's it. No complex workflows. No feature creep. No cognitive overhead.
