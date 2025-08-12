@@ -20,13 +20,15 @@ translations:
     translations:
       ja:
         path: CONTRIBUTING.ja.md
-        status: missing
+        status: translated
+        last_sync: "2025-01-12"
   
   - source: CHANGELOG.md
     translations:
       ja:
         path: CHANGELOG.ja.md
-        status: missing
+        status: translated
+        last_sync: "2025-01-12"
 
   # Documentation files
   - source: docs/en/README.md
@@ -97,8 +99,8 @@ statistics:
   total_files: 12
   languages:
     ja:
-      translated: 2
+      translated: 4
       placeholder: 8
       outdated: 0
-      missing: 2
-      completion: "17%"
+      missing: 0
+      completion: "33%"

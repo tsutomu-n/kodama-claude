@@ -4,14 +4,14 @@ on:
   pull_request:
     paths:
       - 'docs/**'
-      - 'README*.md'
+      - '*.md'
       - '.github/translation-status.yml'
   push:
     branches:
       - main
     paths:
       - 'docs/**'
-      - 'README*.md'
+      - '*.md'
 
 jobs:
   check-structure:
@@ -42,7 +42,7 @@ jobs:
           
           echo "✅ Documentation structure check passed"
       
-      - name: Check README files
+      - name: Check root documentation files
         run: |
           # Check main README files exist
           if [ ! -f "README.md" ]; then
@@ -55,7 +55,16 @@ jobs:
             exit 1
           fi
           
-          echo "✅ README files check passed"
+          # Check for Japanese translations of important root docs
+          if [ -f "CONTRIBUTING.md" ] && [ ! -f "CONTRIBUTING.ja.md" ]; then
+            echo "⚠️ Missing CONTRIBUTING.ja.md"
+          fi
+          
+          if [ -f "CHANGELOG.md" ] && [ ! -f "CHANGELOG.ja.md" ]; then
+            echo "⚠️ Missing CHANGELOG.ja.md"
+          fi
+          
+          echo "✅ Root documentation files check passed"
       
       - name: Validate translation status
         run: |
@@ -72,8 +81,8 @@ jobs:
           # Simple check for broken internal links
           echo "Checking for broken internal links..."
           
-          # Check English docs
-          for file in docs/en/*.md README.md; do
+          # Check English docs and root files
+          for file in docs/en/*.md README.md CONTRIBUTING.md CHANGELOG.md; do
             if [ -f "$file" ]; then
               # Look for markdown links
               grep -oE '\[([^\]]+)\]\(([^)]+)\)' "$file" | grep -oE '\(([^)]+)\)' | tr -d '()' | while read -r link; do
