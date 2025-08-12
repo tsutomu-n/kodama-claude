@@ -97,7 +97,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ steps.version.outputs.version }}
-          name: KODAMA Claude ${{ steps.version.outputs.version }}
+          name: Kodama for Claude Code ${{ steps.version.outputs.version }}
           draft: false
           prerelease: ${{ contains(steps.version.outputs.version, '-') }}
           generate_release_notes: true
@@ -121,7 +121,7 @@ jobs:
             
             ## Uninstallation
             
-            To safely uninstall KODAMA Claude:
+            To safely uninstall Kodama for Claude Code:
             ```bash
             # Keep your data (default)
             kc uninstall
