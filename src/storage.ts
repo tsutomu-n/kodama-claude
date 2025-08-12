@@ -10,12 +10,14 @@ import { config } from "./config";
 import { SnapshotSchema, EventLogEntrySchema, type Snapshot, type EventLogEntry, getStoragePaths } from "./types";
 import { getMessage, formatError } from "./i18n";
 import { PerfTimer } from "./performance";
+import { isSameFilesystem, getExistingParent, cleanupTmpFiles, FileLock } from "./utils/fs";
 
 export class Storage {
   private paths = getStoragePaths();
   
   constructor() {
     this.ensureDirectories();
+    this.cleanupOldTmpFiles();
   }
   
   private ensureDirectories() {
@@ -27,42 +29,102 @@ export class Storage {
     }
   }
   
-  /**
-   * Atomic write with fsync - Using Bun's optimized file operations
-   */
-  private async writeAtomic(path: string, data: string) {
-    const tmpPath = `${path}.tmp.${randomUUID()}`;
-    const dir = dirname(path);
-    
-    // Ensure directory exists
-    if (!existsSync(dir)) {
-      mkdirSync(dir, { recursive: true, mode: 0o700 });
+  private cleanupOldTmpFiles() {
+    // Clean up any tmp files from previous crashes
+    const cleaned = cleanupTmpFiles(this.paths.snapshots);
+    if (cleaned > 0 && config.debug) {
+      console.log(`♻️  Cleaned ${cleaned} old tmp files`);
     }
+  }
+  
+  /**
+   * Atomic write with enhanced robustness
+   * - Same filesystem check for atomic rename
+   * - Two-stage fsync (file → dir → rename → dir)
+   * - Short-lived locks with timeout
+   * - Automatic rollback on failure
+   */
+  private async writeAtomic(path: string, data: string): Promise<void> {
+    const dir = dirname(path);
+    const lock = new FileLock(path);
+    let tmpPath: string | null = null;
     
-    // Use Bun's optimized write function
-    await write(tmpPath, data);
-    
-    // fsync to ensure data is on disk
-    const fd = openSync(tmpPath, "r");
-    fsyncSync(fd);
-    closeSync(fd);
-    
-    // Atomic rename
-    renameSync(tmpPath, path);
-    
-    // fsync directory (Linux)
-    if (process.platform === "linux") {
-      try {
-        const dirFd = openSync(dir, "r");
-        fsyncSync(dirFd);
-        closeSync(dirFd);
-      } catch (error) {
-        // Directory fsync may fail on some filesystems (e.g., NFS, some FUSE)
-        // This is non-critical as the file itself is already synced
-        if (config.debug) {
-          console.warn("Directory fsync failed (non-critical):", error);
+    try {
+      // Try to acquire lock (max 500ms)
+      if (!await lock.tryAcquire(500, 3)) {
+        throw new Error(`Could not acquire lock for ${path} within timeout`);
+      }
+      
+      // Ensure directory exists
+      if (!existsSync(dir)) {
+        mkdirSync(dir, { recursive: true, mode: 0o700 });
+      }
+      
+      // Check if we can do atomic rename (same filesystem)
+      const existingParent = getExistingParent(path);
+      const sameFS = existingParent ? isSameFilesystem(existingParent, dir) : true;
+      
+      if (!sameFS && config.debug) {
+        console.warn("⚠️  Different filesystem detected, using safe mode");
+      }
+      
+      // Create tmp file in same directory for atomic rename
+      tmpPath = sameFS 
+        ? join(dir, `.tmp.${randomUUID()}`)
+        : `${path}.tmp.${randomUUID()}`;
+      
+      // Write data to tmp file
+      await write(tmpPath, data);
+      
+      // Stage 1: fsync the tmp file
+      const tmpFd = openSync(tmpPath, "r");
+      fsyncSync(tmpFd);
+      closeSync(tmpFd);
+      
+      // Stage 2: fsync parent directory (pre-rename)
+      if (process.platform === "linux") {
+        try {
+          const dirFd = openSync(dir, "r");
+          fsyncSync(dirFd);
+          closeSync(dirFd);
+        } catch {
+          // Non-critical on some filesystems
         }
       }
+      
+      // Stage 3: Atomic rename
+      renameSync(tmpPath, path);
+      tmpPath = null; // Mark as successfully renamed
+      
+      // Stage 4: fsync parent directory (post-rename)
+      if (process.platform === "linux") {
+        try {
+          const dirFd = openSync(dir, "r");
+          fsyncSync(dirFd);
+          closeSync(dirFd);
+        } catch (error) {
+          // Non-critical but log in debug
+          if (config.debug) {
+            console.warn("Post-rename dir fsync failed (non-critical):", error);
+          }
+        }
+      }
+    } catch (error) {
+      // Rollback: remove tmp file if it exists
+      if (tmpPath && existsSync(tmpPath)) {
+        try {
+          const fs = await import("fs");
+          fs.unlinkSync(tmpPath);
+        } catch {
+          // Best effort cleanup
+        }
+      }
+      
+      // Re-throw with context
+      throw new Error(`Atomic write failed for ${path}: ${error}`);
+    } finally {
+      // Always release lock
+      lock.release();
     }
   }
   
