@@ -43,7 +43,7 @@ export const ConfigSchema = z.object({
 
 export type Config = z.infer<typeof ConfigSchema>;
 
-// Claude CLI result
+// Claude result
 export interface ClaudeResult {
   success: boolean;
   output?: string;

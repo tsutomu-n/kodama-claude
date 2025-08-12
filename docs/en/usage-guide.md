@@ -166,7 +166,7 @@ export KODAMA_AUTO_ARCHIVE=false # Disable 30-day auto-archive
 
 | Problem | Solution |
 |---------|----------|
-| "Claude not found" | Install Claude CLI first |
+| "Claude not found" | Install Claude first |
 | "No snapshots" | Create first with `kc save` |
 | Red status (🔴) | Run `kc save` immediately |
 | Clipboard not working | Falls back to temp file automatically |

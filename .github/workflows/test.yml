@@ -1,0 +1,86 @@
+name: Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 'latest'
+      
+      - name: Install dependencies
+        run: bun install
+      
+      - name: Run type checking
+        run: bun run typecheck
+      
+      - name: Run unit tests
+        run: bun test
+      
+      - name: Run test coverage
+        run: bun test --coverage
+        continue-on-error: true
+
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 'latest'
+      
+      - name: Install dependencies
+        run: bun install
+      
+      - name: Build binary
+        run: bun run build
+      
+      - name: Run integration tests
+        run: bash scripts/integration-test.sh
+      
+      - name: Test installer script
+        run: |
+          # Test that installer script has correct syntax
+          bash -n install.sh
+          bash -n uninstall.sh
+
+  lint:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 'latest'
+      
+      - name: Install dependencies
+        run: bun install
+      
+      - name: Check formatting
+        run: bun run format --check
+        continue-on-error: true
+      
+      - name: Security audit
+        run: bun audit
+        continue-on-error: true

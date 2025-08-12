@@ -7,7 +7,7 @@ Solutions for common problems and errors.
 ## Table of Contents
 - [Quick Diagnosis](#quick-diagnosis)
 - [Installation Issues](#installation-issues)
-- [Claude CLI Problems](#claude-cli-problems)
+- [Claude Problems](#claude-cli-problems)
 - [Storage and Permission Errors](#storage-and-permission-errors)
 - [Snapshot Issues](#snapshot-issues)
 - [Session Problems](#session-problems)
@@ -26,7 +26,7 @@ kc status
 
 This checks:
 - ✅ KODAMA installation
-- ✅ Claude CLI availability  
+- ✅ Claude availability  
 - ✅ Storage permissions
 - ✅ Git installation
 - ✅ Snapshot integrity
@@ -37,7 +37,7 @@ This checks:
 |---------|----------------|
 | "command not found" | `export PATH=$PATH:/usr/local/bin` |
 | "permission denied" | `sudo chmod +x /usr/local/bin/kc` |
-| "Claude not found" | Install Claude CLI |
+| "Claude not found" | Install Claude |
 | "API key error" | `export ANTHROPIC_API_KEY="sk-ant-..."` |
 | Can't save snapshots | `chmod 755 ~/.local/share/kodama-claude` |
 
@@ -130,9 +130,9 @@ chmod +x kc-linux-*
 sudo mv kc-linux-* /usr/local/bin/kc
 ```
 
-## Claude CLI Problems
+## Claude Problems
 
-### Problem: "Claude CLI not found"
+### Problem: "Claude not found"
 
 **Diagnosis**:
 ```bash
@@ -143,7 +143,7 @@ claude --version
 
 **Solution**:
 ```bash
-# Install Claude Code CLI (official method)
+# Install Claude Code (official method)
 npm install -g @anthropic-ai/claude-code
 
 # Verify installation
@@ -500,7 +500,7 @@ rm -rf /tmp/kodama-*
 |--------------|-------|----------|
 | `kc: command not found` | Not installed or not in PATH | Add to PATH or reinstall |
 | `Permission denied` | No execute permission | `chmod +x /usr/local/bin/kc` |
-| `Claude CLI not found` | Claude not installed | Install Claude CLI |
+| `Claude not found` | Claude not installed | Install Claude |
 | `unknown option '--system'` | Old v0.1.0 version | See [v0.1.0 upgrade](#upgrade-from-v010) |
 | `Missing API key` | ANTHROPIC_API_KEY not set | Set environment variable |
 | `Invalid JSON` | Corrupted snapshot | Use previous snapshot |
@@ -776,7 +776,7 @@ When asking for help, include:
     uname -a
     echo "=== KODAMA Version ==="
     kc --version
-    echo "=== Claude CLI ==="
+    echo "=== Claude ==="
     claude --version
     echo "=== Doctor Output ==="
     kc status

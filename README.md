@@ -2,13 +2,13 @@
 
 [🇯🇵 日本語](README.ja.md) | [🌐 English](README.md)
 
-Minimal Claude Code CLI extension for persistent dialogue memory.
+Minimal Claude Code extension for persistent dialogue memory.
 
-> **What is Claude Code CLI?** Anthropic's official terminal AI assistant. Writes, debugs, and refactors code using natural language. Can resume conversations with `--continue` / `--resume`, but **lacks structured storage for decisions and next steps**. KODAMA solves this.
+> **What is Claude Code?** Anthropic's official terminal AI assistant. Writes, debugs, and refactors code using natural language. Can resume conversations with `--continue` / `--resume`, but **lacks structured storage for decisions and next steps**. KODAMA solves this.
 
 ## Philosophy
 
-> "Less is more" - KODAMA only does what KODAMA can uniquely do for Claude Code CLI.
+> "Less is more" - KODAMA only does what KODAMA can uniquely do for Claude Code.
 
 KODAMA stores **human decision logs** in structured format. When `/clear` erases conversation history or sessions switch, **work context remains intact**.
 
@@ -40,36 +40,7 @@ chmod +x kc-linux-x64
 sudo mv kc-linux-x64 /usr/local/bin/kc
 ```
 
-## ⚠️ Migration from v0.1.0 to v0.3.0
-
-**Breaking Changes:** v0.3.0 completely redesigned the command structure.
-
-### Old Commands (v0.1.0) → New Commands (v0.3.0)
-```bash
-# Old → New
-kc snap     → kc save
-kc check    → kc status
-kc send     → (integrated into kc save)
-kc plan     → (removed - auto-displayed)
-kc doctor   → kc status
-```
-
-### If you have v0.1.0 installed
-```bash
-# 1. Uninstall old version
-sudo rm /usr/local/bin/kc
-
-# 2. Install new version
-curl -fsSL https://github.com/tsutomu-n/kodama-claude/releases/latest/download/install.sh | bash
-
-# 3. Verify version
-kc --version  # Should show 0.3.0
-```
-
-### Known Issue with v0.1.0
-If you see error `unknown option '--system'`, you have v0.1.0. Please upgrade.
-
-**Note**: The installer now automatically detects and removes v0.1.0 if present.
+> **Upgrading from older versions?** See the [Migration Guide](docs/en/migration.md)
 
 ## Uninstallation
 
@@ -361,7 +332,7 @@ A: Integrated into the 3 core commands:
 A: `kc go` uses `claude -c -p "<context>"` to inject, then `claude --continue` to open REPL. Most reliable method per official docs.
 
 **Q: Why no token percentages?**  
-A: Claude CLI doesn't reliably expose this. We use heuristic-based 4-value status (🟢/🟡/🔴/❓) instead.
+A: Claude doesn't reliably expose this. We use heuristic-based 4-value status (🟢/🟡/🔴/❓) instead.
 
 **Q: Why use snapshots instead of Git?**  
 A: Git and snapshots are complementary:

@@ -73,7 +73,7 @@ describe("i18n", () => {
 
     test("should return English Claude not found message", () => {
       expect(getMessage("claudeNotFound")).toBe(
-        "Claude Code CLI not found. Please install: npm install -g @anthropic/claude"
+        "Claude Code not found. Please install: npm install -g @anthropic/claude"
       );
     });
 
@@ -113,7 +113,7 @@ describe("i18n", () => {
 
     test("should return Japanese Claude not found message", () => {
       expect(getMessage("claudeNotFound")).toBe(
-        "Claude Code CLIが見つかりません。インストールしてください: npm install -g @anthropic/claude"
+        "Claude Codeが見つかりません。インストールしてください: npm install -g @anthropic/claude"
       );
     });
 

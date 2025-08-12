@@ -30,7 +30,7 @@ kc go [options]
 
 **Exit codes:**
 - `0` - Success
-- `1` - Claude CLI not found
+- `1` - Claude not found
 - `2` - Context injection failed
 
 ### `kc save`
@@ -203,7 +203,7 @@ fi
 |------|---------|
 | 0 | Success |
 | 1 | General error |
-| 2 | Claude CLI not found |
+| 2 | Claude not found |
 | 3 | Storage error |
 | 4 | Permission denied |
 | 127 | Command not found |

@@ -48,7 +48,7 @@ KODAMA Claudeの完全なドキュメントへようこそ。
 - [チーム協業](examples.md#team-work)
 
 ### エラー修正
-- [Claude CLIが見つからない](troubleshooting.md#claude-not-found)
+- [Claudeが見つからない](troubleshooting.md#claude-not-found)
 - [権限エラー](troubleshooting.md#permission-errors)
 - [ファイルロックエラー](troubleshooting.md#file-locks)
 - [APIキーの問題](troubleshooting.md#api-key)

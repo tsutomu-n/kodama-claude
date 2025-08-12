@@ -14,10 +14,10 @@ This guide helps you install and start using KODAMA Claude.
 
 ## What is KODAMA Claude?
 
-KODAMA Claude helps Claude CLI remember your work between sessions.
+KODAMA Claude helps Claude remember your work between sessions.
 
 ### The Problem
-When you close Claude CLI, it forgets everything:
+When you close Claude, it forgets everything:
 - What you were working on
 - What decisions you made
 - What to do next
@@ -52,7 +52,7 @@ You need these things on your computer:
 | What | Version | How to check | How to install |
 |------|---------|--------------|----------------|
 | **Linux/WSL** | Any | `uname -a` | [WSL Guide](https://docs.microsoft.com/windows/wsl/install) |
-| **Claude CLI** | Latest | `claude --version` | [Claude Docs](https://claude.ai/cli) |
+| **Claude** | Latest | `claude --version` | [Claude Docs](https://claude.ai/cli) |
 | **Bash** | 4.0+ | `bash --version` | Usually pre-installed |
 | **curl** | Any | `curl --version` | `sudo apt install curl` |
 
@@ -67,7 +67,7 @@ uname -a && claude --version && bash --version && curl --version
 ✅ **Good output** looks like:
 ```
 Linux hostname 5.15.0 ...
-Claude CLI version 0.x.x
+Claude version 0.x.x
 GNU bash, version 5.x.x ...
 curl 7.x.x ...
 ```
@@ -230,7 +230,7 @@ kc status
 
 ⚠️ **If you see errors**, check [Troubleshooting](troubleshooting.md).
 
-### Step 2: Set Up Claude CLI
+### Step 2: Set Up Claude
 
 Claude Code uses OAuth authentication instead of API keys:
 ```bash
@@ -310,7 +310,7 @@ kc go
 What you'll see:
 ```
 No previous context found. Starting fresh.
-Starting Claude CLI...
+Starting Claude...
 ```
 
 ### 2. Work with Claude
@@ -434,7 +434,7 @@ Print this and keep it nearby:
 |---------|----------|
 | "kc: command not found" | Add `/usr/local/bin` to PATH |
 | "Permission denied" | Use `sudo` for install commands |
-| "Claude CLI not found" | Install Claude CLI first |
+| "Claude not found" | Install Claude first |
 | "Authentication required" | Run `claude` to authenticate via browser |
 | "Too many old decisions shown" | 5-decision limit is default in v0.2.0+ |
 

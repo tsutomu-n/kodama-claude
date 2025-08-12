@@ -2,15 +2,15 @@
 
 [🇯🇵 日本語](README.ja.md) | [🌐 English](README.md)
 
-Claude Code CLI のための永続対話メモリ拡張ツール
+Claude Code のための永続対話メモリ拡張ツール
 
-> **Claude Code CLI とは**: Anthropic の公式ターミナルAIアシスタント。自然言語でコードを書き、デバッグし、リファクタリングする。`--continue` / `--resume` で会話を再開できるが、**意思決定や次のステップを構造化して保持する仕組みではない**。KODAMA がこの問題を解決。
+> **Claude Code とは**: Anthropic の公式ターミナルAIアシスタント。自然言語でコードを書き、デバッグし、リファクタリングする。`--continue` / `--resume` で会話を再開できるが、**意思決定や次のステップを構造化して保持する仕組みではない**。KODAMA がこの問題を解決。
 
 ## 始める前に
 
 ### 必要なもの
 
-1. **Claude Code CLI** - [公式インストールガイド](https://docs.anthropic.com/en/docs/claude-code/setup)
+1. **Claude Code** - [公式インストールガイド](https://docs.anthropic.com/en/docs/claude-code/setup)
    ```bash
    # macOS/Linux
    curl -fsSL https://claude.ai/install.sh | bash
@@ -25,7 +25,7 @@ Claude Code CLI のための永続対話メモリ拡張ツール
 
 ## 理念
 
-> 「Less is more」 ― KODAMA は、Claude Code CLI に対して必要なことだけをやる。
+> 「Less is more」 ― KODAMA は、Claude Code に対して必要なことだけをやる。
 
 KODAMA Claude は **人間の意思決定ログ** を外部に構造化して保存する軽量ツール。`/clear` で会話履歴が消えても、セッションを切り替えても、**作業文脈を損なわない**設計。
 
@@ -37,12 +37,12 @@ KODAMA Claude は **人間の意思決定ログ** を外部に構造化して保
 curl -fsSL https://github.com/tsutomu-n/kodama-claude/releases/latest/download/install.sh | bash
 ```
 
-⚠️ **v0.1.0からのアップグレード**: 既にv0.1.0がインストールされている場合は、先に削除してください：
-```bash
-# 古いバージョンを完全削除してから再インストール
-sudo rm -f /usr/local/bin/kc
-curl -fsSL https://github.com/tsutomu-n/kodama-claude/releases/latest/download/install.sh | bash
-```
+**自動処理内容:**
+- 古いバージョン（v0.1.0、v0.2.0）を自動検出・削除
+- アーキテクチャに適したバイナリをダウンロード
+- SHA256チェックサムを検証
+- `/usr/local/bin/kc`にインストール
+- 開始する3つのコマンドを表示
 
 ### 手動インストール
 
@@ -57,6 +57,8 @@ chmod +x kc-linux-x64
 sudo mv kc-linux-x64 /usr/local/bin/kc
 ```
 
+> **古いバージョンからのアップグレード？** [マイグレーションガイド](docs/ja/migration.md)を参照
+
 ## インストール後の最初の10分
 
 ### 1. 動作確認
@@ -66,9 +68,9 @@ sudo mv kc-linux-x64 /usr/local/bin/kc
 $ kc --version
 0.3.0
 
-# Claude CLIの確認
+# Claude Codeの確認
 $ claude --version
-Claude CLI version 1.0.x
+Claude Code version 1.0.x
 
 # KODAMAの状態確認
 $ kc status
@@ -388,7 +390,7 @@ export KODAMA_LANG=ja              # 日本語エラーメッセージ
 |------|------|
 | `kc: コマンドが見つかりません` | `/usr/local/bin` を PATH に追加 |
 | `権限がありません` | `sudo chmod +x /usr/local/bin/kc` |
-| `Claude Code CLI が見つかりません` | [Claude Code CLI をインストール](https://docs.anthropic.com/en/docs/claude-code/setup) |
+| `Claude Code が見つかりません` | [Claude Code をインストール](https://docs.anthropic.com/en/docs/claude-code/setup) |
 | `認証が必要` | `claude` で OAuth 認証（ブラウザが開きます） |
 | スナップショット保存に失敗 | `chmod 755 ~/.local/share/kodama-claude` |
 | `unknown option '--system'` | 古いv0.1.0がインストールされている → [再インストール手順](#v010からのアップグレード) |
@@ -400,7 +402,7 @@ export KODAMA_LANG=ja              # 日本語エラーメッセージ
    kc status
    ```
 
-2. **Claude CLIの確認**
+2. **Claude Codeの確認**
    ```bash
    claude --version
    claude doctor  # 診断ツール
@@ -462,7 +464,7 @@ A: 3つのコアコマンドに統合：
 A: `kc go`は`claude -c -p "<context>"`で注入後、`claude --continue`でREPLを開く。公式ドキュメント準拠の最も確実な方法。
 
 **Q: なぜトークン%を表示しない？**  
-A: Claude CLIはこれを確実に公開していない。代わりにヒューリスティックベースの4値状態（🟢/🟡/🔴/❓）を使用。
+A: Claude Codeはこれを確実に公開していない。代わりにヒューリスティックベースの4値状態（🟢/🟡/🔴/❓）を使用。
 
 **Q: なぜ Git ではなくスナップショットを使うのか？**  
 A: Git とスナップショットは補完関係：

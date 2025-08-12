@@ -49,7 +49,7 @@ Welcome to the complete documentation for KODAMA Claude.
 - [Team collaboration](examples.md#team-work)
 
 ### Fixing Errors
-- [Claude CLI not found](troubleshooting.md#claude-not-found)
+- [Claude not found](troubleshooting.md#claude-not-found)
 - [Permission denied](troubleshooting.md#permission-errors)
 - [File lock errors](troubleshooting.md#file-locks)
 - [API key problems](troubleshooting.md#api-key)

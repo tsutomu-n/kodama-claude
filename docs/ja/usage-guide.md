@@ -135,7 +135,7 @@ kc status
 
 **Q: `kc go`でエラーが出る**
 ```bash
-# Claude CLIがインストールされているか確認
+# Claudeがインストールされているか確認
 claude --version
 
 # 権限を確認

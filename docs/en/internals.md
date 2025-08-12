@@ -40,7 +40,7 @@ Deep dive into how KODAMA Claude works internally.
               │                       │
               ▼                       ▼
 ┌─────────────────────┐   ┌─────────────────────┐
-│   Storage Layer     │   │   Claude CLI API    │
+│   Storage Layer     │   │   Claude API    │
 │  (File System I/O)  │   │   (Process Spawn)   │
 └─────────────────────┘   └─────────────────────┘
 ```
@@ -239,7 +239,7 @@ class SnapshotManager {
 
 ### 3. Claude Integration (`claude.ts`)
 
-Manages Claude CLI process and session handling.
+Manages Claude process and session handling.
 
 ```typescript
 class ClaudeIntegration {

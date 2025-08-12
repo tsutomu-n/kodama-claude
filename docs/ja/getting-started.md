@@ -7,7 +7,7 @@
 ## 前提条件 {#requirements}
 
 ### 必須
-- **Claude Code CLI** - [公式インストールガイド](https://docs.anthropic.com/en/docs/claude-code)
+- **Claude Code** - [公式インストールガイド](https://docs.anthropic.com/en/docs/claude-code)
 - **Linux/macOS/WSL** - Bashシェル環境
 - **Git** - バージョン管理（オプションだが推奨）
 

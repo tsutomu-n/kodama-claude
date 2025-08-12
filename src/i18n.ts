@@ -41,7 +41,7 @@ const messages: Record<Language, Messages> = {
   en: {
     // Simple messages
     titleRequired: "Title is required",
-    claudeNotFound: "Claude Code CLI not found. Please install: npm install -g @anthropic/claude",
+    claudeNotFound: "Claude Code not found. Please install: npm install -g @anthropic/claude",
     claudeSessionFailed: "Failed to start/continue Claude session:",
     noSnapshotsFound: "No snapshots found. Create one with: kc save",
     fileNotFound: "File not found",
@@ -68,7 +68,7 @@ const messages: Record<Language, Messages> = {
   ja: {
     // Simple messages
     titleRequired: "タイトルが必要です",
-    claudeNotFound: "Claude Code CLIが見つかりません。インストールしてください: npm install -g @anthropic/claude",
+    claudeNotFound: "Claude Codeが見つかりません。インストールしてください: npm install -g @anthropic/claude",
     claudeSessionFailed: "Claudeセッションの開始/継続に失敗しました:",
     noSnapshotsFound: "スナップショットが見つかりません。作成してください: kc save",
     fileNotFound: "ファイルが見つかりません",

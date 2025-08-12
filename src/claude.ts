@@ -1,5 +1,5 @@
 /**
- * Claude Code CLI wrapper
+ * Claude Code wrapper
  */
 
 import { spawnSync } from "child_process";
@@ -13,7 +13,7 @@ export class ClaudeCLI {
   }
   
   /**
-   * Check if Claude CLI is available
+   * Check if Claude is available
    */
   isAvailable(): boolean {
     const result = spawnSync(this.claudePath, ["--version"], {

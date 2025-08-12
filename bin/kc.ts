@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 
 /**
- * KODAMA Claude CLI - Minimal Claude Code extension
+ * KODAMA Claude - Minimal Claude Code extension
  * 
  * Philosophy: "Less is more" - Only 3 commands for junior developers
  * go / save / status - That's all you need.
@@ -17,7 +17,7 @@ import { version } from "../package.json";
 
 program
   .name("kc")
-  .description("KODAMA Claude - Simple context management for Claude Code CLI")
+  .description("KODAMA Claude - Simple context management for Claude Code")
   .version(version)
   .option("-d, --debug", "Enable debug output");
 

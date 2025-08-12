@@ -8,7 +8,7 @@ Configure KODAMA Claude to work exactly how you want.
 - [Environment Variables](#environment-variables)
 - [Storage Locations](#storage-locations)
 - [Shell Configuration](#shell-configuration)
-- [Claude CLI Integration](#claude-cli-integration)
+- [Claude Integration](#claude-cli-integration)
 - [Git Integration](#git-integration)
 - [Advanced Customization](#advanced-customization)
 
@@ -16,7 +16,7 @@ Configure KODAMA Claude to work exactly how you want.
 
 ### Claude Code Configuration
 
-KODAMA Claude works with Claude Code CLI, which uses OAuth authentication:
+KODAMA Claude works with Claude Code, which uses OAuth authentication:
 
 ```bash
 # Claude Code uses OAuth, not API keys
@@ -76,7 +76,7 @@ export KODAMA_DEBUG="1"
 # Disable colors in output
 export NO_COLOR="1"
 
-# Custom Claude CLI path
+# Custom Claude path
 export CLAUDE_CLI_PATH="/usr/local/bin/claude"
 ```
 
@@ -382,7 +382,7 @@ _kc() {
 compdef _kc kc
 ```
 
-## Claude CLI Integration
+## Claude Integration
 
 ### Custom Claude Configuration
 

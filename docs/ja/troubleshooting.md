@@ -6,16 +6,16 @@ KODAMA Claudeの一般的な問題と解決方法です。
 
 ## インストールの問題
 
-### Claude CLIが見つからない {#claude-not-found}
+### Claudeが見つからない {#claude-not-found}
 
 **エラー:**
 ```
-Error: Claude CLI not found. Please install it first.
+Error: Claude not found. Please install it first.
 ```
 
 **解決方法:**
 ```bash
-# Claude Code CLIをインストール
+# Claude Codeをインストール
 # 公式ドキュメントを参照: https://docs.anthropic.com/en/docs/claude-code
 
 # インストール確認

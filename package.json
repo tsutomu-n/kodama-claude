@@ -1,7 +1,7 @@
 {
   "name": "@kodama/claude",
   "version": "0.3.0",
-  "description": "Minimal Claude Code CLI extension for persistent dialogue memory",
+  "description": "Minimal Claude Code extension for persistent dialogue memory",
   "main": "dist/index.js",
   "bin": {
     "kc": "./bin/kc.ts"
@@ -13,8 +13,11 @@
     "build:all": "bun run build && bun run build:arm && bun run checksums",
     "checksums": "bash scripts/generate-checksums.sh",
     "test": "bun test",
+    "test:integration": "bash scripts/integration-test.sh",
+    "test:all": "bun test && bun run typecheck && bun run test:integration",
     "typecheck": "tsc --noEmit",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "keywords": [
     "claude",

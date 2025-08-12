@@ -60,7 +60,7 @@ export async function goCommand(options: GoOptions) {
   
   console.log(""); // Empty line for clarity
   
-  // Check Claude CLI availability
+  // Check Claude availability
   if (!claude.isAvailable()) {
     console.error(formatError(getMessage("claudeNotFound")));
     process.exit(1);

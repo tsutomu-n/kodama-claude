@@ -1,50 +1,157 @@
+# ========================================
 # Dependencies
+# ========================================
 node_modules/
-# bun.lockb is intentionally committed for dependency reproducibility
+# Note: bun.lockb is intentionally committed for reproducibility
 
-# Build outputs
+# ========================================
+# Build Outputs
+# ========================================
 dist/
 *.exe
 kc-linux-*
 kc-darwin-*
 kc-windows-*
+kc-*.tar.gz
+kc-*.zip
 
-# Test coverage
+# ========================================
+# Test & Coverage
+# ========================================
 coverage/
 .nyc_output/
+*.lcov
+.test-kodama/
+test-results/
+junit.xml
 
-# IDE
+# ========================================
+# IDE & Editors
+# ========================================
 .vscode/
 .idea/
 *.swp
 *.swo
+*.swn
 *~
+.*.sw[a-z]
+.netrwhist
+*.sublime-project
+*.sublime-workspace
+.nova/
 
-# OS
+# ========================================
+# OS Generated Files
+# ========================================
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
+desktop.ini
 
+# ========================================
 # Logs
+# ========================================
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 
-# Environment
+# ========================================
+# Environment Variables
+# ========================================
 .env
 .env.local
 .env.*.local
+.env.development
+.env.production
+.env.test
 
-# Temporary files
+# ========================================
+# Temporary Files
+# ========================================
 *.tmp
 *.temp
 .tmp/
 tmp/
+temp/
+*.bak
+*.backup
+*.old
+*.orig
 
-# KODAMA runtime (for development)
+# ========================================
+# KODAMA Runtime (Development)
+# ========================================
 .kodama_runtime/
-.local/
-.config/
+.local/share/kodama-claude/
+.config/kodama-claude/
+# Exception: Allow test fixtures
+!test/fixtures/.local/
+!test/fixtures/.config/
 
+# ========================================
 # Claude Code
+# ========================================
 .claude/
+claude_output/
+*.claude.md
+
+# ========================================
+# Binary Checksums (Generated)
+# ========================================
+checksums.txt
+checksums.sha256
+SHA256SUMS
+
+# ========================================
+# Package Files
+# ========================================
+*.deb
+*.rpm
+*.AppImage
+*.dmg
+*.pkg
+*.msi
+
+# ========================================
+# Debug & Profiling
+# ========================================
+*.heap
+*.cpuprofile
+*.memprofile
+v8.log
+perf-*.json
+
+# ========================================
+# Miscellaneous
+# ========================================
+.cache/
+.parcel-cache/
+.turbo/
+.vercel/
+.next/
+.nuxt/
+.docusaurus/
+.serverless/
+.fusebox/
+.dynamodb/
+.tern-port
+.vscode-test/
+.yarn/cache
+.yarn/unplugged
+.yarn/install-state.gz
+.pnp.*
+
+# ========================================
+# Project Specific
+# ========================================
+# Backup files from uninstaller
+kodama-backup-*/
+# Auto-generated release notes
+RELEASE_NOTES_*.md.tmp
