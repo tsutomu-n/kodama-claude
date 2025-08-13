@@ -68,48 +68,52 @@ function validatePackConfig(config: Partial<PackConfig>): PackConfig {
 }
 
 /**
- * Template A: Standard format with clear headers
+ * Template A: Shell-safe format with comment lines
  */
-const TEMPLATE_A = `# Previous Session Context
-
-**Project**: {title}
-**Status**: {status}
+const TEMPLATE_A = `# =====================================
+# Previous Session Context
+# =====================================
+# Project: {title}
+# Status: {status}
 {timestamp}
 {git_info}
-
-## Current Context
+#
+# Current Context:
+# -----------------
 {context}
-
-## Key Decisions
+#
+# Key Decisions:
+# -----------------
 {decisions}
-
-## Next Steps
+#
+# Next Steps:
+# -----------------
 {next_steps}
-
----
-*Note: Never execute destructive commands without explicit confirmation.*`;
+#
+# =====================================
+# Note: Never execute destructive commands without explicit confirmation.`;
 
 /**
- * Template B: Alternative format (fallback if A fails)
+ * Template B: Alternative shell-safe format (fallback if A fails)
  */
-const TEMPLATE_B = `=== Previous Session Context ===
-
-Project: {title}
-Status: {status}
+const TEMPLATE_B = `# === Previous Session Context ===
+#
+# Project: {title}
+# Status: {status}
 {timestamp}
 {git_info}
-
-### Current Context ###
+#
+# === Current Context ===
 {context}
-
-### Key Decisions ###
+#
+# === Key Decisions ===
 {decisions}
-
-### Next Steps ###
+#
+# === Next Steps ===
 {next_steps}
-
----
-Note: Never execute destructive commands without explicit confirmation.`;
+#
+# =====================================
+# Note: Never execute destructive commands without explicit confirmation.`;
 
 /**
  * Build an Atomic Context Pack from a snapshot
@@ -143,7 +147,7 @@ export class ContextPack {
       title: this.truncate(snapshot.title, this.config.maxLineLength),
       status: snapshot.step || "active",
       timestamp: this.config.includeTimestamp 
-        ? `**Date**: ${new Date(snapshot.timestamp).toLocaleString()}`
+        ? `# Date: ${new Date(snapshot.timestamp).toLocaleString()}`
         : "",
       git_info: this.buildGitInfo(gitBranch, gitCommit),
       context: this.truncate(cleanContent(snapshot.context || ""), this.config.maxContextLength),
@@ -208,7 +212,7 @@ export class ContextPack {
    */
   private formatList(items: string[], maxItems: number): string {
     if (!items || items.length === 0) {
-      return "- None";
+      return "# - None";
     }
     
     const cleaned = items.map(item => {
@@ -217,10 +221,10 @@ export class ContextPack {
     });
     
     const displayed = cleaned.slice(0, maxItems);
-    const formatted = displayed.map(item => `- ${item}`).join("\n");
+    const formatted = displayed.map(item => `# - ${item}`).join("\n");
     
     if (items.length > maxItems) {
-      return `${formatted}\n- ...(${items.length - maxItems} more)`;
+      return `${formatted}\n# - ...(${items.length - maxItems} more)`;
     }
     
     return formatted;
@@ -247,11 +251,11 @@ export class ContextPack {
     const parts: string[] = [];
     
     if (branch) {
-      parts.push(`**Branch**: ${branch}`);
+      parts.push(`# Branch: ${branch}`);
     }
     
     if (commit) {
-      parts.push(`**Commit**: ${commit.substring(0, 7)}`);
+      parts.push(`# Commit: ${commit.substring(0, 7)}`);
     }
     
     return parts.join("\n");

@@ -280,39 +280,41 @@ async function pasteSnapshot(snapshot: Snapshot, mode: string): Promise<void> {
 function buildContextMessage(snapshot: Snapshot): string {
   const parts = [];
   
-  parts.push("# Continuing Previous Session\n");
-  parts.push(`**Title:** ${snapshot.title}`);
-  parts.push(`**When:** ${snapshot.timestamp}`);
+  parts.push("# =====================================\n# Continuing Previous Session\n# =====================================");
+  parts.push(`# Title: ${snapshot.title}`);
+  parts.push(`# When: ${snapshot.timestamp}`);
   
   if (snapshot.step) {
-    parts.push(`**Step:** ${snapshot.step}`);
+    parts.push(`# Step: ${snapshot.step}`);
   }
   
   if (snapshot.cwd) {
-    parts.push(`**Directory:** ${snapshot.cwd}`);
+    parts.push(`# Directory: ${snapshot.cwd}`);
   }
   
   if (snapshot.gitBranch) {
-    parts.push(`**Git Branch:** ${snapshot.gitBranch}`);
+    parts.push(`# Git Branch: ${snapshot.gitBranch}`);
   }
   
   if (snapshot.context) {
-    parts.push("\n## Previous Context\n");
-    parts.push(snapshot.context);
+    parts.push("\n# Previous Context\n# -----------------");
+    // Prefix each line of context with # to make it shell-safe
+    const contextLines = snapshot.context.split('\n');
+    contextLines.forEach(line => parts.push(`# ${line}`));
   }
   
   if (snapshot.decisions && snapshot.decisions.length > 0) {
-    parts.push("\n## Key Decisions Made\n");
-    snapshot.decisions.forEach((d: string) => parts.push(`- ${d}`));
+    parts.push("\n# Key Decisions Made\n# -----------------");
+    snapshot.decisions.forEach((d: string) => parts.push(`# - ${d}`));
   }
   
   if (snapshot.nextSteps && snapshot.nextSteps.length > 0) {
-    parts.push("\n## Next Steps Planned\n");
-    snapshot.nextSteps.forEach((s: string) => parts.push(`- ${s}`));
+    parts.push("\n# Next Steps Planned\n# -----------------");
+    snapshot.nextSteps.forEach((s: string) => parts.push(`# - ${s}`));
   }
   
-  parts.push("\n---\n");
-  parts.push("Let's continue from where we left off. What should we work on next?");
+  parts.push("\n# =====================================");
+  parts.push("# Let's continue from where we left off. What should we work on next?");
   
   return parts.join("\n");
 }
