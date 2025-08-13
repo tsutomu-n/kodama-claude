@@ -106,6 +106,11 @@ kc tags     # Manage work tags
 kc resume   # One-key resume (save + go)
 kc list     # List saved snapshots (v0.4.1+)
 
+# Snapshot Management (v0.5.0+)
+kc show     # Display detailed snapshot information
+kc delete   # Safe snapshot deletion (with trash/restore)
+kc search   # Full-text search across snapshots
+
 # Maintenance
 kc uninstall # Safe removal (preserves data by default)
 ```
@@ -143,6 +148,244 @@ $ git commit -m "feat: Add JWT authentication endpoint"
 - **`kc status`**: Check health state (use --strict in CI/CD)
 
 Claude gets context. Git tracks code.
+
+## New Features: Snapshot Management (v0.5.0)
+
+### View Snapshots - `kc show`
+
+**Basic Usage**
+```bash
+# Show the latest snapshot
+kc show latest
+
+# Display specific snapshot (partial ID matching)
+kc show abc123  # No need to type the full UUID
+
+# Show full details (complete context, no truncation)
+kc show abc123 --verbose
+
+# JSON output for scripts
+kc show abc123 --json
+```
+
+**Junior Developer Examples**
+```bash
+# 🔰 Training example: Review yesterday's work
+# 1. Check the latest work
+$ kc show latest
+📸 Snapshot: User authentication implementation
+📅 Created: Aug 12, 17:30 (19 hours ago)
+📊 Step: implementing
+🏷️  Tags: auth, backend
+
+📝 What we accomplished:
+• Implemented JWT token generation and validation
+• Created user registration and login endpoints
+• Used bcrypt for password hashing
+
+💡 Decisions made:
+• Access token expiry set to 30 minutes
+• Refresh tokens valid for 7 days
+
+⚡ Next steps:
+• Implement logout functionality
+• Add automatic token refresh
+• Create unit tests
+
+# 2. Get more details if needed
+$ kc show abc123 --verbose
+# Shows complete context (no truncation)
+```
+
+### Delete Snapshots - `kc delete`
+
+**Basic Usage**
+```bash
+# Delete single snapshot (moves to trash)
+kc delete abc123
+
+# Delete multiple snapshots at once
+kc delete abc123 def456 ghi789
+
+# Bulk delete old snapshots
+kc delete --older-than 7d    # Older than 7 days
+kc delete --older-than 2w    # Older than 2 weeks
+kc delete --older-than 1m    # Older than 1 month
+
+# Check trash contents
+kc delete --list-trash
+
+# Restore from trash
+kc delete --restore abc123
+
+# Empty trash
+kc delete --empty-trash
+```
+
+**Junior Developer Examples**
+```bash
+# 🔰 Training example: Project cleanup after completion
+# 1. Check current snapshots
+$ kc list -n 10
+📚 Recent snapshots (3/3 shown):
+
+1. Project completion report
+   📅 Aug 13, 18:00 (1 hour ago)
+   📊 Step: done
+
+2. Test implementation
+   📅 Aug 13, 16:30 (3 hours ago)
+   📊 Step: testing
+
+3. Experimental implementation (failed)
+   📅 Aug 13, 10:00 (9 hours ago)
+   📊 Step: implementing
+
+# 2. Delete the failed experimental implementation
+$ kc delete c4d56789  # Use partial ID
+✅ Moved snapshot 'c4d56789...' to trash
+
+# 3. If deleted by mistake, you can restore
+$ kc delete --restore c4d56789
+✅ Restored snapshot 'c4d56789...' from trash
+
+# 4. Clean up old working snapshots
+$ kc delete --older-than 1w
+⚠️  7 snapshots will be deleted:
+- "Initial research notes" (Aug 5)
+- "Environment setup trials" (Aug 6)
+...
+[y/N] Delete these snapshots? y
+✅ Moved 7 snapshots to trash
+```
+
+### Search Snapshots - `kc search`
+
+**Basic Usage**
+```bash
+# Search titles only (fast)
+kc search "auth feature"
+
+# Full-text search (includes context and decisions)
+kc search "JWT" --full-text
+
+# Search by tags
+kc search --tags "auth,backend"
+
+# Regular expression search (advanced)
+kc search "API.*endpoint" --regex
+
+# Search with time filters
+kc search "bug fix" --since "1w"  # Within last week
+kc search "feature" --until "2d"   # Up to 2 days ago
+
+# JSON output for scripts
+kc search "auth" --json
+```
+
+**Junior Developer Examples**
+```bash
+# 🔰 Training example: Learning from past work
+# 1. Find authentication-related work
+$ kc search "auth"
+🔍 Search results for "auth" (2 matches found)
+
+1. User authentication implementation
+   📅 Aug 12, 17:30 (relevance: 95%)
+   📊 Step: implementing
+   🏷️  Tags: auth, backend
+   
+   💡 Highlight: "User authentication feature with JWT tokens..."
+
+2. Authentication error handling improvement
+   📅 Aug 10, 14:20 (relevance: 87%)
+   📊 Step: done
+   🏷️  Tags: auth, bugfix
+
+# 2. More specific search (full-text)
+$ kc search "JWT" --full-text
+🔍 Search results for "JWT" (3 matches found)
+
+1. User authentication implementation
+   💬 Decision: "JWT token expiry set to 30 minutes"
+   💬 Context: "...Chose RS256 algorithm for JWT implementation..."
+
+# 3. Search work from specific timeframe
+$ kc search "bug fix" --since "1w"
+🔍 "bug fix" in the last week (1 match found)
+
+1. Login timeout bug fix
+   📅 Aug 11, 09:15
+   🏷️  Tags: bugfix, auth
+
+# 4. Multi-tag filtered search
+$ kc search --tags "backend,api"
+🔍 Tag search: backend,api (4 matches found)
+...
+```
+
+### Enhanced List Display - `kc list`
+
+**New Filter Features**
+```bash
+# Show only today's work
+kc list --today
+
+# Check yesterday's work
+kc list --yesterday
+
+# Review this week's work
+kc list --this-week
+
+# Specific time periods
+kc list --since "3d"        # From 3 days ago
+kc list --until "1w"        # Up to 1 week ago
+kc list --since "2024-08-10" --until "2024-08-12"
+
+# Filter by tags
+kc list --tags "auth"       # Auth-related work only
+kc list --tags "auth,api"   # Auth or API related
+
+# Change sorting
+kc list --sort title        # Sort by title
+kc list --sort step         # Sort by workflow step
+kc list --reverse           # Reverse order
+```
+
+**Junior Developer Examples**
+```bash
+# 🔰 Training example: Daily and weekly reviews
+# 1. Review today's work
+$ kc list --today
+📚 Today's snapshots (3 shown):
+
+1. Added unit tests
+   📅 Aug 13, 16:45 (2 hours ago)
+   📊 Step: testing
+   🏷️  Tags: test, auth
+
+2. Auth API endpoint implementation
+   📅 Aug 13, 14:20 (4 hours ago)
+   📊 Step: implementing
+   🏷️  Tags: api, auth
+
+3. Morning standup notes
+   📅 Aug 13, 09:00 (9 hours ago)
+   📊 Step: designing
+
+# 2. Prepare weekly report
+$ kc list --this-week --tags "backend"
+📚 This week's backend work:
+...
+
+# 3. Track specific feature development
+$ kc list --tags "auth" --sort date
+📚 Authentication feature timeline:
+1. Auth initial research (Aug 8)
+2. JWT implementation start (Aug 9)
+3. Auth tests added (Aug 10)
+4. Auth completed (Aug 12)
+```
 
 ## Language Support
 
@@ -362,6 +605,13 @@ ls dist/
 4. **Zero Friction** - No configuration, no setup, just works
 
 ## What's New
+
+### v0.5.0 (2025-08-13)
+- **New `kc show` command** - Display detailed snapshot information (partial ID matching, JSON output)
+- **New `kc delete` command** - Safe deletion with trash/restore functionality and bulk operations
+- **New `kc search` command** - Full-text search (title, full-text, tag, regex search with time filters)
+- **Enhanced `kc list`** - Time filters (today, yesterday, this week), tag filters, sorting options
+- **Security hardening** - Comprehensive security measures across all new commands (DoS protection, input validation, control character removal)
 
 ### v0.4.1 (2025-08-13)
 - **New `kc list` command** - View your saved snapshots with titles, timestamps, and tags

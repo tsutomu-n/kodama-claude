@@ -5,6 +5,62 @@ All notable changes to KODAMA Claude will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2025-08-13
+
+### Added
+- **New `kc show` command** - Display detailed snapshot information
+  - Partial ID matching for user convenience (e.g., `kc show abc123` matches full UUID)
+  - Multiple output formats: human-readable and JSON (`--json`)
+  - Verbose mode with `--verbose` for full context display
+  - Context truncation for long content (200 chars) unless verbose mode
+  - Comprehensive security validation and sanitization
+
+- **New `kc delete` command** - Smart snapshot deletion with safety features
+  - Multiple deletion modes: single snapshot, multiple IDs, pattern matching
+  - Age-based deletion: `--older-than` for cleanup (e.g., "7d", "2w", "1m")
+  - Soft delete with trash/recycle bin functionality
+  - Restore capability with detailed trash management
+  - Batch operations with confirmation prompts
+  - DoS protection and input validation
+
+- **New `kc search` command** - Powerful full-text search across snapshots
+  - Multiple search modes: title-only, full-text, tag-based, regex patterns
+  - Advanced filtering: date ranges, tags, workflow steps
+  - Smart ranking and relevance scoring
+  - Search result highlighting and context snippets
+  - JSON output for script integration
+  - Case-insensitive search with accent folding
+
+- **Enhanced `kc list` command** - Extended filtering and sorting capabilities
+  - Time-based filters: `--since`, `--until`, `--today`, `--yesterday`, `--this-week`
+  - Tag filtering with `--tags` for workflow organization
+  - Flexible sorting options: date, title, step, tags
+  - Reverse sorting with `--reverse` flag
+  - Improved performance for large snapshot collections
+
+### Security
+- Comprehensive security hardening across all new commands:
+  - Path traversal prevention with strict validation
+  - DoS protection with configurable limits (1000 items max)
+  - File size limits (10MB) to prevent memory exhaustion
+  - Control character sanitization in all outputs
+  - Input validation and sanitization for all parameters
+  - Safe error messages to prevent information disclosure
+  - Atomic file operations to prevent corruption
+  - Regular file type checking to prevent symlink attacks
+
+### Changed
+- Enhanced search infrastructure with in-memory indexing for improved performance
+- Improved error handling with context-aware messages across all commands
+- Standardized CLI option patterns across all snapshot management commands
+- Enhanced trash management system with automatic cleanup and restoration
+
+### Performance
+- Optimized file processing for large snapshot collections
+- Improved memory usage with streaming JSON parsing
+- Enhanced caching for frequently accessed snapshots
+- Reduced I/O operations through smart file filtering
+
 ## [0.4.1] - 2025-08-13
 
 ### Added

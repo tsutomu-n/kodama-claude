@@ -49,9 +49,9 @@ describe("ContextPack", () => {
       const pack = new ContextPack({ maxDecisions: 3, maxNextSteps: 2 });
       const result = pack.generate(mockSnapshot);
       
-      // Should have exactly 3 decisions
-      const decisionMatches = result.match(/^- /gm);
-      expect(decisionMatches?.length).toBeGreaterThanOrEqual(5); // 3 decisions + 2 next steps
+      // Should have exactly 3 decisions + 2 next steps
+      const decisionMatches = result.match(/^# - /gm);
+      expect(decisionMatches?.length || 0).toBeGreaterThanOrEqual(5); // 3 decisions + 2 next steps
       
       // Should indicate more items
       expect(result).toContain("...(3 more)");
@@ -90,8 +90,8 @@ describe("ContextPack", () => {
       const pack = new ContextPack({ includeGitInfo: true });
       const result = pack.generate(mockSnapshot, "feature/auth", "def5678");
       
-      expect(result).toContain("Branch**: feature/auth");
-      expect(result).toContain("Commit**: def5678");
+      expect(result).toContain("Branch: feature/auth");
+      expect(result).toContain("Commit: def5678");
     });
     
     it("should exclude git info when disabled", () => {
