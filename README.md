@@ -104,6 +104,7 @@ kc status   # Check health (🟢/🟡/🔴/❓)
 kc restart  # Smart restart (/clear independent)
 kc tags     # Manage work tags
 kc resume   # One-key resume (save + go)
+kc list     # List saved snapshots (v0.4.1+)
 
 # Maintenance
 kc uninstall # Safe removal (preserves data by default)
@@ -359,6 +360,20 @@ ls dist/
 2. **Do One Thing Well** - Persist Claude dialogue memory, nothing else
 3. **Fail Gracefully** - Multiple fallback strategies for every operation
 4. **Zero Friction** - No configuration, no setup, just works
+
+## What's New
+
+### v0.4.1 (2025-08-13)
+- **New `kc list` command** - View your saved snapshots with titles, timestamps, and tags
+- **Security hardening** - 8 security fixes including path traversal prevention and DoS protection
+- **Performance improvements** - Optimized file handling with 1000-item limit
+
+### v0.4.0 (2025-08-12)
+- **Smart Restart** - Context preservation independent of /clear command
+- **Work Tags** - Organize and find your work with semantic tags
+- **One-Key Resume** - Combined save + restart for rapid iteration
+
+See [CHANGELOG.md](CHANGELOG.md) for full release history.
 
 ## FAQ
 

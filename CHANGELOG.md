@@ -5,6 +5,64 @@ All notable changes to KODAMA Claude will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1] - 2025-08-13
+
+### Added
+- New `kc list` command to display saved snapshots
+  - Shows title, timestamp, step, and tags for each snapshot
+  - Supports JSON output format with `--json` flag
+  - Verbose mode with `--verbose` for additional details
+  - Customizable limit with `-n` or `--limit` option
+
+### Security
+- Added comprehensive security measures to `kc list` command:
+  - Path traversal prevention with strict filename validation
+  - DoS protection with 1000 item limit
+  - File size limits (10MB max) to prevent memory exhaustion
+  - Control character escaping in output
+  - Sanitized error messages to prevent information disclosure
+  - Regular file type checking to prevent symlink attacks
+  - Input validation for all parameters
+  - Tag count (10) and length (50 chars) limits
+
+### Changed
+- Improved error handling in list command with proper XDG path resolution
+
+## [0.4.0] - 2025-08-12
+
+### Added
+- **Smart Restart** (`kc restart`) - Intelligent context preservation when Claude restarts
+  - No dependency on /clear command
+  - Automatic detection of session state
+  - Process management with PID/PGID tracking
+- **Work Tags** (`kc tags`) - Organize work with semantic tags
+  - Tag normalization and validation
+  - Levenshtein distance for similarity suggestions
+  - Filter and search snapshots by tags
+- **One-Key Resume** (`kc resume`) - Quick save and restart workflow
+  - Combines save + restart in one command
+  - Optional save with `--no-save` flag
+  - Force resume with `-f` or `--force`
+
+### Security
+- Fixed TOCTOU race condition vulnerability with atomic operations
+- Prevented ReDoS attacks with bounded regex patterns
+- Eliminated memory leaks from dynamic imports
+- Added comprehensive input validation for all configuration values
+- Implemented information leakage prevention in error messages
+- Added stale lock cleanup on startup
+
+### Changed
+- Implemented atomic file operations with two-stage fsync (file → dir → rename → dir)
+- Enhanced Context Pack with A/B template fallback system
+- Improved XDG Base Directory compliance
+- Added auto-archive for snapshots older than 30 days
+
+### Fixed
+- Missing tags fields in multiple TypeScript files
+- Arithmetic issue in integration tests
+- Version inconsistencies in documentation
+
 ## [0.3.1] - 2025-08-12
 
 ### Security

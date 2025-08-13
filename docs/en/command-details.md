@@ -663,8 +663,168 @@ KODAMA Claude starts with 3 simple commands and adds powerful features when need
 4. **`kc restart`** - Smart restart with context preservation
 5. **`kc tags`** - Intelligent work tag management
 6. **`kc resume`** - One-key resume (save + go combined)
+7. **`kc list`** - List saved snapshots (v0.4.1+)
 
 Start with the core 3 commands, then discover advanced features as your workflow matures.
+
+## kc list
+
+**Purpose**: Display a list of saved snapshots to review your work history.
+
+### Basic Usage
+
+```bash
+# Show recent 10 snapshots (default)
+kc list
+
+# Show more snapshots
+kc list -n 20
+kc list --limit 50
+
+# JSON output for scripting
+kc list --json
+
+# Verbose mode with IDs and filenames
+kc list --verbose
+kc list -v
+```
+
+### Output Format
+
+#### Standard Output
+```
+📚 Recent Snapshots (showing 3/3):
+
+1. Implemented user authentication
+   📅 Aug 13 14:30 (2h ago)
+   📊 Step: testing
+   🏷️  Tags: auth, backend
+
+2. Fixed login timeout bug
+   📅 Aug 13 10:15 (6h ago)
+   📊 Step: done
+
+3. Morning standup notes
+   📅 Aug 13 09:00 (7h ago)
+```
+
+#### Verbose Output
+```
+📚 Recent Snapshots (showing 3/3):
+
+1. Implemented user authentication
+   📅 Aug 13 14:30 (2h ago)
+   📊 Step: testing
+   🏷️  Tags: auth, backend
+   🆔 ID: abc123def456
+   📁 File: 2025-08-13T14-30-00-abc123.json
+```
+
+#### JSON Output
+```json
+{
+  "snapshots": [
+    {
+      "id": "abc123def456",
+      "title": "Implemented user authentication",
+      "timestamp": "2025-08-13T14:30:00Z",
+      "step": "testing",
+      "tags": ["auth", "backend"],
+      "file": "2025-08-13T14-30-00-abc123.json"
+    }
+  ]
+}
+```
+
+### Options
+
+#### `-n, --limit <number>` - Limit Results
+
+Control how many snapshots to display:
+
+```bash
+# Show last 5 snapshots
+kc list -n 5
+
+# Show last 100 snapshots
+kc list --limit 100
+```
+
+**Note**: Maximum limit is 1000 for performance reasons.
+
+#### `--json` - JSON Output
+
+Output in JSON format for scripting:
+
+```bash
+# Get all snapshot titles
+kc list --json | jq -r '.snapshots[].title'
+
+# Find snapshots with specific tag
+kc list --json | jq '.snapshots[] | select(.tags | contains(["auth"]))'
+
+# Count total snapshots
+kc list --json | jq '.snapshots | length'
+```
+
+#### `-v, --verbose` - Verbose Mode
+
+Show additional details including snapshot IDs and filenames:
+
+```bash
+kc list --verbose
+
+# Useful for:
+# - Debugging
+# - Finding specific snapshot files
+# - Verifying snapshot IDs
+```
+
+### Practical Examples
+
+#### Review Today's Work
+```bash
+# List recent work
+kc list -n 20
+
+# Find what you were working on this morning
+kc list --json | jq '.snapshots[] | select(.timestamp | startswith("2025-08-13"))'
+```
+
+#### Find Specific Work
+```bash
+# Search by title (using grep)
+kc list --json | jq -r '.snapshots[] | "\(.title) - \(.timestamp)"' | grep -i "auth"
+
+# Find by tag
+kc list --json | jq '.snapshots[] | select(.tags | contains(["backend"]))'
+```
+
+#### Generate Work Report
+```bash
+# Create a simple work report
+echo "## Work Report - $(date +%Y-%m-%d)" > report.md
+echo "" >> report.md
+kc list --json | jq -r '.snapshots[] | "- \(.title) (\(.step))"' >> report.md
+```
+
+#### Cleanup Old Snapshots
+```bash
+# List snapshots older than 7 days (for review before deletion)
+kc list --json | jq '.snapshots[] | select(
+  (now - (.timestamp | fromdate)) > (7 * 24 * 3600)
+) | .file'
+```
+
+### Security Features
+
+The `kc list` command includes multiple security measures:
+
+- **Path Traversal Protection**: Only valid snapshot files are processed
+- **DoS Protection**: Maximum 1000 items can be listed at once
+- **File Size Limits**: Skips files larger than 10MB
+- **Control Character Filtering**: Removes control characters from output
+- **Safe Error Messages**: Sanitized error messages prevent information leakage
 
 ---
 
