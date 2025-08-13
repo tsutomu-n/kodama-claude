@@ -25,6 +25,9 @@
 curl -fsSL https://github.com/tsutomu-n/kodama-claude/releases/latest/download/install.sh | bash
 ```
 
+> 📌 **重要**: インストールや更新時、**スナップショットとデータは完全に保護されます**。  
+> `~/.local/share/kodama-claude/` に保存されたデータは、バイナリ更新時に一切触れられません。
+
 このコマンドは：
 - 古いバージョンを自動検出・削除
 - アーキテクチャに合ったバイナリをダウンロード

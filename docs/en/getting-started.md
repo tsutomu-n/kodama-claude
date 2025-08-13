@@ -148,6 +148,9 @@ Copy and paste this one line:
 curl -fsSL https://github.com/tsutomu-n/kodama-claude/releases/latest/download/install.sh | bash
 ```
 
+> 📌 **Important**: Your snapshots and data are **fully preserved** during installation or updates.  
+> Data stored in `~/.local/share/kodama-claude/` is never touched during binary updates.
+
 What happens:
 1. Downloads the installer
 2. Gets the right version for your computer

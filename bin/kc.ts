@@ -116,6 +116,8 @@ program
   .option("-t, --tags <tags>", "Filter by tags (comma/space separated)")
   .option("--sort <field>", "Sort by: date (default), title, size", "date")
   .option("--reverse", "Reverse sort order")
+  .option("--no-header", "Omit header for script usage")
+  .option("--machine", "Machine-readable TSV output")
   .action(async (options) => {
     const { list } = await import("../src/commands/list");
     await list({
@@ -129,7 +131,9 @@ program
       thisWeek: options.thisWeek,
       tags: options.tags,
       sort: options.sort,
-      reverse: options.reverse
+      reverse: options.reverse,
+      noHeader: options.noHeader,
+      machine: options.machine
     });
   });
 
@@ -203,6 +207,83 @@ program
       suggestions: options.suggestions
     });
   });
+
+// Restore command (restore from trash)
+program
+  .command("restore")
+  .description("Restore snapshots from trash")
+  .argument("<snapshot-ids...>", "Snapshot IDs to restore from trash")
+  .option("-v, --verbose", "Show detailed restoration information")
+  .option("--dry-run", "Show what would be restored without restoring")
+  .action(async (snapshotIds, options) => {
+    const { restore } = await import("../src/commands/restore");
+    await restore(snapshotIds, {
+      verbose: options.verbose,
+      dryRun: options.dryRun
+    });
+  });
+
+// Handle unknown commands with suggestions
+program.on('command:*', function (operands) {
+  const unknownCommand = String(operands[0] || '').slice(0, 50); // Limit length for DoS protection
+  const availableCommands = ['go', 'save', 'status', 'uninstall', 'restart', 'tags', 'resume', 'list', 'show', 'delete', 'search', 'restore'];
+  
+  // Calculate edit distance for suggestions with DoS protection
+  function editDistance(a: string, b: string): number {
+    // DoS protection: limit string lengths
+    const maxLen = 20;
+    a = a.slice(0, maxLen);
+    b = b.slice(0, maxLen);
+    
+    // Early return for same strings
+    if (a === b) return 0;
+    
+    // Early return if length difference is too large
+    if (Math.abs(a.length - b.length) > 3) return 999;
+    
+    const dp = Array(a.length + 1).fill(null).map(() => Array(b.length + 1).fill(0));
+    
+    for (let i = 0; i <= a.length; i++) dp[i][0] = i;
+    for (let j = 0; j <= b.length; j++) dp[0][j] = j;
+    
+    for (let i = 1; i <= a.length; i++) {
+      for (let j = 1; j <= b.length; j++) {
+        if (a[i - 1] === b[j - 1]) {
+          dp[i][j] = dp[i - 1][j - 1];
+        } else {
+          dp[i][j] = Math.min(
+            dp[i - 1][j] + 1,    // deletion
+            dp[i][j - 1] + 1,    // insertion
+            dp[i - 1][j - 1] + 1  // substitution
+          );
+        }
+      }
+    }
+    return dp[a.length][b.length];
+  }
+  
+  // Find similar commands (edit distance <= 2)
+  const suggestions = availableCommands
+    .map(cmd => ({ cmd, distance: editDistance(unknownCommand, cmd) }))
+    .filter(({ distance }) => distance <= 2)
+    .sort((a, b) => a.distance - b.distance)
+    .map(({ cmd }) => cmd)
+    .slice(0, 3);
+  
+  // Sanitize command name in error output
+  const { sanitizeForOutput } = require("../src/utils/sanitize");
+  console.error(`❌ Error: Unknown command '${sanitizeForOutput(unknownCommand)}'`);
+  
+  if (suggestions.length > 0) {
+    console.error("💡 Did you mean:");
+    suggestions.forEach(cmd => console.error(`   • kc ${cmd}`));
+  } else {
+    console.error("💡 Available commands: " + availableCommands.join(', '));
+  }
+  
+  console.error("\n📖 Use 'kc --help' to see all available commands");
+  process.exit(1);
+});
 
 // Parse and execute
 program.parse();

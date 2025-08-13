@@ -41,14 +41,14 @@ describe("kc show command", () => {
     await show("../invalid", {});
     
     expect(exitCode).toBe(1);
-    expect(output.some(o => o.includes("Invalid snapshot ID"))).toBe(true);
+    expect(output.some(o => o.includes("is invalid"))).toBe(true);
   });
 
   test("handles path traversal attempts", async () => {
     await show("../../../../etc/passwd", {});
     
     expect(exitCode).toBe(1);
-    expect(output.some(o => o.includes("Invalid snapshot ID"))).toBe(true);
+    expect(output.some(o => o.includes("is invalid"))).toBe(true);
   });
 
   test("handles non-existent snapshot directory", async () => {

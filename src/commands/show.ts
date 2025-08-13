@@ -10,6 +10,7 @@ import * as path from "path";
 import { SnapshotSchema, getStoragePaths } from "../types";
 import { getMessage, formatError } from "../i18n";
 import { config } from "../config";
+import { validateSnapshotId, sanitizeForOutput } from "../utils/sanitize";
 
 interface ShowOptions {
   json?: boolean;
@@ -20,21 +21,27 @@ export async function show(snapshotId: string, options: ShowOptions = {}): Promi
   const { json = false, verbose = false } = options;
   
   try {
-    // Input validation - prevent path traversal and enforce minimum length
-    if (!snapshotId || 
-        snapshotId.includes('..') || 
-        snapshotId.includes('/') || 
-        snapshotId.includes('\\') ||
-        snapshotId.includes('\0') ||
-        snapshotId.length < 4 ||
-        snapshotId.length > 100) {
+    // Input validation with sanitization
+    const validation = validateSnapshotId(snapshotId);
+    
+    if (!validation.isValid) {
       if (json) {
-        console.log(JSON.stringify({ error: "Invalid snapshot ID. Must be 4-100 characters without path components." }));
+        console.log(JSON.stringify({ 
+          error: "Invalid snapshot ID", 
+          details: validation.errors 
+        }));
       } else {
-        console.error("❌ Invalid snapshot ID. Must be at least 4 characters without path components.");
+        console.error(`❌ Snapshot ID '${sanitizeForOutput(snapshotId)}' is invalid.`);
+        validation.errors.forEach(error => {
+          console.error(`   Reason: ${error}`);
+        });
+        console.error("💡 Examples of valid IDs: abc123, test-2024, feature_login");
       }
       process.exit(1);
     }
+    
+    // Use sanitized ID from here on
+    const sanitizedId = validation.sanitized;
 
     // Get snapshot directory
     const paths = getStoragePaths();
@@ -55,23 +62,40 @@ export async function show(snapshotId: string, options: ShowOptions = {}): Promi
     
     // Try exact match first
     let matchingFiles = allFiles.filter(f => 
-      f === `${snapshotId}.json`
+      f === `${sanitizedId}.json`
     );
     
     // If no exact match, try partial match (prefix)
     if (matchingFiles.length === 0) {
       matchingFiles = allFiles.filter(f => 
-        f.startsWith(snapshotId) && f !== "latest.json"
+        f.startsWith(sanitizedId) && f !== "latest.json"
       );
     }
     
     // Handle multiple or no matches
     if (matchingFiles.length === 0) {
       if (json) {
-        console.log(JSON.stringify({ error: `No snapshot found matching ID: ${snapshotId}` }));
+        console.log(JSON.stringify({ error: `No snapshot found matching ID: ${sanitizeForOutput(sanitizedId)}` }));
       } else {
-        console.error(`❌ No snapshot found matching ID: ${snapshotId}`);
-        console.error("💡 Use 'kc list' to see available snapshots");
+        console.error(`❌ No snapshot found matching ID: ${sanitizeForOutput(sanitizedId)}`);
+        
+        // Suggest similar IDs if any exist (optimized)
+        const lowerQuery = sanitizedId.toLowerCase();
+        const similarIds = allFiles
+          .map(f => f.replace(".json", ""))
+          .filter(id => {
+            const lowerId = id.toLowerCase();
+            return lowerId.includes(lowerQuery) || 
+                   lowerQuery.includes(lowerId.slice(0, 4));
+          })
+          .slice(0, 3);
+        
+        if (similarIds.length > 0) {
+          console.error("💡 Did you mean one of these?");
+          similarIds.forEach(id => console.error(`   • ${sanitizeForOutput(id)}`));
+        } else {
+          console.error("💡 Use 'kc list' to see all available snapshots");
+        }
       }
       process.exit(1);
     }
@@ -87,12 +111,14 @@ export async function show(snapshotId: string, options: ShowOptions = {}): Promi
           matches 
         }));
       } else {
-        console.error(`❌ Multiple snapshots match ID '${snapshotId}':`);
-        matchingFiles.forEach(f => {
+        console.error(`❌ Multiple snapshots match ID '${sanitizeForOutput(sanitizedId)}' (${matchingFiles.length} found):`);
+        matchingFiles.forEach((f, index) => {
           const id = f.replace(".json", "");
-          console.error(`  📄 ${id}`);
+          console.error(`  ${index + 1}. ${sanitizeForOutput(id)}`);
         });
-        console.error("💡 Use a more specific ID");
+        console.error("💡 Use a more specific ID. Examples:");
+        const suggestionId = matchingFiles[0].replace(".json", "").slice(0, Math.min(8, matchingFiles[0].length - 5));
+        console.error(`   • Try '${sanitizeForOutput(suggestionId)}'`);
       }
       process.exit(1);
     }
@@ -173,7 +199,7 @@ function displaySnapshot(snapshot: any, actualId: string, fileName: string, verb
   
   if (snapshot.tags && snapshot.tags.length > 0) {
     const safeTags = snapshot.tags
-      .map(t => String(t).replace(/[\x00-\x1F\x7F]/g, ""))
+      .map((t: any) => String(t).replace(/[\x00-\x1F\x7F]/g, ""))
       .join(", ");
     console.log(`🏷️  Tags: ${safeTags}`);
   }

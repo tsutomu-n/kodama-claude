@@ -20,6 +20,9 @@ Kodama stores **human decision logs** in structured format. When `/clear` erases
 curl -fsSL https://github.com/tsutomu-n/kodama-claude/releases/latest/download/install.sh | bash
 ```
 
+> 📌 **Important**: Your snapshots and data are **fully preserved** during installation or updates.  
+> Data stored in `~/.local/share/kodama-claude/` is never touched during binary updates.
+
 **What it does:**
 - Automatically detects and removes old versions (v0.1.0, v0.2.0)
 - Downloads correct binary for your architecture
@@ -109,6 +112,7 @@ kc list     # List saved snapshots (v0.4.1+)
 # Snapshot Management (v0.5.0+)
 kc show     # Display detailed snapshot information
 kc delete   # Safe snapshot deletion (with trash/restore)
+kc restore  # Restore from trash (v0.5.1+)
 kc search   # Full-text search across snapshots
 
 # Maintenance
@@ -642,6 +646,9 @@ A: `kc go` uses `claude -c -p "<context>"` to inject, then `claude --continue` t
 
 **Q: Why no token percentages?**  
 A: Claude doesn't reliably expose this. We use heuristic-based 4-value status (🟢/🟡/🔴/❓) instead.
+
+**Q: Are my snapshots deleted during installation/updates?**  
+A: No. Kodama Claude is designed to never touch user data during installation or updates. All snapshots are safely stored in `~/.local/share/kodama-claude/` and are unaffected by binary updates. Data deletion requires explicit commands like `kc uninstall --remove-all`.
 
 **Q: Why use snapshots instead of Git?**  
 A: Git and snapshots are complementary:

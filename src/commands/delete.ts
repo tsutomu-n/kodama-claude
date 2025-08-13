@@ -174,7 +174,18 @@ async function findSnapshotsByIds(snapshotDir: string, snapshotIds: string[]): P
         inputId.includes('\\') ||
         inputId.length < 4 ||
         inputId.length > 100) {
-      throw new Error(`Invalid snapshot ID: ${inputId}. Must be 4-100 characters without path components.`);
+      let errorMsg = `Snapshot ID '${inputId}' is invalid.`;
+      if (inputId.length < 4) {
+        errorMsg += ` Reason: Too short (minimum 4 characters required for safety to prevent accidental matches).`;
+      }
+      if (inputId.includes('..') || inputId.includes('/') || inputId.includes('\\')) {
+        errorMsg += ` Reason: Contains path separators (security restriction).`;
+      }
+      if (inputId.length > 100) {
+        errorMsg += ` Reason: Too long (maximum 100 characters).`;
+      }
+      errorMsg += ` Examples of valid IDs: abc123, test-2024, feature_login`;
+      throw new Error(errorMsg);
     }
 
     // Find matching files
@@ -190,11 +201,25 @@ async function findSnapshotsByIds(snapshotDir: string, snapshotIds: string[]): P
     }
 
     if (matchingFiles.length === 0) {
-      throw new Error(`No snapshot found matching ID: ${inputId}`);
+      // Suggest similar IDs if any exist
+      const similarIds = allFiles
+        .map(f => f.replace(".json", ""))
+        .filter(id => id.toLowerCase().includes(inputId.toLowerCase()) || 
+                     inputId.toLowerCase().includes(id.toLowerCase().slice(0, 4)))
+        .slice(0, 3);
+      
+      let errorMsg = `No snapshot found matching ID: ${inputId}`;
+      if (similarIds.length > 0) {
+        errorMsg += `. Did you mean: ${similarIds.join(', ')}?`;
+      } else {
+        errorMsg += `. Use 'kc list' to see available snapshots.`;
+      }
+      throw new Error(errorMsg);
     }
 
     if (matchingFiles.length > 1) {
-      throw new Error(`Multiple snapshots match ID '${inputId}': ${matchingFiles.map(f => f.replace('.json', '')).join(', ')}`);
+      const matches = matchingFiles.map(f => f.replace('.json', '')).join(', ');
+      throw new Error(`Multiple snapshots match ID '${inputId}' (${matchingFiles.length} found): ${matches}. Use a more specific ID to avoid ambiguity. Example: try '${matchingFiles[0].replace('.json', '').slice(0, Math.min(8, matchingFiles[0].length - 5))}'`);
     }
 
     const fileName = matchingFiles[0];

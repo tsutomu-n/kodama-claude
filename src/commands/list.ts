@@ -21,6 +21,8 @@ interface ListOptions {
   tags?: string;
   sort?: string;
   reverse?: boolean;
+  noHeader?: boolean;
+  machine?: boolean; // Machine-readable output (TSV format)
 }
 
 export async function list(options: ListOptions = {}): Promise<void> {
@@ -36,7 +38,9 @@ export async function list(options: ListOptions = {}): Promise<void> {
     thisWeek = false,
     tags,
     sort = "date",
-    reverse = false 
+    reverse = false,
+    noHeader = false,
+    machine = false
   } = options;
   
   try {
@@ -164,8 +168,23 @@ export async function list(options: ListOptions = {}): Promise<void> {
     // Output results
     if (json) {
       console.log(JSON.stringify({ snapshots }, null, 2));
+    } else if (machine) {
+      // Machine-readable TSV format
+      if (!noHeader) {
+        console.log("ID\tTitle\tTimestamp\tStep\tTags");
+      }
+      
+      snapshots.forEach((snap) => {
+        const safeTitle = (snap.title || "Untitled").replace(/[\x00-\x1F\x7F\t]/g, " ");
+        const safeTags = snap.tags ? snap.tags.join(",") : "";
+        const safeStep = snap.step || "";
+        
+        console.log(`${snap.id}\t${safeTitle}\t${snap.timestamp}\t${safeStep}\t${safeTags}`);
+      });
     } else {
-      console.log(`📚 Recent Snapshots (showing ${snapshots.length}/${files.length}):\n`);
+      if (!noHeader) {
+        console.log(`📚 Recent Snapshots (showing ${snapshots.length}/${files.length}):\n`);
+      }
       
       snapshots.forEach((snap, index) => {
         const date = new Date(snap.timestamp);
@@ -174,30 +193,36 @@ export async function list(options: ListOptions = {}): Promise<void> {
         
         // Security: Escape potential control characters in title
         const safeTitle = (snap.title || "Untitled").replace(/[\x00-\x1F\x7F]/g, "");
-        console.log(`${index + 1}. ${safeTitle}`);
-        console.log(`   📅 ${formattedDate} (${timeAgo})`);
         
-        if (snap.step) {
-          console.log(`   📊 Step: ${snap.step}`);
+        if (noHeader) {
+          // Simple format for --no-header: just ID and title
+          console.log(`${snap.id} ${safeTitle}`);
+        } else {
+          console.log(`${index + 1}. ${safeTitle}`);
+          console.log(`   📅 ${formattedDate} (${timeAgo})`);
+          
+          if (snap.step) {
+            console.log(`   📊 Step: ${snap.step}`);
+          }
+          
+          if (snap.tags && snap.tags.length > 0) {
+            // Security: Escape tags and limit display
+            const safeTags = snap.tags
+              .map(t => String(t).replace(/[\x00-\x1F\x7F]/g, ""))
+              .join(", ");
+            console.log(`   🏷️  Tags: ${safeTags}`);
+          }
+          
+          if (verbose) {
+            console.log(`   🆔 ID: ${snap.id}`);
+            console.log(`   📁 File: ${snap.file}`);
+          }
+          
+          console.log("");
         }
-        
-        if (snap.tags && snap.tags.length > 0) {
-          // Security: Escape tags and limit display
-          const safeTags = snap.tags
-            .map(t => String(t).replace(/[\x00-\x1F\x7F]/g, ""))
-            .join(", ");
-          console.log(`   🏷️  Tags: ${safeTags}`);
-        }
-        
-        if (verbose) {
-          console.log(`   🆔 ID: ${snap.id}`);
-          console.log(`   📁 File: ${snap.file}`);
-        }
-        
-        console.log("");
       });
       
-      if (files.length > limit) {
+      if (files.length > limit && !noHeader) {
         console.log(`💡 Showing ${limit} of ${files.length} snapshots. Use --limit to see more.`);
       }
     }

@@ -153,7 +153,7 @@ async function displayResults(results: SearchResult[], searchOptions: SearchOpti
     const formattedDate = formatDate(date);
     console.log(`   📅 ${formattedDate} (${timeAgo}) • Score: ${Math.round(result.score)}`);
     
-    if (snapshot.step && snapshot.step !== "unknown") {
+    if (snapshot.step) {
       console.log(`   📊 Step: ${snapshot.step}`);
     }
     
