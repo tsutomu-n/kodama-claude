@@ -101,5 +101,21 @@ program
     await resumeCommand(options);
   });
 
+// List command (show saved snapshots)
+program
+  .command("list")
+  .description("List saved snapshots")
+  .option("-n, --limit <number>", "Number of snapshots to show", "10")
+  .option("--json", "Output as JSON")
+  .option("-v, --verbose", "Show more details")
+  .action(async (options) => {
+    const { list } = await import("../src/commands/list");
+    await list({
+      limit: parseInt(options.limit, 10),
+      json: options.json,
+      verbose: options.verbose
+    });
+  });
+
 // Parse and execute
 program.parse();
