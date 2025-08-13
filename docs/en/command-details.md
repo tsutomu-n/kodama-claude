@@ -14,6 +14,10 @@ This guide provides detailed explanations of KODAMA Claude's commands, their opt
   - [kc restart - Smart Restart Command](#kc-restart---smart-restart-command)
   - [kc tags - Work Tag Management](#kc-tags---work-tag-management)
   - [kc resume - One-Key Resume](#kc-resume---one-key-resume)
+  - [kc list - List Saved Snapshots](#kc-list---list-saved-snapshots-v041)
+  - [kc delete - Delete Snapshots](#kc-delete---delete-snapshots-v050)
+  - [kc restore - Restore from Trash](#kc-restore---restore-from-trash-v051)
+  - [kc search - Search Snapshots](#kc-search---search-snapshots-v050)
 - [Practical Examples](#practical-examples)
 
 ## Terminology
@@ -664,10 +668,13 @@ KODAMA Claude starts with 3 simple commands and adds powerful features when need
 5. **`kc tags`** - Intelligent work tag management
 6. **`kc resume`** - One-key resume (save + go combined)
 7. **`kc list`** - List saved snapshots (v0.4.1+)
+8. **`kc delete`** - Delete snapshots with trash recovery (v0.5.0+)
+9. **`kc restore`** - Restore from trash (v0.5.1+)
+10. **`kc search`** - Full-text search across snapshots (v0.5.0+)
 
 Start with the core 3 commands, then discover advanced features as your workflow matures.
 
-## kc list
+## kc list - List Saved Snapshots (v0.4.1+)
 
 **Purpose**: Display a list of saved snapshots to review your work history.
 
@@ -687,6 +694,12 @@ kc list --json
 # Verbose mode with IDs and filenames
 kc list --verbose
 kc list -v
+
+# Script-friendly output (v0.5.1+)
+kc list --no-header
+
+# Machine-readable TSV format (v0.5.1+)
+kc list --machine
 ```
 
 ### Output Format
@@ -780,6 +793,50 @@ kc list --verbose
 # - Verifying snapshot IDs
 ```
 
+#### `--no-header` - Script-Friendly Output (v0.5.1+)
+
+Output only essential information without headers or formatting:
+
+```bash
+# Simple ID and title format
+kc list --no-header
+
+# Output:
+# abc123def456 Implemented user authentication
+# def456ghi789 Fixed login timeout bug
+
+# Perfect for scripts
+for line in $(kc list --no-header); do
+  id=$(echo $line | cut -d' ' -f1)
+  echo "Processing snapshot: $id"
+done
+```
+
+#### `--machine` - TSV Output Format (v0.5.1+)
+
+Output in Tab-Separated Values format for data processing:
+
+```bash
+# TSV format with headers
+kc list --machine
+
+# TSV without headers (for pure data processing)
+kc list --machine --no-header
+
+# Process with standard tools
+kc list --machine | cut -f2 | grep -i "auth"
+
+# Import into spreadsheet or database
+kc list --machine > snapshots.tsv
+```
+
+**TSV Format Columns**:
+1. **ID** - Snapshot identifier
+2. **Title** - Snapshot title
+3. **Timestamp** - ISO timestamp
+4. **Step** - Workflow step (designing/implementing/testing/done)
+5. **Tags** - Comma-separated tags
+
 ### Practical Examples
 
 #### Review Today's Work
@@ -808,6 +865,25 @@ echo "" >> report.md
 kc list --json | jq -r '.snapshots[] | "- \(.title) (\(.step))"' >> report.md
 ```
 
+#### Scripting and Automation (v0.5.1+)
+```bash
+# Get snapshot count
+COUNT=$(kc list --no-header | wc -l)
+echo "Total snapshots: $COUNT"
+
+# Process snapshots in batch
+kc list --machine --no-header | while IFS=$'\t' read -r id title timestamp step tags; do
+  echo "Processing: $id ($step)"
+  # Your processing logic here
+done
+
+# Export to CSV for analysis
+kc list --machine | sed 's/\t/,/g' > snapshots.csv
+
+# Filter and count by step
+kc list --machine --no-header | cut -f4 | sort | uniq -c
+```
+
 #### Cleanup Old Snapshots
 ```bash
 # List snapshots older than 7 days (for review before deletion)
@@ -827,5 +903,431 @@ The `kc list` command includes multiple security measures:
 - **Safe Error Messages**: Sanitized error messages prevent information leakage
 
 ---
+
+## kc delete - Delete Snapshots (v0.5.0+)
+
+**Purpose**: Delete snapshots with soft delete (trash) functionality for safe recovery.
+
+### Basic Operations
+
+```bash
+# Delete single snapshot
+kc delete abc123
+
+# Delete multiple snapshots
+kc delete abc123 def456 ghi789
+
+# Delete with force (skip confirmation)
+kc delete abc123 --force
+
+# Preview deletion (dry run)
+kc delete --dry-run abc123
+```
+
+### Advanced Deletion Modes
+
+#### Delete by Age
+```bash
+# Delete snapshots older than 30 days
+kc delete --older-than "30 days"
+
+# Delete snapshots older than 2 weeks
+kc delete --older-than "2 weeks"
+
+# Delete snapshots older than 1 month
+kc delete --older-than "1 month"
+```
+
+#### Delete by Pattern
+```bash
+# Delete snapshots matching pattern
+kc delete --match "test-*"
+
+# Delete all feature snapshots
+kc delete --match "feature*"
+
+# Preview pattern deletion
+kc delete --dry-run --match "old-*"
+```
+
+### Options
+
+#### `--force` - Skip Confirmation
+Skip interactive confirmation prompts:
+
+```bash
+# Delete without asking
+kc delete abc123 --force
+
+# Useful in automation
+kc delete --older-than "90 days" --force
+```
+
+#### `--dry-run` - Preview Mode
+Show what would be deleted without actually deleting:
+
+```bash
+# See what would be deleted
+kc delete --dry-run --older-than "30 days"
+
+# Preview pattern matching
+kc delete --dry-run --match "test-*"
+```
+
+#### `--json` - JSON Output
+Output results in JSON format for scripting:
+
+```bash
+# Get deletion results as JSON
+kc delete abc123 --json
+
+# Process results
+kc delete --older-than "30 days" --json | jq '.deleted[].id'
+```
+
+### Trash Management
+
+#### Show Trash Contents
+```bash
+# View items in trash
+kc delete --show-trash
+
+# JSON format for processing
+kc delete --show-trash --json
+```
+
+#### Empty Trash
+```bash
+# Permanently delete all trash items
+kc delete --empty-trash
+
+# Force empty (skip confirmation)
+kc delete --empty-trash --force
+
+# Preview what would be permanently deleted
+kc delete --empty-trash --dry-run
+```
+
+### Security Features
+
+- **Minimum ID Length**: Requires at least 4 characters to prevent accidental matches
+- **Path Validation**: Prevents directory traversal attacks
+- **Pattern Safety**: Sanitizes wildcard patterns to prevent ReDoS
+- **Collision Detection**: Prevents ambiguous matches with multiple suggestions
+
+### Error Handling
+
+**Common Errors and Solutions**:
+
+| Error | Solution |
+|-------|----------|
+| "Snapshot ID too short" | Use at least 4 characters: `kc delete abc1` instead of `kc delete a` |
+| "Multiple snapshots match" | Use more specific ID: `kc delete abc123def` instead of `kc delete abc` |
+| "No snapshot found" | Check ID with `kc list` or use pattern matching |
+| "Invalid pattern" | Avoid path separators and complex regex patterns |
+
+### Integration with Trash System
+
+Deleted snapshots are moved to trash, not permanently deleted:
+
+1. **Safe Deletion**: All deletions are reversible for 7+ days
+2. **Automatic Cleanup**: Trash items older than 7 days can be permanently removed
+3. **Space Monitoring**: Trash size is tracked to prevent storage bloat
+4. **Recovery**: Use `kc restore` to recover accidentally deleted snapshots
+
+## kc restore - Restore from Trash (v0.5.1+)
+
+**Purpose**: Restore accidentally deleted snapshots from trash with advanced safety features.
+
+### Basic Usage
+
+```bash
+# Restore single snapshot
+kc restore abc123
+
+# Restore multiple snapshots
+kc restore abc123 def456 ghi789
+
+# Preview what would be restored
+kc restore --dry-run abc123
+```
+
+### Restore Process
+
+1. **ID Validation**: Ensures safe, unambiguous snapshot identification
+2. **Collision Detection**: Prevents conflicts with existing snapshots
+3. **Parallel Processing**: Handles multiple restores efficiently (max 5 concurrent)
+4. **Automatic Verification**: Confirms successful restoration
+
+### Options
+
+#### `--dry-run` - Preview Mode
+Show what would be restored without actually restoring:
+
+```bash
+# Preview restore operation
+kc restore --dry-run abc123
+
+# Output:
+# 🔍 Would restore: abc123def456 (User authentication implementation)
+#    Trashed: 2025-08-13, 2:30:45 PM
+```
+
+#### `--verbose` - Detailed Output
+Show detailed information during restore process:
+
+```bash
+# Verbose restore
+kc restore --verbose abc123
+
+# Output:
+# ♻️  Restored: abc123def456
+#    Title: User authentication implementation
+#    Originally trashed: 2025-08-13, 2:30:45 PM
+```
+
+### Security Features
+
+- **Partial ID Matching**: Safely matches partial IDs while preventing accidents
+- **Collision Avoidance**: Prevents overwriting existing snapshots
+- **Parallel Processing**: Controlled concurrency prevents filesystem overload
+- **Input Validation**: Sanitizes and validates all snapshot IDs
+
+### Error Handling
+
+**Common Scenarios**:
+
+```bash
+# Snapshot not in trash
+kc restore nonexistent123
+# Output: ❓ Not found in trash (1):
+#           • nonexistent123
+#         💡 Use 'kc delete --show-trash' to see available items
+
+# Multiple matches found
+kc restore abc
+# Output: ❌ Failed to restore 1 snapshot(s):
+#           • abc: Multiple snapshots match 'abc': abc123, abc456
+
+# ID too short (safety feature)
+kc restore ab
+# Output: ❌ Failed to restore 1 snapshot(s):
+#           • ab: Snapshot ID 'ab' is too short. Use at least 4 characters
+```
+
+### Integration with Trash System
+
+- **Smart Search**: Finds snapshots using partial IDs
+- **Metadata Preservation**: Restores original titles, timestamps, and content
+- **Status Tracking**: Maintains restore history and statistics
+- **Cleanup Integration**: Works with trash management and cleanup processes
+
+### Practical Examples
+
+```bash
+# Daily cleanup recovery
+kc delete --show-trash | grep "yesterday"
+kc restore abc123  # Restore specific item
+
+# Bulk restore after accidental deletion
+kc delete --show-trash --json | jq -r '.items[] | select(.title | contains("auth")) | .originalId' | xargs kc restore
+
+# Safe restore with preview
+kc restore --dry-run abc123 def456  # Check what will be restored
+kc restore abc123 def456            # Actually restore
+```
+
+## kc search - Search Snapshots (v0.5.0+)
+
+**Purpose**: Perform full-text search across snapshots with ranking and highlighting.
+
+### Basic Usage
+
+```bash
+# Search in titles (default)
+kc search "authentication"
+
+# Search all fields (title, context, decisions, steps, tags)
+kc search --all "JWT token"
+
+# Regular expression search
+kc search --regex "fix.*bug"
+```
+
+### Search Modes
+
+#### Title Search (Default)
+```bash
+# Search only in snapshot titles
+kc search "user login"
+
+# Fast and focused results
+kc search "API implementation"
+```
+
+#### Full-Text Search
+```bash
+# Search all content fields
+kc search --all "database connection"
+
+# Search decisions and next steps
+kc search --all "refactor"
+```
+
+#### Regular Expression Search
+```bash
+# Pattern matching
+kc search --regex "(fix|bug|error)"
+
+# Complex patterns
+kc search --regex "implement.*auth.*system"
+```
+
+### Filtering Options
+
+#### By Tags
+```bash
+# Search within specific tags
+kc search --tags "backend,api" "database"
+
+# Multiple tag filters
+kc search --tags "feature,auth" "login"
+```
+
+#### By Date Range
+```bash
+# Search recent snapshots
+kc search --since "7 days ago" "bug fix"
+
+# Search specific date range
+kc search --since "2025-01-01" --until "2025-01-31" "feature"
+
+# Search by relative dates
+kc search --since "2 weeks ago" "implementation"
+```
+
+### Options
+
+#### `--all` - Search All Fields
+Expand search to include all content:
+
+```bash
+# Search title, context, decisions, next steps, and tags
+kc search --all "authentication"
+```
+
+#### `--limit` - Result Limit
+Control number of results returned:
+
+```bash
+# Show top 5 results
+kc search --limit 5 "user"
+
+# Show up to 50 results
+kc search --limit 50 "API"
+```
+
+#### `--case-sensitive` - Case Matching
+Perform case-sensitive search:
+
+```bash
+# Case-sensitive search
+kc search --case-sensitive "API"
+
+# Will not match "api" or "Api"
+kc search -c "JWT"
+```
+
+#### `--json` - JSON Output
+Output results in JSON format:
+
+```bash
+# JSON results for processing
+kc search --json "authentication"
+
+# Extract specific fields
+kc search --json "bug" | jq '.results[].snapshot.title'
+```
+
+#### `--suggestions` - Search Suggestions
+Get search term suggestions:
+
+```bash
+# Get suggestions for partial term
+kc search --suggestions "auth"
+
+# Output:
+# 💡 Search suggestions for "auth":
+# 1. authentication
+# 2. authorization  
+# 3. oauth
+```
+
+### Advanced Features
+
+#### Search Result Ranking
+- **Relevance Score**: Results ranked by relevance (0-100)
+- **Field Weighting**: Title matches score higher than content matches
+- **Recency Bonus**: More recent snapshots get slight ranking boost
+- **Context Highlighting**: Shows matched text with highlighting
+
+#### Smart Suggestions
+```bash
+# No results? Get suggestions
+kc search "authentcation"  # typo
+# Output includes:
+# 💡 Try:
+#   • Using --all to search all fields
+#   • Checking your spelling
+#   • Using broader search terms
+```
+
+### Security Features
+
+- **Query Sanitization**: Prevents injection attacks in regex mode
+- **Resource Limits**: Caps search results and processing time
+- **Safe Highlighting**: Sanitizes output to prevent terminal escape attacks
+- **Memory Protection**: Limits search index size and complexity
+
+### Practical Examples
+
+#### Find Implementation Details
+```bash
+# Find specific implementation
+kc search --all "JWT implementation"
+
+# Search decisions about architecture
+kc search --all "decided to use"
+```
+
+#### Debugging and Issue Tracking
+```bash
+# Find bug-related work
+kc search --regex "(bug|fix|error|issue)"
+
+# Search recent problems
+kc search --since "3 days ago" --all "problem"
+```
+
+#### Project Research
+```bash
+# Research past decisions
+kc search --tags "architecture" "database"
+
+# Find learning notes
+kc search --all "learned that" --since "1 month ago"
+```
+
+#### Scripting and Automation
+```bash
+# Extract all auth-related work
+kc search --json --all "auth" | jq '.results[] | {id: .snapshot.id, title: .snapshot.title, score: .score}'
+
+# Find incomplete work
+kc search --json --tags "implementing" "TODO" | jq -r '.results[].snapshot.id'
+
+# Generate topic summary
+kc search --all "API design" --json | jq -r '.results[] | "\(.snapshot.timestamp): \(.snapshot.title)"' | sort
+```
 
 **Tip**: For help, use `kc --help` or `kc <command> --help` to see command help.

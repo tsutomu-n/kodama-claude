@@ -5,6 +5,41 @@ All notable changes to KODAMA Claude will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.1] - 2025-08-13
+
+### Added
+- **New `kc restore` command** - Dedicated command for restoring snapshots from trash
+  - Supports multiple snapshot restoration with parallel processing (batched)
+  - `--dry-run` option for preview before restoration
+  - `--verbose` option for detailed restoration information
+  - Part of improving UX based on junior developer feedback
+
+- **Typo suggestion system** - Smart command suggestions for unknown commands
+  - Edit distance algorithm with DoS protection (length limits)
+  - Suggests up to 3 similar commands for typos
+  - Examples: `kc serach` → suggests `search`, `kc god` → suggests `go`
+
+- **Enhanced list command options**
+  - `--no-header` option for script-friendly output
+  - `--machine` option for TSV (Tab-Separated Values) format
+  - Better integration with Unix pipes and automation tools
+
+### Security
+- Terminal escape sequence protection with comprehensive input sanitization
+- DoS protection in edit distance algorithm (50 character limit)
+- Enhanced input validation with detailed error reporting
+- All user inputs sanitized before display to prevent terminal attacks
+
+### Improved
+- More helpful error messages with specific reasons and examples
+- Similar ID suggestions when snapshots not found
+- Optimized similar ID search performance
+- Better partial ID matching accuracy
+
+### Fixed
+- TypeScript compilation errors in search command
+- Test compatibility with new error message formats
+
 ## [0.5.0] - 2025-08-13
 
 ### Added
