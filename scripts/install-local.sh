@@ -7,6 +7,10 @@ echo "🏔️ KODAMA Claude Local Installer"
 echo "================================"
 echo ""
 
+# Get the project root directory
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$PROJECT_ROOT"
+
 # Check if binary exists
 if [ ! -f "dist/kc-linux-x64" ]; then
     echo "Building binary first..."
