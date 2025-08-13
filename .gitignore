@@ -84,8 +84,6 @@ temp/
 *.backup
 *.old
 *.orig
-# Accidental tilde directory
-~/
 
 # ========================================
 # KODAMA Runtime (Development)
