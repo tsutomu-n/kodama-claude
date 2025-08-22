@@ -155,3 +155,9 @@ perf-*.json
 kodama-backup-*/
 # Auto-generated release notes
 RELEASE_NOTES_*.md.tmp
+
+# ========================================
+# Gemini Generated Files
+# ========================================
+GEMINI.md
+.serena/

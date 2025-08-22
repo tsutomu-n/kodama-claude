@@ -64,7 +64,7 @@ export async function list(options: ListOptions = {}): Promise<void> {
     
     for (const fileName of allFiles) {
       // Security: Validate filename pattern
-      if (!/^[0-9T\-]+[a-z0-9]+\.json$/.test(fileName) && fileName !== "archive") {
+      if (!/^[0-9a-fT\-]+\.json$/.test(fileName) && fileName !== "archive") {
         continue; // Skip non-snapshot files
       }
       
